@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Select } from '@/components/ui/select'
-import { ArrowLeft, Plus, Trash2, Save } from 'lucide-react'
+import { ArrowLeft, Plus, Trash2, Save, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
 import { STORE_SECTIONS } from '@/lib/constants'
 
@@ -18,8 +18,32 @@ interface Ingredient {
   section: string
 }
 
-export default function NewRecipePage() {
+interface Recipe {
+  id: string
+  name: string
+  description?: string | null
+  source: string
+  rating?: number | null
+  totalTime?: number | null
+  prepTime?: number | null
+  cookTime?: number | null
+  imageUrl?: string | null
+  categories: string[]
+  servings: number
+  ingredients: Array<{
+    name: string
+    quantity?: number
+    unit?: string
+    section?: string
+  }>
+  instructions?: string | null
+  notes?: string | null
+}
+
+export default function EditRecipePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
   const router = useRouter()
+  const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   
   const [name, setName] = useState('')
@@ -31,9 +55,47 @@ export default function NewRecipePage() {
   const [rating, setRating] = useState<number | undefined>()
   const [categories, setCategories] = useState('')
   const [notes, setNotes] = useState('')
+  const [imageUrl, setImageUrl] = useState('')
   const [ingredients, setIngredients] = useState<Ingredient[]>([
     { name: '', quantity: '', unit: '', section: 'PRODUCE' },
   ])
+
+  useEffect(() => {
+    async function fetchRecipe() {
+      try {
+        const response = await fetch(`/api/recipes/${id}`)
+        if (response.ok) {
+          const recipe: Recipe = await response.json()
+          setName(recipe.name)
+          setDescription(recipe.description || '')
+          setInstructions(recipe.instructions || '')
+          setServings(recipe.servings)
+          setPrepTime(recipe.prepTime || undefined)
+          setCookTime(recipe.cookTime || undefined)
+          setRating(recipe.rating || undefined)
+          setCategories(recipe.categories.join(', '))
+          setNotes(recipe.notes || '')
+          setImageUrl(recipe.imageUrl || '')
+          
+          if (recipe.ingredients && Array.isArray(recipe.ingredients) && recipe.ingredients.length > 0) {
+            setIngredients(recipe.ingredients.map(i => ({
+              name: i.name || '',
+              quantity: i.quantity?.toString() || '',
+              unit: i.unit || '',
+              section: i.section || 'PRODUCE',
+            })))
+          }
+        } else if (response.status === 404) {
+          router.push('/recipes')
+        }
+      } catch (error) {
+        console.error('Error fetching recipe:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchRecipe()
+  }, [id, router])
 
   const addIngredient = () => {
     setIngredients([...ingredients, { name: '', quantity: '', unit: '', section: 'PRODUCE' }])
@@ -54,18 +116,19 @@ export default function NewRecipePage() {
     setIsSubmitting(true)
 
     try {
-      const response = await fetch('/api/recipes', {
-        method: 'POST',
+      const response = await fetch(`/api/recipes/${id}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name,
-          description,
-          instructions,
+          description: description || null,
+          instructions: instructions || null,
           servings,
-          prepTime,
-          cookTime,
-          rating,
-          notes,
+          prepTime: prepTime || null,
+          cookTime: cookTime || null,
+          rating: rating || null,
+          notes: notes || null,
+          imageUrl: imageUrl || null,
           categories: categories.split(',').map(c => c.trim()).filter(Boolean),
           ingredients: ingredients
             .filter((i) => i.name.trim())
@@ -79,17 +142,25 @@ export default function NewRecipePage() {
       })
 
       if (response.ok) {
-        router.push('/recipes')
+        router.push(`/recipes/${id}`)
       } else {
         const error = await response.json()
-        alert(error.error || 'Failed to create recipe')
+        alert(error.error || 'Failed to update recipe')
       }
     } catch (error) {
-      console.error('Error creating recipe:', error)
-      alert('Failed to create recipe')
+      console.error('Error updating recipe:', error)
+      alert('Failed to update recipe')
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-12">
+        <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    )
   }
 
   return (
@@ -97,14 +168,14 @@ export default function NewRecipePage() {
       {/* Header */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
-          <Link href="/recipes">
+          <Link href={`/recipes/${id}`}>
             <ArrowLeft className="h-5 w-5" />
           </Link>
         </Button>
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Add Recipe</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Edit Recipe</h1>
           <p className="text-muted-foreground">
-            Create a new custom recipe
+            Update recipe details
           </p>
         </div>
       </div>
@@ -132,6 +203,14 @@ export default function NewRecipePage() {
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="A brief description of the dish"
                 rows={2}
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium">Image URL</label>
+              <Input
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                placeholder="https://example.com/image.jpg"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -276,11 +355,11 @@ export default function NewRecipePage() {
         {/* Submit */}
         <div className="flex justify-end gap-2">
           <Button type="button" variant="outline" asChild>
-            <Link href="/recipes">Cancel</Link>
+            <Link href={`/recipes/${id}`}>Cancel</Link>
           </Button>
           <Button type="submit" disabled={!name.trim() || isSubmitting}>
             <Save className="mr-2 h-4 w-4" />
-            {isSubmitting ? 'Saving...' : 'Save Recipe'}
+            {isSubmitting ? 'Saving...' : 'Save Changes'}
           </Button>
         </div>
       </form>

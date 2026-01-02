@@ -25,9 +25,8 @@ async function ensureDefaultUserAndHousehold() {
             breakfastEnabled: true,
             lunchEnabled: true,
             dinnerEnabled: true,
-            planningWeeks: 1,
-            maxMealRepeats: 2,
-            leftoverWindowDays: 2,
+            defaultServings: 2,
+            defaultMaxRepeats: 2,
           }
         }
       }
