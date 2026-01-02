@@ -1,0 +1,309 @@
+// Prisma schema for Meal Planner
+// Supports: Users, Households, Recipes, Meal Plans, Grocery Lists
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================
+// Core Models
+// ============================================
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  household   Household? @relation(fields: [householdId], references: [id])
+  householdId String?
+}
+
+model Household {
+  id        String   @id @default(cuid())
+  name      String   @default("My Household")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  users           User[]
+  recipes         Recipe[]
+  mealPlans       MealPlan[]
+  softRules       SoftRule[]
+  pantryStaples   PantryStaple[]
+  historicalPlans HistoricalPlan[]
+  mealSettings    MealSettings?
+}
+
+model MealSettings {
+  id          String  @id @default(cuid())
+  householdId String  @unique
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  // Default meal times
+  breakfastTime String @default("08:00")
+  lunchTime     String @default("12:00")
+  dinnerTime    String @default("18:00")
+
+  // Default enabled meals
+  breakfastEnabled Boolean @default(true)
+  lunchEnabled     Boolean @default(true)
+  dinnerEnabled    Boolean @default(true)
+
+  // Default servings per meal
+  defaultServings Int @default(2)
+
+  // Max repeats default
+  defaultMaxRepeats Int @default(2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============================================
+// Recipes
+// ============================================
+
+model Recipe {
+  id          String   @id @default(cuid())
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  // Source tracking
+  source      RecipeSource @default(CUSTOM)
+  paprikaId   String?      @unique
+  sourceUrl   String?
+
+  // Recipe details
+  name         String
+  description  String?
+  ingredients  Json      // Array of { name, quantity, unit, section }
+  instructions String?   @db.Text
+  servings     Int       @default(2)
+  rating       Int?      // 1-5 stars
+  prepTime     Int?      // minutes
+  cookTime     Int?      // minutes
+  totalTime    Int?      // minutes
+  imageUrl     String?
+  categories   String[]  // Tags/categories
+  notes        String?   @db.Text
+
+  // Metadata
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  plannedMeals PlannedMeal[]
+
+  @@index([householdId])
+  @@index([source])
+  @@index([rating])
+}
+
+enum RecipeSource {
+  PAPRIKA
+  CUSTOM
+  AI_DISCOVERED
+  WEB_IMPORT
+}
+
+// ============================================
+// Meal Planning
+// ============================================
+
+model MealPlan {
+  id          String   @id @default(cuid())
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  // Plan details
+  name      String?
+  startDate DateTime
+  endDate   DateTime
+  status    PlanStatus @default(DRAFT)
+
+  // Generation parameters (stored for reference)
+  generationParams Json? // { maxRepeats, enabledMeals, softRules used, etc. }
+
+  // AI reasoning (optional, for debugging/display)
+  aiReasoning String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  plannedMeals PlannedMeal[]
+  groceryList  GroceryList?
+
+  @@index([householdId])
+  @@index([status])
+}
+
+enum PlanStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+model PlannedMeal {
+  id         String   @id @default(cuid())
+  mealPlanId String
+  mealPlan   MealPlan @relation(fields: [mealPlanId], references: [id], onDelete: Cascade)
+
+  // Meal slot
+  date     DateTime
+  mealType MealType
+
+  // What's being served
+  recipeId  String?
+  recipe    Recipe?  @relation(fields: [recipeId], references: [id], onDelete: SetNull)
+  customName String? // For non-recipe meals (e.g., "Eating Out")
+
+  // Leftover tracking
+  isLeftover       Boolean @default(false)
+  leftoverSourceId String? // Points to original PlannedMeal
+  leftoverSource   PlannedMeal?  @relation("LeftoverSource", fields: [leftoverSourceId], references: [id], onDelete: SetNull)
+  leftovers        PlannedMeal[] @relation("LeftoverSource")
+
+  // Status
+  status   MealStatus @default(PLANNED)
+  servings Int        @default(2)
+
+  // Google Calendar integration
+  calendarEventId String?
+
+  // Notes
+  notes String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([mealPlanId, date, mealType])
+  @@index([mealPlanId])
+  @@index([date])
+}
+
+enum MealType {
+  BREAKFAST
+  LUNCH
+  DINNER
+}
+
+enum MealStatus {
+  PLANNED
+  EATING_OUT
+  SKIPPED
+  COMPLETED
+}
+
+// ============================================
+// Grocery List
+// ============================================
+
+model GroceryList {
+  id         String   @id @default(cuid())
+  mealPlanId String   @unique
+  mealPlan   MealPlan @relation(fields: [mealPlanId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  items GroceryItem[]
+}
+
+model GroceryItem {
+  id            String      @id @default(cuid())
+  groceryListId String
+  groceryList   GroceryList @relation(fields: [groceryListId], references: [id], onDelete: Cascade)
+
+  // Item details
+  name       String
+  quantity   Float?
+  unit       String?
+  section    StoreSection @default(OTHER)
+  mealNames  String[]     // Which meals need this ingredient
+
+  // Status
+  isChecked Boolean @default(false)
+  isStaple  Boolean @default(false) // Excluded from shopping
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([groceryListId])
+  @@index([section])
+}
+
+enum StoreSection {
+  PRODUCE
+  DAIRY
+  MEAT_SEAFOOD
+  BAKERY
+  FROZEN
+  PANTRY
+  CANNED_GOODS
+  CONDIMENTS
+  BEVERAGES
+  SPICES
+  INTERNATIONAL
+  OTHER
+}
+
+// ============================================
+// Settings & Preferences
+// ============================================
+
+model SoftRule {
+  id          String    @id @default(cuid())
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  ruleText  String
+  isActive  Boolean  @default(true)
+  priority  Int      @default(0) // Higher = more important
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([householdId])
+}
+
+model PantryStaple {
+  id          String    @id @default(cuid())
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  ingredientName String
+  isActive       Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([householdId, ingredientName])
+  @@index([householdId])
+}
+
+// ============================================
+// Historical Data (for AI training)
+// ============================================
+
+model HistoricalPlan {
+  id          String    @id @default(cuid())
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  importedAt DateTime @default(now())
+  source     String?  // "csv", "json", "manual"
+  data       Json     // Flexible structure for imported data
+
+  @@index([householdId])
+}
