@@ -40,6 +40,7 @@ model Household {
   pantryStaples   PantryStaple[]
   historicalPlans HistoricalPlan[]
   mealSettings    MealSettings?
+  baselinePresets BaselinePreset[]
 }
 
 model MealSettings {
@@ -63,8 +64,29 @@ model MealSettings {
   // Max repeats default
   defaultMaxRepeats Int @default(2)
 
+  // Max leftover meals per week
+  maxLeftoversPerWeek Int @default(3)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model BaselinePreset {
+  id          String    @id @default(cuid())
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  name              String
+  isDefault         Boolean @default(false)
+  maxLeftovers      Int     @default(3)
+  servingsPerMeal   Int     @default(4)
+  guaranteedMealIds String[] // Recipe IDs that must be included
+  guidelines        String?  @db.Text // Open-text planning guidelines for AI
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([householdId])
 }
 
 // ============================================
@@ -84,7 +106,7 @@ model Recipe {
   // Recipe details
   name         String
   description  String?
-  ingredients  Json      // Array of { name, quantity, unit, section }
+  ingredients  Json      // Array of { name, quantity, unit }
   instructions String?   @db.Text
   servings     Int       @default(2)
   rating       Int?      // 1-5 stars
@@ -92,6 +114,7 @@ model Recipe {
   cookTime     Int?      // minutes
   totalTime    Int?      // minutes
   imageUrl     String?
+  icon         String?   // Food icon name (e.g., "pizza", "salad")
   categories   String[]  // Tags/categories
   notes        String?   @db.Text
 
@@ -176,6 +199,7 @@ model PlannedMeal {
   // Status
   status   MealStatus @default(PLANNED)
   servings Int        @default(2)
+  isLocked Boolean    @default(false) // Prevent regeneration
 
   // Google Calendar integration
   calendarEventId String?

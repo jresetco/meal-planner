@@ -32,6 +32,9 @@ interface MealPlanGenerationParams {
   softRules: Pick<SoftRule, 'ruleText' | 'priority'>[]
   householdSize: number
   historicalContext?: string // Summary of past preferences
+  guaranteedMealIds?: string[] // Recipe IDs that must appear in the plan
+  maxLeftoversPerWeek?: number // Maximum leftovers per week
+  guidelines?: string // User-provided planning guidelines (hard requirements)
 }
 
 export async function generateMealPlan(params: MealPlanGenerationParams): Promise<GeneratedMealPlan> {
@@ -46,6 +49,9 @@ export async function generateMealPlan(params: MealPlanGenerationParams): Promis
     softRules,
     householdSize,
     historicalContext,
+    guaranteedMealIds = [],
+    maxLeftoversPerWeek = 3,
+    guidelines,
   } = params
 
   // Format date range
@@ -84,6 +90,16 @@ ${mealOverrides.map(o => `- ${o.date}: Only ${o.meals.join(', ')}`).join('\n')}`
 
 ## Constraints
 - Maximum repeats per recipe (including leftovers): ${maxRepeats}
+- Maximum leftovers per week: ${maxLeftoversPerWeek}
+
+${guidelines ? `## HARD REQUIREMENTS - Planning Guidelines
+${guidelines}
+
+These are mandatory requirements that MUST be followed in the meal plan.
+` : ''}
+${guaranteedMealIds.length > 0 ? `## Guaranteed Meals (MUST include these recipes at least once)
+Recipe IDs that must appear: ${guaranteedMealIds.join(', ')}
+Recipes: ${recipes.filter(r => guaranteedMealIds.includes(r.id)).map(r => `${r.id}: ${r.name}`).join(', ')}` : ''}
 
 ${pinnedMeals.length > 0 ? `## Pinned Meals (MUST include these exactly)
 ${pinnedMeals.map(p => `- ${p.date} ${p.mealType}: Recipe ID ${p.recipeId}`).join('\n')}` : ''}

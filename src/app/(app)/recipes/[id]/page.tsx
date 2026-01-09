@@ -7,13 +7,12 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ArrowLeft, Edit, Trash2, Star, Clock, Users, ChefHat } from 'lucide-react'
 import Link from 'next/link'
-import { STORE_SECTIONS } from '@/lib/constants'
+import { FoodIcon } from '@/components/recipes/food-icon-picker'
 
 interface Ingredient {
   name: string
   quantity?: number
   unit?: string
-  section: string
 }
 
 interface Recipe {
@@ -26,6 +25,7 @@ interface Recipe {
   prepTime?: number | null
   cookTime?: number | null
   imageUrl?: string | null
+  icon?: string | null
   categories: string[]
   servings: number
   ingredients: Ingredient[]
@@ -72,10 +72,6 @@ export default function RecipeViewPage({ params }: { params: Promise<{ id: strin
     }
   }
 
-  const getSectionLabel = (section: string) => {
-    return STORE_SECTIONS.find(s => s.value === section)?.label || section
-  }
-
   const formatIngredient = (ingredient: Ingredient) => {
     const parts = []
     if (ingredient.quantity) parts.push(ingredient.quantity)
@@ -84,13 +80,8 @@ export default function RecipeViewPage({ params }: { params: Promise<{ id: strin
     return parts.join(' ')
   }
 
-  // Group ingredients by store section
-  const groupedIngredients = recipe?.ingredients?.reduce((acc, ingredient) => {
-    const section = ingredient.section || 'OTHER'
-    if (!acc[section]) acc[section] = []
-    acc[section].push(ingredient)
-    return acc
-  }, {} as Record<string, Ingredient[]>) || {}
+  // Simple list of ingredients
+  const ingredientsList = recipe?.ingredients || []
 
   if (isLoading) {
     return (
@@ -136,11 +127,19 @@ export default function RecipeViewPage({ params }: { params: Promise<{ id: strin
                 </Link>
               </Button>
               {deleteConfirm ? (
-                <div className="flex gap-2">
-                  <Button variant="destructive" onClick={handleDelete}>
-                    Confirm Delete
+                <div className="flex gap-2 p-2 bg-destructive/10 rounded-lg border-2 border-destructive">
+                  <Button 
+                    variant="destructive" 
+                    onClick={handleDelete}
+                    className="bg-red-600 hover:bg-red-700 text-white font-semibold"
+                  >
+                    Yes, Delete
                   </Button>
-                  <Button variant="ghost" onClick={() => setDeleteConfirm(false)}>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setDeleteConfirm(false)}
+                    className="border-red-300 text-red-700 hover:bg-red-50 font-semibold"
+                  >
                     Cancel
                   </Button>
                 </div>
@@ -187,8 +186,8 @@ export default function RecipeViewPage({ params }: { params: Promise<{ id: strin
         </div>
       </div>
 
-      {/* Image */}
-      {recipe.imageUrl && (
+      {/* Image or Icon */}
+      {recipe.imageUrl ? (
         <div className="aspect-video bg-muted rounded-lg overflow-hidden">
           <img
             src={recipe.imageUrl}
@@ -196,7 +195,13 @@ export default function RecipeViewPage({ params }: { params: Promise<{ id: strin
             className="w-full h-full object-cover"
           />
         </div>
-      )}
+      ) : recipe.icon ? (
+        <div className="flex justify-center py-8">
+          <div className="p-6 bg-muted rounded-full">
+            <FoodIcon name={recipe.icon} className="h-16 w-16 text-muted-foreground" />
+          </div>
+        </div>
+      ) : null}
 
       {/* Ingredients */}
       <Card>
@@ -205,29 +210,19 @@ export default function RecipeViewPage({ params }: { params: Promise<{ id: strin
             <ChefHat className="h-5 w-5" />
             Ingredients
           </CardTitle>
-          <CardDescription>Organized by store section for easier shopping</CardDescription>
         </CardHeader>
         <CardContent>
-          {Object.keys(groupedIngredients).length === 0 ? (
+          {ingredientsList.length === 0 ? (
             <p className="text-muted-foreground">No ingredients listed</p>
           ) : (
-            <div className="space-y-4">
-              {Object.entries(groupedIngredients).map(([section, ingredients]) => (
-                <div key={section}>
-                  <h4 className="font-medium text-sm text-muted-foreground mb-2">
-                    {getSectionLabel(section)}
-                  </h4>
-                  <ul className="space-y-1">
-                    {ingredients.map((ingredient, index) => (
-                      <li key={index} className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-primary/50" />
-                        {formatIngredient(ingredient)}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+            <ul className="space-y-2">
+              {ingredientsList.map((ingredient, index) => (
+                <li key={index} className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-primary/50 shrink-0" />
+                  <span>{formatIngredient(ingredient)}</span>
+                </li>
               ))}
-            </div>
+            </ul>
           )}
         </CardContent>
       </Card>

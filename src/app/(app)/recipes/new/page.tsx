@@ -6,16 +6,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Select } from '@/components/ui/select'
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select'
 import { ArrowLeft, Plus, Trash2, Save } from 'lucide-react'
 import Link from 'next/link'
-import { STORE_SECTIONS } from '@/lib/constants'
+import { INGREDIENT_UNITS } from '@/lib/constants'
+import { FoodIconPicker, FoodIcon } from '@/components/recipes/food-icon-picker'
 
 interface Ingredient {
   name: string
   quantity: string
   unit: string
-  section: string
 }
 
 export default function NewRecipePage() {
@@ -31,12 +37,13 @@ export default function NewRecipePage() {
   const [rating, setRating] = useState<number | undefined>()
   const [categories, setCategories] = useState('')
   const [notes, setNotes] = useState('')
+  const [icon, setIcon] = useState<string | undefined>()
   const [ingredients, setIngredients] = useState<Ingredient[]>([
-    { name: '', quantity: '', unit: '', section: 'PRODUCE' },
+    { name: '', quantity: '', unit: '' },
   ])
 
   const addIngredient = () => {
-    setIngredients([...ingredients, { name: '', quantity: '', unit: '', section: 'PRODUCE' }])
+    setIngredients([...ingredients, { name: '', quantity: '', unit: '' }])
   }
 
   const removeIngredient = (index: number) => {
@@ -66,6 +73,7 @@ export default function NewRecipePage() {
           cookTime,
           rating,
           notes,
+          icon,
           categories: categories.split(',').map(c => c.trim()).filter(Boolean),
           ingredients: ingredients
             .filter((i) => i.name.trim())
@@ -73,7 +81,6 @@ export default function NewRecipePage() {
               name: i.name,
               quantity: parseFloat(i.quantity) || undefined,
               unit: i.unit || undefined,
-              section: i.section,
             })),
         }),
       })
@@ -178,12 +185,25 @@ export default function NewRecipePage() {
           </CardContent>
         </Card>
 
+        {/* Recipe Icon */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Recipe Icon</CardTitle>
+            <CardDescription>
+              Choose an icon to represent this recipe (optional - can be used instead of an image)
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <FoodIconPicker value={icon} onChange={setIcon} />
+          </CardContent>
+        </Card>
+
         {/* Ingredients */}
         <Card>
           <CardHeader>
             <CardTitle>Ingredients</CardTitle>
             <CardDescription>
-              Add ingredients with quantities, units, and store section for grocery list organization
+              Add ingredients with quantities and units
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -195,23 +215,26 @@ export default function NewRecipePage() {
                   onChange={(e) => updateIngredient(index, 'quantity', e.target.value)}
                   className="w-16"
                 />
-                <Input
-                  placeholder="Unit"
+                <Select
                   value={ingredient.unit}
-                  onChange={(e) => updateIngredient(index, 'unit', e.target.value)}
-                  className="w-20"
-                />
+                  onValueChange={(value) => updateIngredient(index, 'unit', value === '_empty' ? '' : value)}
+                >
+                  <SelectTrigger className="w-24">
+                    <SelectValue placeholder="Unit" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {INGREDIENT_UNITS.map((unit) => (
+                      <SelectItem key={unit.value} value={unit.value || '_empty'}>
+                        {unit.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Input
                   placeholder="Ingredient name"
                   value={ingredient.name}
                   onChange={(e) => updateIngredient(index, 'name', e.target.value)}
                   className="flex-1 min-w-[150px]"
-                />
-                <Select
-                  value={ingredient.section}
-                  onChange={(e) => updateIngredient(index, 'section', e.target.value)}
-                  options={[...STORE_SECTIONS]}
-                  className="w-36"
                 />
                 <Button
                   type="button"

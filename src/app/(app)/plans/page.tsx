@@ -3,10 +3,26 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
 import { Plus, Calendar, ArrowRight } from 'lucide-react'
+import { auth } from '@/lib/auth'
+import prisma from '@/lib/db'
+import { formatDate } from '@/lib/utils'
 
-export default function PlansPage() {
-  // In a real app, this would fetch from the API
-  const plans: any[] = []
+export default async function PlansPage() {
+  const session = await auth()
+  
+  const plans = session?.user?.householdId 
+    ? await prisma.mealPlan.findMany({
+        where: {
+          householdId: session.user.householdId,
+        },
+        orderBy: { startDate: 'desc' },
+        include: {
+          _count: {
+            select: { plannedMeals: true },
+          },
+        },
+      })
+    : []
 
   return (
     <div className="space-y-6">
@@ -50,12 +66,16 @@ export default function PlansPage() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>{plan.name || 'Meal Plan'}</CardTitle>
+                    <CardTitle>
+                      {formatDate(new Date(plan.startDate))} - {formatDate(new Date(plan.endDate))}
+                    </CardTitle>
                     <CardDescription>
-                      {plan.startDate} - {plan.endDate}
+                      {plan._count.plannedMeals} meals planned
                     </CardDescription>
                   </div>
-                  <Badge>{plan.status}</Badge>
+                  <Badge variant={plan.status === 'ACTIVE' ? 'default' : 'secondary'}>
+                    {plan.status}
+                  </Badge>
                 </div>
               </CardHeader>
               <CardContent>

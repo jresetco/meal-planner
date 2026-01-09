@@ -58,6 +58,10 @@ export async function POST(request: NextRequest) {
     maxRepeats = 2,
     pinnedMeals = [],
     skippedMeals = [],
+    guaranteedMealIds = [],
+    servingsPerMeal,
+    maxLeftoversPerWeek,
+    guidelines,
   } = body
 
   // Get household settings and recipes
@@ -107,7 +111,10 @@ export async function POST(request: NextRequest) {
     pinnedMeals,
     skippedMeals,
     softRules,
-    householdSize: settings?.defaultServings || 2,
+    householdSize: servingsPerMeal || settings?.defaultServings || 2,
+    guaranteedMealIds,
+    maxLeftoversPerWeek,
+    guidelines,
   })
 
   // Save the plan to database

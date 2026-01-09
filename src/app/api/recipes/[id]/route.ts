@@ -58,6 +58,7 @@ export async function PUT(
       cookTime: body.cookTime,
       totalTime: (body.prepTime || 0) + (body.cookTime || 0) || null,
       imageUrl: body.imageUrl,
+      icon: body.icon,
       categories: body.categories,
       notes: body.notes,
     },

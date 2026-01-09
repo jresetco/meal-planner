@@ -1,0 +1,332 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select'
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription 
+} from '@/components/ui/dialog'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Input } from '@/components/ui/input'
+import { ChevronLeft, Search } from 'lucide-react'
+import { 
+  format, 
+  isSameDay, 
+  eachDayOfInterval, 
+  startOfWeek, 
+  endOfWeek, 
+  addWeeks, 
+  isSameMonth 
+} from 'date-fns'
+import type { MealSlotConfig, MealType, SlotConfigStatus, Recipe } from '@/types'
+
+interface MealPlanGridProps {
+  dateRange: { start: Date; end: Date }
+  initialSlots?: MealSlotConfig[]
+  recipes: Pick<Recipe, 'id' | 'name' | 'categories'>[]
+  onContinue: (mealSlots: MealSlotConfig[]) => void
+  onBack: () => void
+}
+
+export function MealPlanGrid({ 
+  dateRange, 
+  initialSlots,
+  recipes,
+  onContinue, 
+  onBack 
+}: MealPlanGridProps) {
+  const [mealSlots, setMealSlots] = useState<MealSlotConfig[]>(() => {
+    if (initialSlots && initialSlots.length > 0) {
+      return initialSlots
+    }
+    
+    const days = eachDayOfInterval(dateRange)
+    const slots: MealSlotConfig[] = []
+    days.forEach((date) => {
+      (['BREAKFAST', 'LUNCH', 'DINNER'] as MealType[]).forEach((mealType) => {
+        slots.push({
+          date,
+          mealType,
+          status: 'AVAILABLE',
+        })
+      })
+    })
+    return slots
+  })
+  
+  const [reserveModal, setReserveModal] = useState<{
+    isOpen: boolean
+    slotIndex: number | null
+  }>({ isOpen: false, slotIndex: null })
+  
+  const [searchQuery, setSearchQuery] = useState('')
+  
+  const today = new Date()
+  
+  // Create calendar grid (weeks)
+  const weekStart = startOfWeek(dateRange.start, { weekStartsOn: 0 })
+  const lastDay = dateRange.end
+  const weekEnd = endOfWeek(lastDay, { weekStartsOn: 0 })
+  
+  const weeks: Date[][] = []
+  let currentWeek = weekStart
+  while (currentWeek <= weekEnd) {
+    const currentWeekEnd = endOfWeek(currentWeek, { weekStartsOn: 0 })
+    weeks.push(eachDayOfInterval({ start: currentWeek, end: currentWeekEnd }))
+    currentWeek = addWeeks(currentWeek, 1)
+  }
+  
+  const handleStatusChange = (index: number, status: string) => {
+    if (status === 'PINNED') {
+      setReserveModal({ isOpen: true, slotIndex: index })
+    } else {
+      const newSlots = [...mealSlots]
+      newSlots[index] = {
+        ...newSlots[index],
+        status: status as SlotConfigStatus,
+        pinnedRecipeId: undefined,
+        pinnedRecipeName: undefined,
+      }
+      setMealSlots(newSlots)
+    }
+  }
+  
+  const handleReserveMeal = (recipe: Pick<Recipe, 'id' | 'name'>) => {
+    if (reserveModal.slotIndex !== null) {
+      const newSlots = [...mealSlots]
+      newSlots[reserveModal.slotIndex] = {
+        ...newSlots[reserveModal.slotIndex],
+        status: 'PINNED',
+        pinnedRecipeId: recipe.id,
+        pinnedRecipeName: recipe.name,
+      }
+      setMealSlots(newSlots)
+      setReserveModal({ isOpen: false, slotIndex: null })
+      setSearchQuery('')
+    }
+  }
+  
+  const filteredRecipes = recipes.filter((recipe) =>
+    recipe.name.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+  
+  const getSlotForDayAndMeal = (date: Date, mealType: MealType) => {
+    return mealSlots.find(
+      (slot) => isSameDay(slot.date, date) && slot.mealType === mealType
+    )
+  }
+  
+  const isDateInRange = (date: Date) => {
+    return date >= dateRange.start && date <= dateRange.end
+  }
+
+  const getMealLabel = (mealType: MealType) => {
+    switch (mealType) {
+      case 'BREAKFAST': return 'B'
+      case 'LUNCH': return 'L'
+      case 'DINNER': return 'D'
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 p-6">
+      <div className="max-w-6xl mx-auto space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={onBack}>
+              <ChevronLeft className="w-5 h-5" />
+            </Button>
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">Meal Plan Grid</h1>
+              <p className="text-slate-600">
+                {format(dateRange.start, 'MMM d')} - {format(dateRange.end, 'MMM d, yyyy')}
+              </p>
+            </div>
+          </div>
+          <Button 
+            onClick={() => onContinue(mealSlots)}
+            size="lg"
+            className="bg-emerald-600 hover:bg-emerald-700"
+          >
+            Continue to Criteria
+          </Button>
+        </div>
+        
+        <Card className="p-4">
+          <div className="space-y-3">
+            {/* Weekday headers */}
+            <div className="grid grid-cols-7 gap-1.5">
+              {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((day) => (
+                <div key={day} className="text-center text-xs font-semibold text-slate-700 py-2 border-b-2 border-slate-200">
+                  {day}
+                </div>
+              ))}
+            </div>
+            
+            {/* Calendar grid */}
+            {weeks.map((week, weekIndex) => {
+              const firstDayOfWeek = week[0]
+              const showMonthLabel = weekIndex === 0 || !isSameMonth(week[0], weeks[weekIndex - 1][0])
+              
+              return (
+                <div key={weekIndex}>
+                  {showMonthLabel && (
+                    <div className="text-sm font-bold text-slate-800 mb-2 mt-3">
+                      {format(firstDayOfWeek, 'MMMM yyyy')}
+                    </div>
+                  )}
+                  <div className="grid grid-cols-7 gap-1.5">
+                    {week.map((date) => {
+                      const inRange = isDateInRange(date)
+                      const isToday = isSameDay(date, today)
+                      
+                      if (!inRange) {
+                        return (
+                          <div 
+                            key={date.toISOString()} 
+                            className="bg-slate-50 border border-slate-100 rounded-lg p-2 min-h-[120px]"
+                          >
+                            <div className="text-xs text-slate-300">
+                              {format(date, 'd')}
+                            </div>
+                          </div>
+                        )
+                      }
+                      
+                      const breakfastSlot = getSlotForDayAndMeal(date, 'BREAKFAST')
+                      const lunchSlot = getSlotForDayAndMeal(date, 'LUNCH')
+                      const dinnerSlot = getSlotForDayAndMeal(date, 'DINNER')
+                      
+                      return (
+                        <div
+                          key={date.toISOString()}
+                          className={`bg-white border rounded-lg p-2 min-h-[120px] ${
+                            isToday ? 'ring-2 ring-yellow-400 bg-yellow-50' : 'border-slate-200'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <div className={`text-xs font-semibold ${isToday ? 'text-yellow-700' : 'text-slate-700'}`}>
+                              {format(date, 'd')}
+                            </div>
+                            {isToday && (
+                              <div className="text-[10px] font-medium text-yellow-700 bg-yellow-100 px-1.5 py-0.5 rounded">
+                                Today
+                              </div>
+                            )}
+                          </div>
+                          
+                          <div className="space-y-1.5">
+                            {[
+                              { label: 'B', slot: breakfastSlot, type: 'BREAKFAST' as MealType },
+                              { label: 'L', slot: lunchSlot, type: 'LUNCH' as MealType },
+                              { label: 'D', slot: dinnerSlot, type: 'DINNER' as MealType }
+                            ].map(({ label, slot, type }) => {
+                              if (!slot) return null
+                              const slotIndex = mealSlots.indexOf(slot)
+                              
+                              return (
+                                <div key={type} className="flex items-center gap-1">
+                                  <div className="text-[10px] font-medium text-slate-500 w-3">
+                                    {label}
+                                  </div>
+                                  <Select
+                                    value={slot.pinnedRecipeId ? 'PINNED' : slot.status}
+                                    onValueChange={(value) => handleStatusChange(slotIndex, value)}
+                                  >
+                                    <SelectTrigger className="h-6 text-[9px] px-1.5 py-0 border-slate-300 !bg-white shadow-sm">
+                                      <SelectValue>
+                                        {slot.pinnedRecipeName ? (
+                                          <span className="truncate">{slot.pinnedRecipeName}</span>
+                                        ) : slot.status === 'AVAILABLE' ? (
+                                          <span className="text-slate-500">Available</span>
+                                        ) : slot.status === 'SKIP' ? (
+                                          <span className="text-orange-600">Skip</span>
+                                        ) : (
+                                          slot.status
+                                        )}
+                                      </SelectValue>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="AVAILABLE">Available</SelectItem>
+                                      <SelectItem value="SKIP">Skip</SelectItem>
+                                      <SelectItem value="PINNED">Pin a Recipe...</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </Card>
+      </div>
+      
+      {/* Reserve Meal Modal */}
+      <Dialog open={reserveModal.isOpen} onOpenChange={(open) => setReserveModal({ isOpen: open, slotIndex: null })}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Pin a Recipe</DialogTitle>
+            <DialogDescription>Select a recipe to pin for this meal slot.</DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Input
+                placeholder="Search recipes..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            
+            <ScrollArea className="h-[400px]">
+              <div className="grid gap-2 pr-4">
+                {filteredRecipes.length > 0 ? (
+                  filteredRecipes.map((recipe) => (
+                    <button
+                      key={recipe.id}
+                      onClick={() => handleReserveMeal(recipe)}
+                      className="flex items-center justify-between p-4 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors text-left"
+                    >
+                      <div>
+                        <div className="font-medium text-slate-900">{recipe.name}</div>
+                        <div className="text-sm text-slate-600">
+                          {recipe.categories?.join(', ') || 'Uncategorized'}
+                        </div>
+                      </div>
+                    </button>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-slate-500">
+                    {recipes.length === 0 
+                      ? 'No recipes available. Add some recipes first.'
+                      : 'No recipes match your search.'
+                    }
+                  </div>
+                )}
+              </div>
+            </ScrollArea>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}

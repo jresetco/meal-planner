@@ -68,10 +68,35 @@ export interface PlannedMeal {
   leftoverSourceId?: string | null
   status: MealStatus
   servings: number
+  isLocked: boolean
   calendarEventId?: string | null
   notes?: string | null
   createdAt: Date
   updatedAt: Date
+}
+
+export interface BaselinePreset {
+  id: string
+  householdId: string
+  name: string
+  isDefault: boolean
+  maxLeftovers: number
+  servingsPerMeal: number
+  guaranteedMealIds: string[]
+  guidelines?: string | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+// Slot configuration for pre-generation
+export type SlotConfigStatus = 'AVAILABLE' | 'SKIP' | 'PINNED'
+
+export interface MealSlotConfig {
+  date: Date
+  mealType: MealType
+  status: SlotConfigStatus
+  pinnedRecipeId?: string
+  pinnedRecipeName?: string
 }
 
 export interface GroceryList {
