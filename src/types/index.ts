@@ -125,6 +125,7 @@ export interface SoftRule {
   householdId: string
   ruleText: string
   isActive: boolean
+  isHardRule: boolean
   priority: number
   createdAt: Date
   updatedAt: Date

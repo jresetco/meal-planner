@@ -1,0 +1,135 @@
+# Meal Planner - Cursor Rules
+
+## Project Overview
+AI-powered meal planning application built with Next.js 16, React, TypeScript, Prisma ORM, and PostgreSQL (Neon). Uses Google OAuth for authentication via NextAuth.js.
+
+## Tech Stack
+- **Framework**: Next.js 16.1.1 with App Router
+- **Language**: TypeScript
+- **Database**: PostgreSQL (Neon) with Prisma 7.2.0 ORM
+- **Auth**: NextAuth.js with Google OAuth
+- **UI**: Tailwind CSS + shadcn/ui components
+- **AI**: OpenAI/Anthropic integration for meal planning
+
+## Project Structure
+```
+src/
+├── app/                    # Next.js App Router pages
+│   ├── (app)/             # Authenticated routes (dashboard, settings, recipes, etc.)
+│   ├── api/               # API routes
+│   └── auth/              # Auth pages
+├── components/            # React components
+│   ├── ui/               # shadcn/ui base components
+│   ├── settings/         # Settings-specific components
+│   └── ...
+├── lib/                   # Utilities and clients
+│   ├── auth.ts           # NextAuth configuration
+│   ├── db.ts             # Prisma client
+│   ├── crypto.ts         # AES-256-CBC encryption for secrets
+│   └── paprika/          # Paprika recipe sync client
+└── types/                # TypeScript type definitions
+
+prisma/
+├── schema.prisma         # Database schema
+└── migrations/           # Database migrations
+
+docs/
+├── product/              # Product specifications
+│   ├── requirements/     # Feature requirements docs
+│   ├── features/         # Feature specs
+│   └── integrations/     # Integration specs (Paprika, Calendar)
+└── SECRETS.md           # Security/secrets documentation
+```
+
+## Key Models (Prisma)
+- `User` - User accounts (linked to Google OAuth)
+- `Household` - Groups users together
+- `Recipe` - Recipe library (manual + Paprika sync)
+- `MealPlan` / `PlannedMeal` - Weekly meal planning
+- `GroceryList` / `GroceryItem` - Shopping lists
+- `SoftRule` - Planning preferences (hard/soft rules for AI)
+- `PantryStaple` - Items always in pantry (excluded from grocery)
+- `MealSettings` - User preferences + Paprika credentials
+- `BaselinePreset` - Saved meal plan configurations
+
+## Coding Conventions
+1. Use `'use client'` directive for client components
+2. API routes use Next.js App Router format: `export async function GET/POST/PATCH/DELETE`
+3. Always check `session?.user?.householdId` for auth in API routes
+4. Use Prisma for all database operations via `import prisma from '@/lib/db'`
+5. Encrypt sensitive data (passwords) using `@/lib/crypto` before storing
+6. Component files use PascalCase, utility files use camelCase
+
+## Important Patterns
+
+### API Route Pattern
+```typescript
+import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@/lib/auth'
+import prisma from '@/lib/db'
+
+export async function GET() {
+  const session = await auth()
+  if (!session?.user?.householdId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+  // ... implementation
+}
+```
+
+### Encryption Pattern
+```typescript
+import { encrypt, decrypt, isEncrypted } from '@/lib/crypto'
+
+// Encrypt before saving
+const encrypted = encrypt(password)
+
+// Decrypt when reading (backward compatible)
+const decrypted = isEncrypted(value) ? decrypt(value) : value
+```
+
+## Current Development State
+
+### Completed Features
+- ✅ User authentication (Google OAuth)
+- ✅ Recipe management (CRUD)
+- ✅ Meal planning wizard with date picker
+- ✅ Grocery list generation with persistence
+- ✅ Settings page with real API connections
+- ✅ Planning rules (hard/soft) with edit/delete/toggle
+- ✅ Pantry staples management
+- ✅ Baseline presets with planning guidelines
+- ✅ Paprika sync client (needs API debugging)
+- ✅ Password encryption at rest
+
+### Known Issues / In Progress
+- ⚠️ Paprika API integration returning "Invalid email address" error
+  - API may have changed since unofficial docs were written
+  - Current implementation uses form-urlencoded POST to `/api/v2/account/login/`
+  - May need to investigate current Paprika API structure
+- 🔄 Historical data upload feature (spec exists, not implemented)
+- 🔄 Google Calendar integration (Phase 1.1, spec exists)
+
+### Database
+- Schema changes applied via `npx prisma db push`
+- After schema changes, regenerate client: `npx prisma generate`
+- Database hosted on Neon PostgreSQL
+
+## Environment Variables Required
+```
+DATABASE_URL=           # Neon PostgreSQL connection string
+NEXTAUTH_URL=           # App URL (http://localhost:3000 for dev)
+NEXTAUTH_SECRET=        # NextAuth session secret
+GOOGLE_CLIENT_ID=       # Google OAuth client ID
+GOOGLE_CLIENT_SECRET=   # Google OAuth client secret
+ENCRYPTION_KEY=         # 64-char hex key for AES-256-CBC encryption
+```
+
+## Commands
+```bash
+npm run dev          # Start development server
+npx prisma studio    # Open database GUI
+npx prisma db push   # Push schema changes
+npx prisma generate  # Regenerate Prisma client
+npx tsc --noEmit     # Type check without building
+```

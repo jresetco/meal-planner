@@ -33,6 +33,7 @@ export async function POST(request: NextRequest) {
       householdId: session.user.householdId,
       ruleText: body.ruleText,
       isActive: body.isActive ?? true,
+      isHardRule: body.isHardRule ?? false,
       priority: body.priority ?? 0,
     },
   })

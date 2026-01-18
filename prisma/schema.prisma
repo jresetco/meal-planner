@@ -67,6 +67,12 @@ model MealSettings {
   // Max leftover meals per week
   maxLeftoversPerWeek Int @default(3)
 
+  // Paprika integration
+  paprikaEmail    String?
+  paprikaPassword String? // Encrypted
+  paprikaCategories String[] @default([]) // Category filter for sync (empty = all)
+  paprikaLastSync DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -291,9 +297,10 @@ model SoftRule {
   householdId String
   household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
 
-  ruleText  String
-  isActive  Boolean  @default(true)
-  priority  Int      @default(0) // Higher = more important
+  ruleText   String
+  isActive   Boolean  @default(true)
+  isHardRule Boolean  @default(false) // true = must-do constraint, false = soft preference
+  priority   Int      @default(0) // Higher = more important
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
