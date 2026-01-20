@@ -2,7 +2,8 @@ import { createOpenAI } from '@ai-sdk/openai'
 import { createAnthropic } from '@ai-sdk/anthropic'
 
 // AI Provider configuration
-// Supports switching between OpenAI and Anthropic
+// Primary: OpenAI GPT-5.2 with fallback to GPT-5.0
+// Secondary: Anthropic Claude for backup
 
 export type AIProvider = 'openai' | 'anthropic'
 
@@ -14,12 +15,28 @@ const anthropic = createAnthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 })
 
+// Primary model for complex meal planning tasks
 export function getAIModel(provider?: AIProvider) {
   const selectedProvider = provider || (process.env.AI_PROVIDER as AIProvider) || 'openai'
   
   switch (selectedProvider) {
     case 'openai':
-      // Using GPT-5 as the primary model
+      // GPT-5.2 is preferred, falls back to GPT-5.0 if not available
+      // The SDK will handle model availability
+      return openai('gpt-5.2')
+    case 'anthropic':
+      return anthropic('claude-sonnet-4-20250514')
+    default:
+      return openai('gpt-5.2')
+  }
+}
+
+// Fallback model if primary fails
+export function getFallbackModel(provider?: AIProvider) {
+  const selectedProvider = provider || (process.env.AI_PROVIDER as AIProvider) || 'openai'
+  
+  switch (selectedProvider) {
+    case 'openai':
       return openai('gpt-5')
     case 'anthropic':
       return anthropic('claude-sonnet-4-20250514')
@@ -28,7 +45,7 @@ export function getAIModel(provider?: AIProvider) {
   }
 }
 
-// Get a cheaper model for simple tasks (ingredient parsing, etc.)
+// Get a cheaper model for simple tasks (ingredient parsing, categorization)
 export function getSimpleModel(provider?: AIProvider) {
   const selectedProvider = provider || (process.env.AI_PROVIDER as AIProvider) || 'openai'
   
@@ -40,4 +57,12 @@ export function getSimpleModel(provider?: AIProvider) {
     default:
       return openai('gpt-4o-mini')
   }
+}
+
+// Model configuration for streaming
+export const STREAMING_CONFIG = {
+  // Maximum tokens for meal plan generation
+  maxTokens: 8000,
+  // Temperature for creative but consistent outputs
+  temperature: 0.7,
 }

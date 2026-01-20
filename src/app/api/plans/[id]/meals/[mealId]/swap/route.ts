@@ -1,26 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
-import { generateMealPlan } from '@/lib/ai/meal-planner'
+import { getSuggestionsForSlot, type RecipeForPlanning } from '@/lib/ai/meal-planner'
+import type { MealType, RecipeType, MaxFrequency } from '@/types'
 
-// POST /api/plans/[id]/meals/[mealId]/swap - Swap a meal with a new recipe suggestion
+// POST /api/plans/[id]/meals/[mealId]/swap - Get AI suggestions for swapping a meal
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string; mealId: string }> }
 ) {
   const session = await auth()
-  const { id, mealId } = await params
+  const { id: planId, mealId } = await params
 
   if (!session?.user?.householdId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // Get the existing meal
-  const existingMeal = await prisma.plannedMeal.findFirst({
+  // Get the meal and verify ownership
+  const meal = await prisma.plannedMeal.findFirst({
     where: {
       id: mealId,
       mealPlan: {
-        id,
+        id: planId,
         householdId: session.user.householdId,
       },
     },
@@ -36,83 +37,109 @@ export async function POST(
     },
   })
 
-  if (!existingMeal) {
+  if (!meal) {
     return NextResponse.json({ error: 'Meal not found' }, { status: 404 })
   }
 
-  if (existingMeal.isLocked) {
-    return NextResponse.json(
-      { error: 'Cannot swap a locked meal' },
-      { status: 400 }
-    )
+  // Get body for optional parameters
+  const body = await request.json().catch(() => ({}))
+  const { recipeId } = body
+
+  // If a specific recipe ID is provided, swap directly
+  if (recipeId) {
+    // Record the edit for learning
+    await prisma.mealEditHistory.create({
+      data: {
+        householdId: session.user.householdId,
+        mealPlanId: planId,
+        editType: 'SWAP',
+        date: meal.date,
+        mealType: meal.mealType,
+        originalRecipeId: meal.recipeId,
+        originalRecipeName: meal.recipe?.name || meal.customName,
+        newRecipeId: recipeId,
+        aiGenerated: true,
+      },
+    })
+
+    // Update the meal
+    const newRecipe = await prisma.recipe.findUnique({
+      where: { id: recipeId },
+      select: { id: true, name: true, imageUrl: true },
+    })
+
+    const updatedMeal = await prisma.plannedMeal.update({
+      where: { id: mealId },
+      data: {
+        recipeId,
+        customName: null,
+        isLeftover: false,
+        leftoverSourceId: null,
+      },
+      include: { recipe: true },
+    })
+
+    return NextResponse.json({
+      success: true,
+      meal: updatedMeal,
+    })
   }
 
-  // Get all recipes that could replace this meal
+  // Otherwise, get AI suggestions
   const recipes = await prisma.recipe.findMany({
     where: {
       householdId: session.user.householdId,
       isActive: true,
-      OR: [
-        { categories: { has: existingMeal.mealType } },
-        { categories: { isEmpty: true } },
-      ],
     },
     select: {
       id: true,
       name: true,
+      servings: true,
+      rating: true,
       categories: true,
+      prepTime: true,
+      cookTime: true,
+      recipeType: true,
+      maxFrequency: true,
     },
   })
 
-  if (recipes.length === 0) {
-    return NextResponse.json(
-      { error: 'No alternative recipes available' },
-      { status: 400 }
-    )
+  const recipesForPlanning: RecipeForPlanning[] = recipes.map(r => ({
+    ...r,
+    recipeType: (r.recipeType || 'REGULAR') as RecipeType,
+    maxFrequency: (r.maxFrequency || 'WEEKLY') as MaxFrequency,
+  }))
+
+  const currentPlan = {
+    meals: meal.mealPlan.plannedMeals.map(m => ({
+      date: m.date.toISOString().split('T')[0],
+      mealType: m.mealType as 'BREAKFAST' | 'LUNCH' | 'DINNER',
+      recipeId: m.recipeId,
+      recipeName: m.recipe?.name || m.customName || 'Unknown',
+      isLeftover: m.isLeftover,
+      leftoverFromDate: null,
+      leftoverFromMealType: null,
+      servings: m.servings,
+      servingsUsed: m.servings,
+      notes: m.notes,
+    })),
   }
 
-  // Get IDs of recipes already used in this plan (excluding the current one)
-  const usedRecipeIds = new Set(
-    existingMeal.mealPlan.plannedMeals
-      .filter(m => m.id !== mealId && m.recipeId)
-      .map(m => m.recipeId)
-  )
-
-  // Filter to recipes not heavily used
-  const availableRecipes = recipes.filter(r => !usedRecipeIds.has(r.id))
-  
-  // If all recipes are used, just pick any one that's different from current
-  const candidateRecipes = availableRecipes.length > 0 
-    ? availableRecipes 
-    : recipes.filter(r => r.id !== existingMeal.recipeId)
-
-  if (candidateRecipes.length === 0) {
-    return NextResponse.json(
-      { error: 'No alternative recipes available' },
-      { status: 400 }
-    )
-  }
-
-  // Pick a random recipe from candidates
-  const randomIndex = Math.floor(Math.random() * candidateRecipes.length)
-  const newRecipe = candidateRecipes[randomIndex]
-
-  // Update the meal with new recipe
-  const updatedMeal = await prisma.plannedMeal.update({
-    where: { id: mealId },
-    data: {
-      recipeId: newRecipe.id,
-      isLeftover: false, // Reset leftover status
-    },
-    include: {
-      recipe: true,
-    },
+  const suggestions = await getSuggestionsForSlot({
+    date: meal.date.toISOString().split('T')[0],
+    mealType: meal.mealType as MealType,
+    currentPlan,
+    recipes: recipesForPlanning,
+    count: 5,
   })
 
-  // Invalidate the grocery list since meals changed
-  await prisma.groceryList.deleteMany({
-    where: { mealPlanId: id },
+  return NextResponse.json({
+    suggestions: suggestions.suggestions,
+    currentMeal: {
+      id: meal.id,
+      recipeName: meal.recipe?.name || meal.customName,
+      date: meal.date,
+      mealType: meal.mealType,
+    },
   })
-
-  return NextResponse.json(updatedMeal)
 }

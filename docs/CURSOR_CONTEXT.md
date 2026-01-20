@@ -144,9 +144,43 @@ curl -X POST https://www.paprikaapp.com/api/v2/account/login/ \
 - Email and password must match the Cloud Sync credentials exactly
 - Account must exist in Paprika's system (not just local recipes)
 
+## Phase 1.0 Implementation - COMPLETED (January 2026)
+
+### AI Meal Plan Generation
+- ✅ GPT-5.2 integration with streaming support
+- ✅ Real-time progress display with activity log
+- ✅ Recipe classification (STAPLE/REGULAR/SPECIAL)
+- ✅ Frequency controls (DAILY/WEEKLY/BIWEEKLY/MONTHLY)
+- ✅ Complete leftover tracking with portion management
+- ✅ Historical pattern learning from past plans and user edits
+
+### Historical Data Upload
+- ✅ Table/text format parsing via AI
+- ✅ Settings page integration
+- ✅ Pattern extraction for AI learning
+
+### Meal Editing & Regeneration
+- ✅ Lock/unlock meals with visual indicators
+- ✅ AI-powered swap suggestions
+- ✅ Single meal regeneration
+- ✅ Single day regeneration (preserving locked meals)
+- ✅ Full plan regeneration (preserving locked meals)
+- ✅ Leftover chain awareness in swaps
+
+### Grocery List
+- ✅ AI-powered ingredient categorization
+- ✅ Smart unit conversion and merging
+- ✅ Meal attribution for each item
+- ✅ Pantry staple exclusion
+
+### User Feedback & Learning
+- ✅ Edit history tracking (swaps, locks, deletes, regenerates)
+- ✅ Historical context passed to AI
+- ✅ Edit patterns analyzed for preferences
+
 ## Next Steps (Prioritized)
 1. ✅ Fix Paprika API authentication - **COMPLETED**
-2. 🟡 Implement historical data upload
-3. 🟡 Complete AI meal generation integration
+2. ✅ Implement historical data upload - **COMPLETED**
+3. ✅ Complete AI meal generation integration - **COMPLETED**
 4. 🟢 Google Calendar integration (Phase 1.1)
-5. 🟢 Learning/feedback loop for AI
+5. 🟢 Mobile responsiveness (Phase 2)

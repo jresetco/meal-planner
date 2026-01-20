@@ -41,6 +41,7 @@ model Household {
   historicalPlans HistoricalPlan[]
   mealSettings    MealSettings?
   baselinePresets BaselinePreset[]
+  mealEditHistory MealEditHistory[]
 }
 
 model MealSettings {
@@ -124,6 +125,10 @@ model Recipe {
   categories   String[]  // Tags/categories
   notes        String?   @db.Text
 
+  // Recipe classification for AI planning
+  recipeType   RecipeType @default(REGULAR) // Staple, Special, Regular
+  maxFrequency MaxFrequency @default(WEEKLY) // How often this can appear
+  
   // Metadata
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
@@ -135,6 +140,20 @@ model Recipe {
   @@index([householdId])
   @@index([source])
   @@index([rating])
+  @@index([recipeType])
+}
+
+enum RecipeType {
+  STAPLE    // Go-to recipes, can use frequently
+  REGULAR   // Normal rotation recipes
+  SPECIAL   // Rare/high-effort/treat recipes
+}
+
+enum MaxFrequency {
+  DAILY     // Can appear every day
+  WEEKLY    // Can appear every week
+  BIWEEKLY  // Every 2 weeks
+  MONTHLY   // Once a month max
 }
 
 enum RecipeSource {
@@ -332,9 +351,53 @@ model HistoricalPlan {
   householdId String
   household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
 
-  importedAt DateTime @default(now())
-  source     String?  // "csv", "json", "manual"
-  data       Json     // Flexible structure for imported data
+  importedAt  DateTime @default(now())
+  source      String?  // "csv", "json", "manual", "table"
+  rawData     String?  @db.Text // Original raw input
+  data        Json     // Parsed structure: { meals: [{ date, mealType, recipeName, isLeftover }] }
+  weekCount   Int      @default(1) // Number of weeks in this historical data
+  description String?  // User-provided description of this period
 
   @@index([householdId])
+}
+
+// ============================================
+// Edit Tracking (for AI learning)
+// ============================================
+
+model MealEditHistory {
+  id          String    @id @default(cuid())
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  
+  mealPlanId  String
+  
+  // What was changed
+  editType    EditType
+  date        DateTime
+  mealType    MealType
+  
+  // Before/After
+  originalRecipeId   String?
+  originalRecipeName String?
+  newRecipeId        String?
+  newRecipeName      String?
+  
+  // Context for learning
+  reason      String?  // User-provided reason for change (optional)
+  aiGenerated Boolean  @default(true) // Was the original AI-generated?
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([householdId])
+  @@index([mealPlanId])
+  @@index([editType])
+}
+
+enum EditType {
+  SWAP       // Replaced with different recipe
+  REGENERATE // AI regenerated this slot
+  DELETE     // Removed meal
+  LOCK       // Locked meal (signals satisfaction)
+  UNLOCK     // Unlocked meal
 }

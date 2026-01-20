@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { DateRangePicker } from '@/components/plans/date-range-picker'
 import { MealPlanGrid } from '@/components/plans/meal-plan-grid'
 import { PlanningCriteria, type PlanningCriteriaData } from '@/components/plans/planning-criteria'
-import { GeneratingScreen } from '@/components/plans/generating-screen'
+import { GeneratingScreen, type GenerationProgress } from '@/components/plans/generating-screen'
 import type { MealSlotConfig, Recipe, BaselinePreset, SoftRule, MealType } from '@/types'
 
 type WizardScreen = 'date-picker' | 'meal-grid' | 'criteria' | 'generating'
@@ -28,7 +28,7 @@ export default function NewPlanPage() {
   
   // Fetch data on mount
   useEffect(() => {
-    async function fetchData() {
+    const fetchData = async () => {
       try {
         const [recipesRes, rulesRes, presetsRes] = await Promise.all([
           fetch('/api/recipes'),
@@ -79,8 +79,13 @@ export default function NewPlanPage() {
     setCurrentScreen('generating')
   }
   
-  const handleGeneratingComplete = async () => {
-    if (!dateRange.start || !dateRange.end || !planningCriteria) return
+  // Streaming plan generation
+  const generatePlan = useCallback(async (
+    onProgress: (progress: GenerationProgress) => void
+  ): Promise<{ id: string }> => {
+    if (!dateRange.start || !dateRange.end || !planningCriteria) {
+      throw new Error('Missing required data for plan generation')
+    }
     
     // Build pinned and skipped meals from mealSlots
     const pinnedMeals = mealSlots
@@ -89,6 +94,7 @@ export default function NewPlanPage() {
         date: s.date.toISOString().split('T')[0],
         mealType: s.mealType,
         recipeId: s.pinnedRecipeId!,
+        recipeName: s.pinnedRecipeName || 'Unknown',
       }))
     
     const skippedMeals = mealSlots
@@ -105,38 +111,97 @@ export default function NewPlanPage() {
       lunch: mealSlots.some(s => s.mealType === 'LUNCH' && s.status !== 'SKIP'),
       dinner: mealSlots.some(s => s.mealType === 'DINNER' && s.status !== 'SKIP'),
     }
-    
-    try {
-      const response = await fetch('/api/plans', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          startDate: dateRange.start.toISOString(),
-          endDate: dateRange.end.toISOString(),
-          enabledMeals,
-          maxRepeats: 2, // Default
-          pinnedMeals,
-          skippedMeals,
-          guaranteedMealIds: planningCriteria.guaranteedMeals.map(m => m.id),
-          servingsPerMeal: planningCriteria.servingsPerMeal,
-          maxLeftoversPerWeek: planningCriteria.maxLeftoversPerWeek,
-          guidelines: planningCriteria.guidelines,
-        }),
-      })
 
-      if (response.ok) {
-        const plan = await response.json()
-        router.push(`/plans/${plan.id}`)
-      } else {
-        const error = await response.json()
-        alert(error.error || 'Failed to generate plan')
-        setCurrentScreen('criteria')
-      }
-    } catch (error) {
-      console.error('Error generating plan:', error)
-      alert('Failed to generate plan')
-      setCurrentScreen('criteria')
+    // Use Server-Sent Events for streaming
+    const response = await fetch('/api/plans/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        startDate: dateRange.start.toISOString(),
+        endDate: dateRange.end.toISOString(),
+        enabledMeals,
+        maxRepeats: 2,
+        pinnedMeals,
+        skippedMeals,
+        guaranteedMealIds: planningCriteria.guaranteedMeals.map(m => m.id),
+        servingsPerMeal: planningCriteria.servingsPerMeal,
+        maxLeftoversPerWeek: planningCriteria.maxLeftoversPerWeek,
+        guidelines: planningCriteria.guidelines,
+      }),
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'Failed to start plan generation')
     }
+
+    if (!response.body) {
+      throw new Error('No response body received')
+    }
+
+    // Read the SSE stream
+    const reader = response.body.getReader()
+    const decoder = new TextDecoder()
+    let planId: string | null = null
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+
+        const text = decoder.decode(value)
+        const lines = text.split('\n')
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              const data = JSON.parse(line.slice(6))
+              
+              if (data.type === 'progress') {
+                onProgress({
+                  stage: data.stage,
+                  message: data.message,
+                  detail: data.detail,
+                  progress: data.progress,
+                })
+              } else if (data.type === 'complete') {
+                planId = data.planId
+                onProgress({
+                  stage: 'finalizing',
+                  message: 'Plan generated successfully!',
+                  detail: `${data.summary.totalMeals} meals planned`,
+                  progress: 100,
+                })
+              } else if (data.type === 'error') {
+                throw new Error(data.error)
+              }
+            } catch (parseError) {
+              // Ignore parse errors for partial chunks
+              if (line.trim() && !line.includes('data: ')) {
+                console.warn('Failed to parse SSE data:', line)
+              }
+            }
+          }
+        }
+      }
+    } finally {
+      reader.releaseLock()
+    }
+
+    if (!planId) {
+      throw new Error('Plan generation completed but no plan ID was returned')
+    }
+
+    return { id: planId }
+  }, [dateRange, mealSlots, planningCriteria])
+  
+  const handleGenerationComplete = (planId: string) => {
+    router.push(`/plans/${planId}`)
+  }
+  
+  const handleGenerationError = (error: string) => {
+    console.error('Generation error:', error)
+    // Error is displayed in the GeneratingScreen component
   }
   
   const handleBackToHome = () => {
@@ -193,7 +258,11 @@ export default function NewPlanPage() {
   // Generating screen
   if (currentScreen === 'generating') {
     return (
-      <GeneratingScreen onComplete={handleGeneratingComplete} />
+      <GeneratingScreen 
+        generatePlan={generatePlan}
+        onComplete={handleGenerationComplete}
+        onError={handleGenerationError}
+      />
     )
   }
 

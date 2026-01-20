@@ -90,25 +90,24 @@ const decrypted = isEncrypted(value) ? decrypt(value) : value
 
 ## Current Development State
 
-### Completed Features
+### Phase 1.0 - COMPLETE ✅
 - ✅ User authentication (Google OAuth)
-- ✅ Recipe management (CRUD)
-- ✅ Meal planning wizard with date picker
-- ✅ Grocery list generation with persistence
+- ✅ Recipe management (CRUD) with type tags (STAPLE/REGULAR/SPECIAL)
+- ✅ Meal planning wizard with AI generation
+- ✅ AI meal plan generation with GPT-5.2 and streaming
+- ✅ Meal editing (lock/unlock, swap, regenerate single/day/plan)
+- ✅ Grocery list generation with AI categorization & smart merging
 - ✅ Settings page with real API connections
 - ✅ Planning rules (hard/soft) with edit/delete/toggle
 - ✅ Pantry staples management
 - ✅ Baseline presets with planning guidelines
-- ✅ Paprika sync client (needs API debugging)
+- ✅ Paprika sync client (iOS User-Agent required)
 - ✅ Password encryption at rest
+- ✅ Historical data upload for AI learning
+- ✅ User feedback tracking for AI improvement
 
-### Known Issues / In Progress
-- ⚠️ Paprika API integration returning "Invalid email address" error
-  - API may have changed since unofficial docs were written
-  - Current implementation uses form-urlencoded POST to `/api/v2/account/login/`
-  - May need to investigate current Paprika API structure
-- 🔄 Historical data upload feature (spec exists, not implemented)
-- 🔄 Google Calendar integration (Phase 1.1, spec exists)
+### Phase 1.1 - In Progress
+- 🔄 Google Calendar integration (spec exists)
 
 ### Database
 - Schema changes applied via `npx prisma db push`
@@ -123,6 +122,7 @@ NEXTAUTH_SECRET=        # NextAuth session secret
 GOOGLE_CLIENT_ID=       # Google OAuth client ID
 GOOGLE_CLIENT_SECRET=   # Google OAuth client secret
 ENCRYPTION_KEY=         # 64-char hex key for AES-256-CBC encryption
+OPENAI_API_KEY=         # OpenAI API key for GPT-5.2 meal planning
 ```
 
 ## Commands

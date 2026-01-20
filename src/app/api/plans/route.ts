@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
-import { generateMealPlan } from '@/lib/ai/meal-planner'
+import { generateMealPlan, type RecipeForPlanning } from '@/lib/ai/meal-planner'
+import type { RecipeType, MaxFrequency } from '@/types'
 
 type MealType = 'BREAKFAST' | 'LUNCH' | 'DINNER'
 
@@ -65,7 +66,7 @@ export async function POST(request: NextRequest) {
   } = body
 
   // Get household settings and recipes
-  const [settings, recipes, softRules] = await Promise.all([
+  const [settings, recipesRaw, softRulesRaw] = await Promise.all([
     prisma.mealSettings.findUnique({
       where: { householdId: session.user.householdId },
     }),
@@ -73,7 +74,6 @@ export async function POST(request: NextRequest) {
       where: {
         householdId: session.user.householdId,
         isActive: true,
-        rating: { gte: 3 },
       },
       select: {
         id: true,
@@ -83,6 +83,8 @@ export async function POST(request: NextRequest) {
         categories: true,
         prepTime: true,
         cookTime: true,
+        recipeType: true,
+        maxFrequency: true,
       },
     }),
     prisma.softRule.findMany({
@@ -90,16 +92,29 @@ export async function POST(request: NextRequest) {
         householdId: session.user.householdId,
         isActive: true,
       },
-      select: { ruleText: true, priority: true },
+      select: { ruleText: true, priority: true, isHardRule: true },
     }),
   ])
 
-  if (recipes.length === 0) {
+  if (recipesRaw.length === 0) {
     return NextResponse.json(
       { error: 'No recipes found. Please add some recipes first.' },
       { status: 400 }
     )
   }
+
+  // Transform to proper types
+  const recipes: RecipeForPlanning[] = recipesRaw.map(r => ({
+    ...r,
+    recipeType: (r.recipeType || 'REGULAR') as RecipeType,
+    maxFrequency: (r.maxFrequency || 'WEEKLY') as MaxFrequency,
+  }))
+
+  const softRules = softRulesRaw.map(r => ({
+    ruleText: r.ruleText,
+    priority: r.priority,
+    isHardRule: r.isHardRule,
+  }))
 
   // Generate the meal plan using AI
   const generatedPlan = await generateMealPlan({

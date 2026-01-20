@@ -19,6 +19,9 @@ export type StoreSection =
   | 'OTHER'
 export type RecipeSource = 'PAPRIKA' | 'CUSTOM' | 'AI_DISCOVERED' | 'WEB_IMPORT'
 export type PlanStatus = 'DRAFT' | 'ACTIVE' | 'ARCHIVED'
+export type RecipeType = 'STAPLE' | 'REGULAR' | 'SPECIAL'
+export type MaxFrequency = 'DAILY' | 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY'
+export type EditType = 'SWAP' | 'REGENERATE' | 'DELETE' | 'LOCK' | 'UNLOCK'
 
 // Core types
 export interface Recipe {
@@ -37,11 +40,41 @@ export interface Recipe {
   cookTime?: number | null
   totalTime?: number | null
   imageUrl?: string | null
+  icon?: string | null
   categories: string[]
   notes?: string | null
+  recipeType: RecipeType
+  maxFrequency: MaxFrequency
   isActive: boolean
   createdAt: Date
   updatedAt: Date
+}
+
+export interface MealEditHistory {
+  id: string
+  householdId: string
+  mealPlanId: string
+  editType: EditType
+  date: Date
+  mealType: MealType
+  originalRecipeId?: string | null
+  originalRecipeName?: string | null
+  newRecipeId?: string | null
+  newRecipeName?: string | null
+  reason?: string | null
+  aiGenerated: boolean
+  createdAt: Date
+}
+
+export interface HistoricalPlan {
+  id: string
+  householdId: string
+  importedAt: Date
+  source?: string | null
+  rawData?: string | null
+  data: unknown
+  weekCount: number
+  description?: string | null
 }
 
 export interface MealPlan {

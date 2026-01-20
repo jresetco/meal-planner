@@ -55,6 +55,9 @@ export async function PATCH(
         householdId: session.user.householdId,
       },
     },
+    include: {
+      recipe: true,
+    },
   })
 
   if (!existingMeal) {
@@ -68,6 +71,20 @@ export async function PATCH(
   
   if (typeof isLocked === 'boolean') {
     updateData.isLocked = isLocked
+    
+    // Track lock/unlock for AI learning
+    await prisma.mealEditHistory.create({
+      data: {
+        householdId: session.user.householdId,
+        mealPlanId: id,
+        editType: isLocked ? 'LOCK' : 'UNLOCK',
+        date: existingMeal.date,
+        mealType: existingMeal.mealType,
+        originalRecipeId: existingMeal.recipeId,
+        originalRecipeName: existingMeal.recipe?.name || existingMeal.customName,
+        aiGenerated: true,
+      },
+    })
   }
   
   if (recipeId) {
@@ -106,11 +123,28 @@ export async function DELETE(
         householdId: session.user.householdId,
       },
     },
+    include: {
+      recipe: true,
+    },
   })
 
   if (!existingMeal) {
     return NextResponse.json({ error: 'Meal not found' }, { status: 404 })
   }
+
+  // Track delete for AI learning
+  await prisma.mealEditHistory.create({
+    data: {
+      householdId: session.user.householdId,
+      mealPlanId: id,
+      editType: 'DELETE',
+      date: existingMeal.date,
+      mealType: existingMeal.mealType,
+      originalRecipeId: existingMeal.recipeId,
+      originalRecipeName: existingMeal.recipe?.name || existingMeal.customName,
+      aiGenerated: true,
+    },
+  })
 
   await prisma.plannedMeal.delete({
     where: { id: mealId },

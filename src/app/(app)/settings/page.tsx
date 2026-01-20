@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
 import { RulesEditor } from '@/components/settings/rules-editor'
+import { HistoricalUpload } from '@/components/settings/historical-upload'
 import { 
   Settings as SettingsIcon, 
   ChefHat, 
@@ -17,7 +18,7 @@ import {
   Save,
   RefreshCw
 } from 'lucide-react'
-import type { SoftRule, PantryStaple } from '@/types'
+import type { SoftRule, PantryStaple, HistoricalPlan } from '@/types'
 
 interface MealSettings {
   paprikaEmail: string | null
@@ -33,6 +34,7 @@ interface MealSettings {
 export default function SettingsPage() {
   const [rules, setRules] = useState<SoftRule[]>([])
   const [staples, setStaples] = useState<PantryStaple[]>([])
+  const [historicalPlans, setHistoricalPlans] = useState<HistoricalPlan[]>([])
   const [newStaple, setNewStaple] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -53,46 +55,57 @@ export default function SettingsPage() {
 
   // Fetch data on mount
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const [settingsRes, rulesRes, staplesRes] = await Promise.all([
-          fetch('/api/settings/meal'),
-          fetch('/api/settings/rules'),
-          fetch('/api/settings/staples'),
-        ])
-        
-        if (settingsRes.ok) {
-          const data = await settingsRes.json()
-          setMealSettings({
-            paprikaEmail: data.paprikaEmail || '',
-            paprikaPassword: data.paprikaPassword || '',
-            paprikaCategories: data.paprikaCategories || [],
-            paprikaLastSync: data.paprikaLastSync,
-            defaultServings: data.defaultServings || 2,
-            breakfastTime: data.breakfastTime || '08:00',
-            lunchTime: data.lunchTime || '12:00',
-            dinnerTime: data.dinnerTime || '18:00',
-          })
-        }
-        
-        if (rulesRes.ok) {
-          const rulesData = await rulesRes.json()
-          setRules(rulesData)
-        }
-        
-        if (staplesRes.ok) {
-          const staplesData = await staplesRes.json()
-          setStaples(staplesData)
-        }
-      } catch (error) {
-        console.error('Error fetching settings:', error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-    
     fetchData()
   }, [])
+
+  const fetchData = async () => {
+    try {
+      const [settingsRes, rulesRes, staplesRes, historicalRes] = await Promise.all([
+        fetch('/api/settings/meal'),
+        fetch('/api/settings/rules'),
+        fetch('/api/settings/staples'),
+        fetch('/api/settings/historical'),
+      ])
+      
+      if (settingsRes.ok) {
+        const data = await settingsRes.json()
+        setMealSettings({
+          paprikaEmail: data.paprikaEmail || '',
+          paprikaPassword: data.paprikaPassword || '',
+          paprikaCategories: data.paprikaCategories || [],
+          paprikaLastSync: data.paprikaLastSync,
+          defaultServings: data.defaultServings || 2,
+          breakfastTime: data.breakfastTime || '08:00',
+          lunchTime: data.lunchTime || '12:00',
+          dinnerTime: data.dinnerTime || '18:00',
+        })
+      }
+      
+      if (rulesRes.ok) {
+        const rulesData = await rulesRes.json()
+        setRules(rulesData)
+      }
+      
+      if (staplesRes.ok) {
+        const staplesData = await staplesRes.json()
+        setStaples(staplesData)
+      }
+
+      if (historicalRes.ok) {
+        const historicalData = await historicalRes.json()
+        setHistoricalPlans(historicalData)
+      }
+    } catch (error) {
+      console.error('Error fetching settings:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleHistoricalUpload = () => {
+    // Refresh historical plans after upload
+    fetchData()
+  }
 
   const handleSavePaprikaSettings = async () => {
     setIsSaving(true)
@@ -455,6 +468,12 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Historical Data Upload */}
+      <HistoricalUpload 
+        historicalPlans={historicalPlans}
+        onUpload={handleHistoricalUpload}
+      />
 
       {/* Soft Rules */}
       <RulesEditor
