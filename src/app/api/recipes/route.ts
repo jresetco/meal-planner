@@ -59,6 +59,8 @@ export async function POST(request: NextRequest) {
       icon: body.icon,
       categories: body.categories || [],
       notes: body.notes,
+      recipeType: body.recipeType || 'REGULAR',
+      maxFrequency: body.maxFrequency || 'WEEKLY',
     },
   })
 

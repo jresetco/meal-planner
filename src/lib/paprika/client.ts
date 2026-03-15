@@ -38,6 +38,13 @@ interface PaprikaRecipesResponse {
   result: PaprikaRecipe[]
 }
 
+/** Recipe list endpoint returns only uid+hash; full details come from /sync/recipe/{uid}/ */
+interface PaprikaRecipeManifest {
+  uid: string
+  hash: string
+  in_trash?: boolean
+}
+
 export class PaprikaClient {
   private baseUrl = 'https://www.paprikaapp.com/api/v2'
   private token: string | null = null
@@ -145,9 +152,48 @@ export class PaprikaClient {
   }
 
   /**
-   * Get all recipes from Paprika
+   * Get categories (uid -> name mapping). Recipe categories are UUIDs; we need this to filter by name.
    */
-  async getRecipes(): Promise<PaprikaRecipe[]> {
+  async getCategories(): Promise<Record<string, string>> {
+    if (!this.token) {
+      throw new Error('Not authenticated. Call login() first.')
+    }
+
+    const response = await fetch(`${this.baseUrl}/sync/categories/`, {
+      headers: {
+        Authorization: `Bearer ${this.token}`,
+        Accept: 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      // Categories endpoint may not exist in all API versions; return empty map
+      if (response.status === 404) {
+        return {}
+      }
+      const errorText = await response.text()
+      throw new Error(`Failed to fetch categories from Paprika: ${response.status} ${errorText.substring(0, 200)}`)
+    }
+
+    const data = await response.json()
+    const raw = data?.result ?? data
+    const list = Array.isArray(raw) ? raw : []
+
+    const map: Record<string, string> = {}
+    for (const cat of list) {
+      const uid = cat?.uid ?? cat?.id
+      const name = cat?.name ?? ''
+      if (uid && name) {
+        map[uid] = name
+      }
+    }
+    return map
+  }
+
+  /**
+   * Get recipe manifest (uid + hash only). The /sync/recipes/ endpoint returns minimal data.
+   */
+  private async getRecipeManifest(): Promise<PaprikaRecipeManifest[]> {
     if (!this.token) {
       throw new Error('Not authenticated. Call login() first.')
     }
@@ -155,7 +201,7 @@ export class PaprikaClient {
     const response = await fetch(`${this.baseUrl}/sync/recipes/`, {
       headers: {
         Authorization: `Bearer ${this.token}`,
-        'Accept': 'application/json',
+        Accept: 'application/json',
       },
     })
 
@@ -167,13 +213,38 @@ export class PaprikaClient {
       throw new Error(`Failed to fetch recipes from Paprika: ${response.status} ${errorText.substring(0, 200)}`)
     }
 
-    const data: PaprikaRecipesResponse = await response.json()
-    
-    if (!data.result || !Array.isArray(data.result)) {
-      throw new Error('Invalid response format from Paprika recipes endpoint')
+    const data = await response.json()
+    const result = data?.result ?? data
+    const list = Array.isArray(result) ? result : []
+
+    return list.filter((r: PaprikaRecipeManifest) => !r.in_trash)
+  }
+
+  /**
+   * Get all recipes with full details. The list endpoint returns only uid+hash;
+   * we fetch each recipe individually to get name, categories, ingredients, etc.
+   * Uses batched concurrency (default 8) to avoid overwhelming the API.
+   */
+  async getRecipes(concurrency = 8): Promise<PaprikaRecipe[]> {
+    const manifest = await this.getRecipeManifest()
+    const recipes: PaprikaRecipe[] = []
+
+    for (let i = 0; i < manifest.length; i += concurrency) {
+      const batch = manifest.slice(i, i + concurrency)
+      const batchResults = await Promise.all(
+        batch.map((m) =>
+          this.getRecipe(m.uid).catch((err) => {
+            console.warn(`Failed to fetch recipe ${m.uid}:`, err.message)
+            return null
+          })
+        )
+      )
+      for (const r of batchResults) {
+        if (r && !r.in_trash) recipes.push(r)
+      }
     }
-    
-    return data.result.filter((recipe) => !recipe.in_trash)
+
+    return recipes
   }
 
   /**
@@ -209,31 +280,56 @@ export class PaprikaClient {
   }
 
   /**
-   * Filter recipes by rating and categories
+   * Filter recipes by rating and categories.
+   * - Recipe categories from Paprika API are UUIDs, not names. Pass categoryMap (uid->name) to filter by name.
+   * - Filter category "*" means "all" - skip category filter when present.
+   * - Empty categories filter = include all (no category filter applied).
    */
   filterRecipes(
     recipes: PaprikaRecipe[],
     options: {
       minRating?: number
       categories?: string[]
+      categoryMap?: Record<string, string> // uid -> name, for mapping recipe category UUIDs
     } = {}
   ): PaprikaRecipe[] {
     let filtered = recipes
 
     // Filter by minimum rating
     if (options.minRating !== undefined) {
-      filtered = filtered.filter((recipe) => recipe.rating >= options.minRating!)
+      filtered = filtered.filter((recipe) => (recipe.rating ?? 0) >= options.minRating!)
     }
 
-    // Filter by categories (if specified, only include recipes with ANY of these categories)
-    if (options.categories && options.categories.length > 0) {
-      filtered = filtered.filter((recipe) =>
-        recipe.categories.some((cat) =>
-          options.categories!.some((filterCat) =>
-            cat.toLowerCase().includes(filterCat.toLowerCase())
-          )
+    // Filter by categories: remove "*" (means "all"), skip if empty
+    const filterCats = (options.categories ?? [])
+      .map((c) => c.trim())
+      .filter((c) => c && c !== '*')
+
+    if (filterCats.length > 0 && options.categoryMap) {
+      // Recipe categories are UUIDs; map to names for matching
+      const catMap = options.categoryMap
+      filtered = filtered.filter((recipe) => {
+        const recipeCats = recipe.categories ?? []
+        const recipeNames = recipeCats
+          .map((uid) => catMap[uid] ?? '')
+          .filter(Boolean)
+        const normalize = (s: string) => s.replace(/^\*+/, '').trim().toLowerCase()
+        const matches = recipeNames.some((name) =>
+          filterCats.some((fc) => normalize(name).includes(normalize(fc)))
         )
-      )
+        return matches
+      })
+    } else if (filterCats.length > 0 && !options.categoryMap) {
+      // Category filter set but no map - recipes may have UUIDs. Include recipes with any category.
+      // Fallback: if recipe.categories contains string that looks like a name (not UUID), match it
+      const isUuid = (s: string) => /^[0-9a-f-]{36}$/i.test(s)
+      filtered = filtered.filter((recipe) => {
+        const recipeCats = recipe.categories ?? []
+        return recipeCats.some((cat) => {
+          if (isUuid(cat)) return false // Can't match UUID to name
+          return filterCats.some((fc) => cat.toLowerCase().includes(fc.toLowerCase()))
+        })
+      })
     }
 
     return filtered

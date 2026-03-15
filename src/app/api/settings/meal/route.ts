@@ -58,6 +58,7 @@ export async function PATCH(request: NextRequest) {
     paprikaEmail,
     paprikaPassword,
     paprikaCategories,
+    paprikaMinRating,
   } = body
 
   // Check if settings exist
@@ -79,6 +80,7 @@ export async function PATCH(request: NextRequest) {
   if (paprikaEmail !== undefined) updateData.paprikaEmail = paprikaEmail
   if (paprikaPassword !== undefined) updateData.paprikaPassword = encrypt(paprikaPassword)
   if (paprikaCategories !== undefined) updateData.paprikaCategories = paprikaCategories
+  if (paprikaMinRating !== undefined) updateData.paprikaMinRating = paprikaMinRating
 
   let settings
   if (existingSettings) {

@@ -14,7 +14,8 @@ import {
   Printer,
   Download,
   Check,
-  Circle
+  Circle,
+  RefreshCw
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -32,6 +33,21 @@ interface GroceryCategory {
   items: GroceryItem[]
 }
 
+const SECTION_TO_DISPLAY: Record<string, string> = {
+  PRODUCE: 'Produce',
+  DAIRY: 'Dairy',
+  MEAT_SEAFOOD: 'Meat & Seafood',
+  BAKERY: 'Bakery',
+  FROZEN: 'Frozen',
+  PANTRY: 'Pantry',
+  CANNED_GOODS: 'Canned Goods',
+  CONDIMENTS: 'Condiments & Sauces',
+  BEVERAGES: 'Beverages',
+  SPICES: 'Spices & Seasonings',
+  INTERNATIONAL: 'International',
+  OTHER: 'Other',
+}
+
 const CATEGORY_ORDER = [
   'Produce',
   'Dairy',
@@ -43,6 +59,7 @@ const CATEGORY_ORDER = [
   'Condiments & Sauces',
   'Spices & Seasonings',
   'Beverages',
+  'International',
   'Other',
 ]
 
@@ -53,6 +70,7 @@ export default function GroceryListPage() {
   
   const [categories, setCategories] = useState<GroceryCategory[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isRegenerating, setIsRegenerating] = useState(false)
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set())
   
   useEffect(() => {
@@ -64,16 +82,22 @@ export default function GroceryListPage() {
       const response = await fetch(`/api/plans/${planId}/grocery`)
       if (response.ok) {
         const data = await response.json()
-        // Group items by category
+        const items = data.items || []
+        // Group items by section (map to display name)
         const grouped: Record<string, GroceryItem[]> = {}
         
-        for (const item of data) {
-          const category = item.category || 'Other'
+        for (const item of items) {
+          const sectionKey = item.section || 'OTHER'
+          const category = SECTION_TO_DISPLAY[sectionKey] || sectionKey.replace(/_/g, ' ')
           if (!grouped[category]) {
             grouped[category] = []
           }
           grouped[category].push({
-            ...item,
+            id: item.id,
+            name: item.name,
+            quantity: item.quantity ?? 0,
+            unit: item.unit ?? '',
+            category,
             isChecked: item.isChecked || false,
           })
         }
@@ -92,7 +116,7 @@ export default function GroceryListPage() {
         
         // Load checked items from state
         const initialChecked = new Set<string>()
-        data.forEach((item: GroceryItem) => {
+        items.forEach((item: { id: string; isChecked?: boolean }) => {
           if (item.isChecked) {
             initialChecked.add(item.id)
           }
@@ -147,6 +171,26 @@ export default function GroceryListPage() {
   
   const handleClearChecked = () => {
     setCheckedItems(new Set())
+  }
+
+  const handleRegenerate = async () => {
+    setIsRegenerating(true)
+    try {
+      const response = await fetch(`/api/plans/${planId}/grocery`, {
+        method: 'POST',
+      })
+      if (response.ok) {
+        await fetchGroceryList()
+      } else {
+        const err = await response.json()
+        alert(err.error || 'Failed to regenerate list')
+      }
+    } catch (error) {
+      console.error('Regenerate failed:', error)
+      alert('Failed to regenerate list')
+    } finally {
+      setIsRegenerating(false)
+    }
   }
   
   const handlePrint = () => {
@@ -210,6 +254,14 @@ export default function GroceryListPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={handleRegenerate}
+            disabled={isRegenerating}
+          >
+            <RefreshCw className={cn("mr-2 h-4 w-4", isRegenerating && "animate-spin")} />
+            Regenerate
+          </Button>
           {checkedCount > 0 && (
             <Button variant="outline" onClick={handleClearChecked}>
               Clear Checked

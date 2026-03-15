@@ -61,6 +61,8 @@ export async function PUT(
       icon: body.icon,
       categories: body.categories,
       notes: body.notes,
+      ...(body.recipeType != null && { recipeType: body.recipeType }),
+      ...(body.maxFrequency != null && { maxFrequency: body.maxFrequency }),
     },
   })
 

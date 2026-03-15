@@ -34,13 +34,28 @@ export async function POST(request: NextRequest) {
     // Create Paprika client and authenticate
     const paprika = await createPaprikaClient(email, password)
 
-    // Fetch all recipes
-    const allRecipes = await paprika.getRecipes()
+    // Fetch recipes and categories (recipe categories are UUIDs; we need names for filtering)
+    // Note: getRecipes() fetches full details per recipe (list endpoint returns only uid+hash)
+    const [allRecipes, categoryMap] = await Promise.all([
+      paprika.getRecipes(),
+      paprika.getCategories(),
+    ])
 
-    // Apply filters: minimum rating 3+ and category filtering
+    // Apply filters: minimum rating and category filtering
+    // - "*" in categories means "all" (no category filter)
+    // - Empty categories = sync all 3+ star recipes
+    const categoryFilter = settings.paprikaCategories?.length
+      ? settings.paprikaCategories.filter((c) => c?.trim() && c.trim() !== '*')
+      : undefined
+
+    // Only apply category filter if we have a category map (recipe categories are UUIDs)
+    const hasCategoryMap = Object.keys(categoryMap).length > 0
+    const minRating = settings.paprikaMinRating ?? 0
+
     const filteredRecipes = paprika.filterRecipes(allRecipes, {
-      minRating: 3,
-      categories: settings.paprikaCategories.length > 0 ? settings.paprikaCategories : undefined,
+      minRating: minRating > 0 ? minRating : undefined,
+      categories: categoryFilter?.length && hasCategoryMap ? categoryFilter : undefined,
+      categoryMap: hasCategoryMap ? categoryMap : undefined,
     })
 
     // Sync filtered recipes to database
@@ -60,6 +75,11 @@ export async function POST(request: NextRequest) {
         },
       })
 
+      // Map category UUIDs to names for storage (Paprika returns UUIDs)
+      const categoryNames = (paprikaRecipe.categories || [])
+        .map((uid) => categoryMap[uid] ?? uid)
+        .filter(Boolean)
+
       const recipeData = {
         name: paprikaRecipe.name,
         description: paprikaRecipe.source || null,
@@ -71,7 +91,7 @@ export async function POST(request: NextRequest) {
         cookTime: paprikaRecipe.cook_time ? parseInt(paprikaRecipe.cook_time) : null,
         totalTime: paprikaRecipe.total_time ? parseInt(paprikaRecipe.total_time) : null,
         imageUrl: paprikaRecipe.image_url || null,
-        categories: paprikaRecipe.categories || [],
+        categories: categoryNames,
         sourceUrl: paprikaRecipe.source_url || null,
         source: 'PAPRIKA' as const,
       }
@@ -105,6 +125,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       ...syncResults,
+      debug: {
+        fetchedFromApi: allRecipes.length,
+        afterFilters: filteredRecipes.length,
+        minRatingUsed: minRating,
+        categoryFilterUsed: categoryFilter?.length ? categoryFilter : null,
+      },
       message: `Synced ${syncResults.total} recipes: ${syncResults.created} created, ${syncResults.updated} updated`,
     })
   } catch (error) {

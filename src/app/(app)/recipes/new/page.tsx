@@ -35,6 +35,8 @@ export default function NewRecipePage() {
   const [prepTime, setPrepTime] = useState<number | undefined>()
   const [cookTime, setCookTime] = useState<number | undefined>()
   const [rating, setRating] = useState<number | undefined>()
+  const [recipeType, setRecipeType] = useState<'STAPLE' | 'REGULAR' | 'SPECIAL'>('REGULAR')
+  const [maxFrequency, setMaxFrequency] = useState<'DAILY' | 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY'>('WEEKLY')
   const [categories, setCategories] = useState('')
   const [notes, setNotes] = useState('')
   const [icon, setIcon] = useState<string | undefined>()
@@ -72,6 +74,8 @@ export default function NewRecipePage() {
           prepTime,
           cookTime,
           rating,
+          recipeType,
+          maxFrequency,
           notes,
           icon,
           categories: categories.split(',').map(c => c.trim()).filter(Boolean),
@@ -180,6 +184,35 @@ export default function NewRecipePage() {
                   value={cookTime || ''}
                   onChange={(e) => setCookTime(parseInt(e.target.value) || undefined)}
                 />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Recipe Type</label>
+                <Select value={recipeType} onValueChange={(v) => setRecipeType(v as 'STAPLE' | 'REGULAR' | 'SPECIAL')}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="STAPLE">Staple (use frequently)</SelectItem>
+                    <SelectItem value="REGULAR">Regular (normal rotation)</SelectItem>
+                    <SelectItem value="SPECIAL">Special (rare/treat)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Max Frequency</label>
+                <Select value={maxFrequency} onValueChange={(v) => setMaxFrequency(v as 'DAILY' | 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY')}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="DAILY">Daily</SelectItem>
+                    <SelectItem value="WEEKLY">Weekly</SelectItem>
+                    <SelectItem value="BIWEEKLY">Every 2 weeks</SelectItem>
+                    <SelectItem value="MONTHLY">Monthly</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </CardContent>

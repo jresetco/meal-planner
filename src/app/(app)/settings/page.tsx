@@ -24,6 +24,7 @@ interface MealSettings {
   paprikaEmail: string | null
   paprikaPassword: string | null
   paprikaCategories: string[]
+  paprikaMinRating: number | null
   paprikaLastSync: string | null
   defaultServings: number
   breakfastTime: string
@@ -45,6 +46,7 @@ export default function SettingsPage() {
     paprikaEmail: '',
     paprikaPassword: '',
     paprikaCategories: [],
+    paprikaMinRating: 0,
     paprikaLastSync: null,
     defaultServings: 2,
     breakfastTime: '08:00',
@@ -52,6 +54,8 @@ export default function SettingsPage() {
     dinnerTime: '18:00',
   })
   const [newCategory, setNewCategory] = useState('')
+  const [availableCategories, setAvailableCategories] = useState<{ uid: string; name: string }[]>([])
+  const [isLoadingCategories, setIsLoadingCategories] = useState(false)
 
   // Fetch data on mount
   useEffect(() => {
@@ -73,6 +77,7 @@ export default function SettingsPage() {
           paprikaEmail: data.paprikaEmail || '',
           paprikaPassword: data.paprikaPassword || '',
           paprikaCategories: data.paprikaCategories || [],
+          paprikaMinRating: data.paprikaMinRating ?? 0,
           paprikaLastSync: data.paprikaLastSync,
           defaultServings: data.defaultServings || 2,
           breakfastTime: data.breakfastTime || '08:00',
@@ -117,6 +122,7 @@ export default function SettingsPage() {
           paprikaEmail: mealSettings.paprikaEmail,
           paprikaPassword: mealSettings.paprikaPassword,
           paprikaCategories: mealSettings.paprikaCategories,
+          paprikaMinRating: mealSettings.paprikaMinRating ?? 0,
         }),
       })
       
@@ -143,7 +149,10 @@ export default function SettingsPage() {
       const data = await response.json()
       
       if (response.ok) {
-        alert(`${data.message}`)
+        const msg = data.debug?.afterFilters === 0 && data.debug?.fetchedFromApi > 0
+          ? `${data.message}\n\nDebug: ${data.debug.fetchedFromApi} recipes from Paprika, 0 after filters. Check rating (3+ stars) and category filter.`
+          : data.message
+        alert(msg)
         // Refresh last sync time
         const settingsRes = await fetch('/api/settings/meal')
         if (settingsRes.ok) {
@@ -173,6 +182,33 @@ export default function SettingsPage() {
       paprikaCategories: [...prev.paprikaCategories, newCategory.trim()],
     }))
     setNewCategory('')
+  }
+
+  const handleFetchPaprikaCategories = async () => {
+    setIsLoadingCategories(true)
+    try {
+      const response = await fetch('/api/recipes/paprika-categories')
+      if (response.ok) {
+        const data = await response.json()
+        setAvailableCategories(data.categories || [])
+      } else {
+        const err = await response.json()
+        alert(err.error || 'Failed to fetch categories')
+      }
+    } catch (error) {
+      console.error('Fetch categories failed:', error)
+      alert('Failed to fetch categories from Paprika')
+    } finally {
+      setIsLoadingCategories(false)
+    }
+  }
+
+  const handleAddCategoryFromList = (name: string) => {
+    if (!name.trim() || mealSettings.paprikaCategories.includes(name.trim())) return
+    setMealSettings((prev) => ({
+      ...prev,
+      paprikaCategories: [...prev.paprikaCategories, name.trim()],
+    }))
   }
 
   const handleRemoveCategory = (category: string) => {
@@ -358,15 +394,62 @@ export default function SettingsPage() {
               />
             </div>
             
+            {/* Min Rating */}
+            <div>
+              <label className="text-sm font-medium">Minimum Star Rating</label>
+              <p className="text-xs text-muted-foreground mb-2">
+                Only sync recipes rated this many stars or higher. Use 0 to sync all recipes (including unrated).
+              </p>
+              <Input
+                type="number"
+                min={0}
+                max={5}
+                value={mealSettings.paprikaMinRating ?? 0}
+                onChange={(e) => setMealSettings(prev => ({ ...prev, paprikaMinRating: parseInt(e.target.value) || 0 }))}
+              />
+            </div>
+            
             {/* Category Filtering */}
             <div>
               <label className="text-sm font-medium">Category Filter (Optional)</label>
               <p className="text-xs text-muted-foreground mb-2">
-                Only sync recipes with these categories. Leave empty to sync all 3+ star recipes.
+                Only sync recipes in these categories. Leave empty to sync all.
               </p>
               <div className="flex gap-2 mb-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleFetchPaprikaCategories}
+                  disabled={isLoadingCategories || !mealSettings.paprikaEmail || !mealSettings.paprikaPassword}
+                >
+                  {isLoadingCategories ? 'Loading...' : 'Load categories from Paprika'}
+                </Button>
+              </div>
+              {availableCategories.length > 0 && (
+                <div className="mb-3 p-3 rounded-lg border bg-muted/30 max-h-40 overflow-y-auto">
+                  <p className="text-xs font-medium mb-2">Available categories (click to add):</p>
+                  <div className="flex flex-wrap gap-1">
+                    {availableCategories.map((cat) => (
+                      <Badge
+                        key={cat.uid}
+                        variant={mealSettings.paprikaCategories.includes(cat.name) ? 'default' : 'outline'}
+                        className="cursor-pointer"
+                        onClick={() => handleAddCategoryFromList(cat.name)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleAddCategoryFromList(cat.name)}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`Add ${cat.name} to filter`}
+                      >
+                        {cat.name}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <div className="flex gap-2 mb-2">
                 <Input
-                  placeholder="e.g., Dinner, Quick, Weeknight"
+                  placeholder="Or type category name"
                   value={newCategory}
                   onChange={(e) => setNewCategory(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleAddCategory()}
@@ -380,8 +463,10 @@ export default function SettingsPage() {
                   <Badge key={category} variant="secondary" className="px-2 py-1">
                     {category}
                     <button
+                      type="button"
                       className="ml-1 hover:text-red-600"
                       onClick={() => handleRemoveCategory(category)}
+                      aria-label={`Remove ${category}`}
                     >
                       <X className="h-3 w-3" />
                     </button>

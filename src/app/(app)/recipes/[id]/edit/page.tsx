@@ -53,6 +53,8 @@ interface Recipe {
   }>;
   instructions?: string | null;
   notes?: string | null;
+  recipeType?: "STAPLE" | "REGULAR" | "SPECIAL";
+  maxFrequency?: "DAILY" | "WEEKLY" | "BIWEEKLY" | "MONTHLY";
 }
 
 export default function EditRecipePage({
@@ -74,6 +76,8 @@ export default function EditRecipePage({
   const [rating, setRating] = useState<number | undefined>();
   const [categories, setCategories] = useState("");
   const [notes, setNotes] = useState("");
+  const [recipeType, setRecipeType] = useState<"STAPLE" | "REGULAR" | "SPECIAL">("REGULAR");
+  const [maxFrequency, setMaxFrequency] = useState<"DAILY" | "WEEKLY" | "BIWEEKLY" | "MONTHLY">("WEEKLY");
   const [imageUrl, setImageUrl] = useState("");
   const [icon, setIcon] = useState<string | undefined>();
   const [ingredients, setIngredients] = useState<Ingredient[]>([
@@ -95,6 +99,8 @@ export default function EditRecipePage({
           setRating(recipe.rating || undefined);
           setCategories(recipe.categories.join(", "));
           setNotes(recipe.notes || "");
+          setRecipeType(recipe.recipeType || "REGULAR");
+          setMaxFrequency(recipe.maxFrequency || "WEEKLY");
           setImageUrl(recipe.imageUrl || "");
           setIcon(recipe.icon || undefined);
 
@@ -158,6 +164,8 @@ export default function EditRecipePage({
           cookTime: cookTime || null,
           rating: rating || null,
           notes: notes || null,
+          recipeType,
+          maxFrequency,
           imageUrl: imageUrl || null,
           icon: icon || null,
           categories: categories
@@ -289,6 +297,47 @@ export default function EditRecipePage({
                     setCookTime(parseInt(e.target.value) || undefined)
                   }
                 />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm font-medium">Recipe Type</label>
+                <Select
+                  value={recipeType}
+                  onValueChange={(v) =>
+                    setRecipeType(v as "STAPLE" | "REGULAR" | "SPECIAL")
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="STAPLE">Staple (use frequently)</SelectItem>
+                    <SelectItem value="REGULAR">Regular (normal rotation)</SelectItem>
+                    <SelectItem value="SPECIAL">Special (rare/treat)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Max Frequency</label>
+                <Select
+                  value={maxFrequency}
+                  onValueChange={(v) =>
+                    setMaxFrequency(
+                      v as "DAILY" | "WEEKLY" | "BIWEEKLY" | "MONTHLY"
+                    )
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="DAILY">Daily</SelectItem>
+                    <SelectItem value="WEEKLY">Weekly</SelectItem>
+                    <SelectItem value="BIWEEKLY">Every 2 weeks</SelectItem>
+                    <SelectItem value="MONTHLY">Monthly</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </CardContent>
