@@ -1,0 +1,587 @@
+{
+  "_meta": {
+    "description": "Training data extracted from OneNote grocery/meal plan pages",
+    "schema_version": "1",
+    "source": "Manual copy/paste from OneNote",
+    "created": "2025-03-16",
+    "updated": "2025-03-16",
+    "notes": [
+      "Each entry = one page/screenshot (1-2 week meal plan)",
+      "Meals may have nested ingredients; grocery items may be flat or categorized",
+      "Some recipes are simple manual additions not yet in Paprika",
+      "Entries with weekly_plan have B/L/D and days - use for planning insights"
+    ]
+  },
+  "grocery_categories": [
+    "Costco",
+    "Asian Store",
+    "Bread/Tortillas/Bakery",
+    "Deli Meat/Cheese/Dips",
+    "Frozen Fish",
+    "Meat/Poultry",
+    "Produce",
+    "Eggs/dairy/vegan",
+    "Frozen",
+    "Pantry – Cereal/snacks/etc",
+    "Pasta & Canned Goods",
+    "Asian/mexican",
+    "Other"
+  ],
+  "entries": [
+    {
+      "id": "entry-001",
+      "source_label": "TEMPLATE - Grocery List (Sprouts)",
+      "type": "brainstorm_with_categories",
+      "has_weekly_plan": false,
+      "meals": [
+        {"name": "Enchiladas", "ingredients": ["Siete sauce", "Cheese block"]},
+        {"name": "Tuna sandwich's", "ingredients": ["Onions", "Celery"]},
+        {"name": "White rice for sundubu", "ingredients": []},
+        {"name": "Salad stuff", "ingredients": []},
+        {"name": "Buddha bowl", "ingredients": []},
+        {"name": "Cashew chicken", "ingredients": []},
+        {"name": "Grilled shrimp", "ingredients": []},
+        {"name": "Turkey lettuce wrap", "ingredients": ["Water chestnuts", "Garlic", "Green onions"]},
+        {"name": "Chx burgers", "ingredients": ["Buns"]},
+        {"name": "Pizza", "ingredients": []},
+        {"name": "Teccino", "ingredients": []}
+      ],
+      "grocery_items": []
+    },
+    {
+      "id": "entry-002",
+      "source_label": "Grocery + Brainstorm",
+      "type": "grocery_and_brainstorm",
+      "has_weekly_plan": false,
+      "meals": [
+        {"name": "Crunch Wrap", "ingredients": ["Beef", "Cheese", "Tortilla", "Crunchy Shell", "Lettuce", "Tomatos", "Sour cream"]},
+        {"name": "Breakfast food", "ingredients": ["Eggs", "Frozen sausage bag"]},
+        {"name": "Lunch Salads", "ingredients": ["Beans", "Beets", "Cottage cheese", "Avos", "Red onions", "Cucumber", "Dressing"]},
+        {"name": "Fish tacos", "ingredients": []},
+        {"name": "BBQ chicken Buddha bowl", "ingredients": ["Corn", "Black beans"]},
+        {"name": "Sundubu", "ingredients": ["Paste", "Mushrooms"]}
+      ],
+      "grocery_items_by_category": {
+        "Bread/Tortillas/Bakery": ["Tortilla"],
+        "Deli Meat/Cheese/Dips": ["Block Cheese", "Pickled Onions"],
+        "Frozen Fish": ["Frozen sausage"],
+        "Meat/Poultry": ["My Beef"],
+        "Produce": ["Lettuce", "Grape Tomato", "Beets", "Avos", "Red onion", "Yellow Onion", "Green onion", "Shiitake mushroom", "Cucumber", "Dressing", "Pico/Salsa for fish taco"],
+        "Eggs/dairy/vegan": ["Eggs", "Greek yogurt", "Cottage cheese"],
+        "Frozen": ["Fried rice veggies", "Broccoli", "Breakfast veggie - sweet pot"],
+        "Pantry": ["Mac & cheese", "Quinoa", "Ketchup"],
+        "Pasta & Canned Goods": ["Chickpeas", "Black beans", "Corn", "Baked beans"],
+        "Asian/mexican": ["Crunchy Shell", "Oyster sauce", "Hoisin"]
+      }
+    },
+    {
+      "id": "entry-003",
+      "source_label": "Grocery + Brainstorm",
+      "type": "grocery_and_brainstorm",
+      "has_weekly_plan": false,
+      "meals": [
+        {"name": "Slow-cooker Kung Pao Chicken", "ingredients": []},
+        {"name": "Chicken Parm w/ spaghetti squash", "ingredients": []},
+        {"name": "Lunch Salads", "ingredients": []},
+        {"name": "WP Taco Night", "ingredients": []},
+        {"name": "Chicken Broccoli Casserole", "ingredients": []},
+        {"name": "Honey Garlic Glazed Salmon", "ingredients": []},
+        {"name": "Spicy Edamame", "ingredients": []},
+        {"name": "Kimchi Bliss bowls (Tempeh)", "ingredients": []},
+        {"name": "Sandwiches", "ingredients": []}
+      ],
+      "grocery_items_by_category": {
+        "Bread/Tortillas/Bakery": ["Tortilla", "Bread"],
+        "Deli Meat/Cheese/Dips": ["Mozzarella cheeze (chx parm)", "Shred chz (tacos)", "Ham? Turkey?", "Sliced cheese"],
+        "Meat/Poultry": ["Chicken breast (large)", "Ground Turkey or beef (tacos)"],
+        "Produce": ["Red bell pep", "Zucchini", "Garlic", "Ginger?", "Spaghetti Squash", "Parsley", "Cucumber", "Red onion x2", "Lettuce mlx x2?", "Lettuce for tacos", "Radishes", "Avocados", "Tomato (Taco) TBD?", "Other salad items?", "Fresh Broccoli (2 heads)", "Yellow onion", "Cremini mushrooms", "Shiitake mushrooms", "Sliced red cabbage", "Lime x3"],
+        "Eggs/dairy/vegan": ["Eggs", "Tempeh 8 oz (marinated)"],
+        "Frozen": ["Edamame"],
+        "Pantry": ["Salad Dressing", "Peanut sauce?"],
+        "Pasta & Canned Goods": ["Alfredo sauce"],
+        "Asian/mexican": ["Dried red chili peppers (KP Chx)", "2 thai chilis"]
+      }
+    },
+    {
+      "id": "entry-004",
+      "source_label": "Grocery + Brainstorm",
+      "type": "grocery_and_brainstorm",
+      "has_weekly_plan": false,
+      "meals": [
+        {"name": "Short rib delicious", "ingredients": []},
+        {"name": "Short rib (Costco)", "ingredients": []},
+        {"name": "Hoisin garlic noodles", "ingredients": []},
+        {"name": "Slow cooker white chicken chili", "ingredients": []},
+        {"name": "Salad stuff", "ingredients": []},
+        {"name": "Quinoa Buddha bowl", "ingredients": []},
+        {"name": "Indian", "ingredients": []}
+      ],
+      "grocery_items_by_category": {
+        "Costco": ["Biscuits", "Feel good fruit bars", "Gyoza", "Waste bin liner", "Short rib", "Chx tenderloin", "Veg mix", "Milton's pizza?", "Paper towel"],
+        "Produce": ["Shallots x 3", "Garlic", "Green onions", "Yellow Onions", "Avocado", "Beets", "Radishes", "Red onion", "Salad mix", "Dressing", "Cucumber"],
+        "Eggs/dairy/vegan": ["Pomegranate juice", "Sour cream"],
+        "Frozen": ["Sweet potatoes"],
+        "Pantry": ["Oatmeal"],
+        "Pasta & Canned Goods": ["Tuna", "Hoisin noodles", "2x white beans kidney beans canellini great northern", "2 4oz canned green chilies"],
+        "Asian/mexican": ["Indian"]
+      }
+    },
+    {
+      "id": "entry-005",
+      "source_label": "Grocery + Brainstorm",
+      "type": "grocery_and_brainstorm",
+      "has_weekly_plan": false,
+      "meals": [
+        {"name": "Chx burgers", "ingredients": ["Red onion"]},
+        {"name": "Sundubu", "ingredients": []},
+        {"name": "Egg roll ina bowl", "ingredients": []},
+        {"name": "Turkey lettuce wraps", "ingredients": ["Lettuce cups", "Green onions"]},
+        {"name": "Pizzas", "ingredients": []}
+      ],
+      "grocery_items_by_category": {
+        "Deli Meat/Cheese/Dips": ["Parmesan", "Prosciutto", "Goat cheese"],
+        "Frozen Fish": ["Salmon", "Frozen meatballs?"],
+        "Meat/Poultry": ["Meatballs?"],
+        "Produce": ["Pickled onion", "Yellow onion", "Cucumber"],
+        "Eggs/dairy/vegan": ["Eggs", "Cottage cheese"],
+        "Frozen": ["Sweet potato/Fries", "Breakfast potatoes"],
+        "Pantry": ["Salad dressing", "Fig jam"],
+        "Pasta & Canned Goods": ["Arborio rice", "Pasta noodles"],
+        "Asian/mexican": ["Salsa"],
+        "Other": ["Peppermint tea"]
+      }
+    },
+    {
+      "id": "entry-006",
+      "source_label": "Weekly Meal Plan + Brainstorm",
+      "type": "weekly_plan_with_brainstorm",
+      "has_weekly_plan": true,
+      "weekly_plan": {
+        "date_range": "2024-12-30 to 2025-01-05",
+        "meals": [
+          {"date": "12/30 Tue", "L": "Tofu /moshposh /sausage salad", "D": "Elubias"},
+          {"date": "12/31 Wed", "L": "Sausage salad", "D": "Roast beef sandwich"},
+          {"date": "1/1 Thu", "L": "Turkey Wrap", "D": "Cashew Chx Instant pot"},
+          {"date": "1/2 Fri", "L": "Chx/Turkey Wrap", "D": "Fried Fish Tacos"},
+          {"date": "1/3 Sat", "L": "Chx burgers", "D": "LO Cashew Chx"},
+          {"date": "1/4 Sun", "L": "Turkey Arrabiata pasta x2", "D": "Scallops & Veggies"},
+          {"date": "1/5 Mon", "L": "LO Pasta", "D": "Gyoza + Fried Rice"}
+        ]
+      },
+      "meals": [
+        {"name": "Roast beef", "ingredients": []},
+        {"name": "Wraps", "ingredients": ["Deli meat", "Red onion"]},
+        {"name": "Cashew Chx Recipe", "ingredients": ["Chx breast", "Ginger/minced frozen"], "url": "https://www.wholekitchensink.com/instant-pot-cashew-chicken/"},
+        {"name": "Pizza/Kevins?", "ingredients": []},
+        {"name": "Fish taco", "ingredients": ["Coleslaw", "Fake cotija cheese?", "Radishes"]},
+        {"name": "Chx burger", "ingredients": ["Burger bun", "baby butter lettuce box"]},
+        {"name": "Ground turkey", "ingredients": []},
+        {"name": "Meatballs (if available)", "ingredients": []}
+      ],
+      "grocery_items": ["Avocados", "Bell pepper", "Coconut sugar", "One cheese - shred or sliced"]
+    },
+    {
+      "id": "entry-007",
+      "source_label": "Grocery List Only",
+      "type": "grocery_only",
+      "has_weekly_plan": false,
+      "meals": [],
+      "grocery_items_by_category": {
+        "Bread/Tortillas/Bakery": ["Gluten free muffins for breakfast", "Tortillas x3?", "Baguettes/French Rolls?", "Cookie"],
+        "Deli Meat/Cheese/Dips": ["Roast beef", "Sliced cheese - swiss?"],
+        "Meat/Poultry": ["Ground turkey"],
+        "Produce": ["Blueberries (large)", "Cuties", "Bella mushrooms", "Lettuce mix butter", "Red Onion", "Yellow onion x2", "Cucumber", "Avocados", "Bell pepper", "Shiitake mushrooms"],
+        "Eggs/dairy/vegan": ["Eggs", "Butter"],
+        "Frozen": ["Apple breakfast sausage", "Ice Cream (for pizookie)", "Premade cookies", "Frozen veggies"],
+        "Pantry": ["Bag of small marshmallows", "Cornflakes", "Pancake mix", "Chili powder?", "Maple syrup"],
+        "Pasta & Canned Goods": ["Spam", "Horseradish sauce"],
+        "Asian/mexican": ["Nori paper", "Lemongrass paste", "Gringo Banditos?"],
+        "Other": ["Red hots", "Green food coloring"]
+      }
+    },
+    {
+      "id": "entry-008",
+      "source_label": "Weekly Meal Plan + Grocery + Brainstorm",
+      "type": "weekly_plan_with_grocery_and_brainstorm",
+      "has_weekly_plan": true,
+      "weekly_plan": {
+        "date_range": "2024-11-13",
+        "meals": [
+          {"day": "Sun 11/13", "B": "", "L": "", "D": "Chicken & Veggies"},
+          {"day": "Sun", "B": "", "L": "Lunch Wrap (LO Chi)", "D": "Buddha bowl"},
+          {"day": "Mon", "B": "", "L": "LO Buddha Bowl", "D": "Tilapia & Green beans"},
+          {"day": "Tues", "B": "", "L": "Lunch Wrap (Chz)", "D": "LO Tilapia & veg"},
+          {"day": "Wed", "B": "", "L": "Hippie Bowl (?)", "D": "Sausage & Pepper pasta"},
+          {"day": "Thu", "B": "", "L": "Hippie Bowl", "D": "Main Chili (LCW)"},
+          {"day": "Fri", "B": "", "L": "LO Pasta", "D": "Mac & Cheese"},
+          {"day": "Sat", "B": "Hidden Kitchen", "L": "Plank", "D": "Chili & Hot cross buns"},
+          {"day": "Sun", "B": "Chicken & Ham", "L": "Lily's", "D": "Korean & Vermicelli"},
+          {"day": "Mon", "B": "Hidden Kitchen", "L": "Frozen meal", "D": "S"}
+        ]
+      },
+      "meals": [
+        {"name": "Chili", "ingredients": ["2lb ground lean beef", "Yellow onion", "Garlic", "Black beans", "Kidney beans", "Diced tomatoes", "Diced tomatoes & green chiles", "Tomato sauce", "Avos", "Jalapenos", "Red onion", "Shred cheese", "Sour cream"]},
+        {"name": "Buddha Bowl", "ingredients": ["Lettuce", "Cucumber"]},
+        {"name": "Hippie Bowl", "ingredients": ["Taters", "Mixed beef (sushi)", "Zucchini", "Radishes"]},
+        {"name": "Breakfast", "ingredients": ["Egg", "Bagels", "Breakfast protein"]},
+        {"name": "Lunch wrap", "ingredients": ["Tortillas/Wraps", "Shred cheese", "Lettuce"]},
+        {"name": "Picnic", "ingredients": ["Crackers", "Dried fruit", "Nuts?", "Prosciutto & Salami", "Cheese"]},
+        {"name": "Pasta", "ingredients": ["Onions", "Peppers", "Vermicelli", "Cucumber"]}
+      ],
+      "grocery_items_by_category": {
+        "Bread": ["Tortillas/wraps", "Bread"],
+        "Deli Meat/Cheese/Dips": ["Bacon", "Cream cheese", "Parmesan cheese", "Shred cheese", "Slice cheese", "Prosciutto/salami", "Cheeses for plank"],
+        "Produce": ["Avocados", "2 yellow onion", "Red onion", "Red pepper", "Garlic", "Jalapenos", "Lettuce mix", "Cucumber", "Carrots (nipple)", "Radishes"],
+        "Eggs/dairy/vegan": ["Sour cream"],
+        "Frozen": ["Potatoes/hash browns?", "Popsicles", "Sweet treats", "Mishric Pies", "Puff pastry (pie?)", "Cauliflower bowls"],
+        "Pantry": ["Sourdough", "Cornstarch", "Balsamic glaze", "Almond Milk", "Nutritional yeast?", "Popcorn?", "Sugar / Brown sugar?", "Tahini"],
+        "Pasta & Canned Goods": ["Black beans", "15oz kidney beans", "15oz diced tomato", "15oz diced tomatoes & green chiles", "15oz tomato sauce"],
+        "Other": ["Bijokio green tea", "Dessert - vanilla nut?"],
+        "Asian Store": ["White rice", "Furikake", "Vermicelli", "Natto"]
+      }
+    },
+    {
+      "id": "entry-009",
+      "source_label": "Grocery + Brainstorm",
+      "type": "grocery_and_brainstorm",
+      "has_weekly_plan": false,
+      "meals": [
+        {"name": "Tacos", "ingredients": ["Ground beef/turkey", "Seasoning", "Yellow onion", "Avocado", "Lettuce", "Tomato", "Mission Tortillas"]},
+        {"name": "Chicken burger", "ingredients": ["Bun", "Cheese"]},
+        {"name": "Potatoes", "ingredients": []},
+        {"name": "Salad stuff", "ingredients": ["Cucumbers", "Red onion", "Bell pepper", "Cottage cheese", "Romaine lettuce x3 or butter"]},
+        {"name": "Chicken Vermicelli", "ingredients": []},
+        {"name": "Dill Chicken nuggets (Frozen)", "ingredients": []},
+        {"name": "Frozen meals x3 (no amy's)", "ingredients": []},
+        {"name": "Breakfast sausage links & patties", "ingredients": []},
+        {"name": "Cereal? (Mesa sunrise)", "ingredients": []},
+        {"name": "Chicken Pasta", "ingredients": []},
+        {"name": "Frozen fish - salmon", "ingredients": []},
+        {"name": "Salmon rice bowl", "ingredients": []},
+        {"name": "Lunch Wraps", "ingredients": ["Deli meat"]},
+        {"name": "Tuna?", "ingredients": []},
+        {"name": "Tofu Stir fry", "ingredients": []},
+        {"name": "Soondubu paste", "ingredients": []}
+      ],
+      "grocery_items_by_category": {
+        "Bread/Tortillas/Bakery": ["Bagels", "Mission Tortillas", "Buns", "Bread"],
+        "Deli Meat/Cheese/Dips": ["Sliced Cheese", "Shred cheese", "Parmesan", "Deli meat"],
+        "Frozen Fish": ["Salmon"],
+        "Meat/Poultry": ["Ground beef", "Ground pork"],
+        "Produce": ["Shiitake mushroom", "Yellow onion", "Red onion", "Bell pepper", "Avocado", "Romaine lettuce", "Tomatoes", "Potatoes", "Cucumber", "Green onions"],
+        "Eggs/dairy/vegan": ["Vegan butter", "Cottage chz", "Cottage cheese"],
+        "Frozen": ["Frozen meals x3", "Dill chx nuggs", "Breakfast sausage & patties", "Fruit popsicles"],
+        "Pantry": ["Cereal? Mesa sunrise?", "Almond milk - SILK x2 1/1"],
+        "Pasta & Canned Goods": ["Mac cheese", "Tuna", "Corn", "Soup", "Beans"],
+        "Asian/mexican": ["Cholula", "Kewpie?", "Rice vinegar", "Shawarma seasoning", "Siete seasoning spicy"],
+        "Other": ["AP flour", "Cornstarch"]
+      }
+    },
+    {
+      "id": "entry-010",
+      "source_label": "Grocery + Brainstorm",
+      "type": "grocery_and_brainstorm",
+      "has_weekly_plan": false,
+      "meals": [
+        {"name": "Soondubu", "ingredients": ["Eggs", "Shittaake"]},
+        {"name": "Ground beef & Gravy", "ingredients": ["Mashed Potatoes", "Beef broth (Buillon?)", "Parsley"]},
+        {"name": "Eggroll in bowl", "ingredients": ["Coleslaw/cabbage mix", "Green onions"]},
+        {"name": "Chicken Burger", "ingredients": ["Onions", "Lettuce", "Buns", "Slice Chz"]},
+        {"name": "Sausage, Onions, bell peppers (+Saurkraut)", "ingredients": ["Yellow onions", "Bell peppers", "Hot dog buns"]},
+        {"name": "Hippie Bowl", "ingredients": []},
+        {"name": "Kelsey enchiladas", "ingredients": ["Mission Tortillas", "Shred Chz", "Greek Yogurt", "Chx breast"]},
+        {"name": "Sandwiches", "ingredients": ["Sliced Chz"]},
+        {"name": "Marinated eggs", "ingredients": ["Try Korean version?"]}
+      ],
+      "grocery_items_by_category": {
+        "Bread/Tortillas/Bakery": ["Tortillas", "Bread", "Bagels", "buns"],
+        "Deli Meat/Cheese/Dips": ["Slice chz", "Shred chz"],
+        "Frozen Fish": ["White fish"],
+        "Meat/Poultry": ["Chx breast"],
+        "Produce": ["Fruit", "Potatoes", "Green onions", "50/50 lettuce", "Yellow onion", "Bell pepper", "Parsley", "Coleslaw/cabbage mix", "Berries", "Bananas", "Zucchini", "Asparagus", "Shittake mushrooms"],
+        "Eggs/dairy/vegan": ["Eggs x36+", "Tofu", "Greek yogurt"],
+        "Frozen": ["Frozen meals", "More frozen veggies", "Edamame"],
+        "Pantry": ["Beef broth?", "Balsamic vin"],
+        "Pasta & Canned Goods": ["Pasta sauce", "Pesto", "Pasta noodles"],
+        "Asian/mexican": ["Sesame oil", "Vermicelli", "Hoisin"],
+        "Other": ["Sparkling water"]
+      }
+    },
+    {
+      "id": "entry-011",
+      "source_label": "Grocery + Brainstorm",
+      "type": "grocery_and_brainstorm",
+      "has_weekly_plan": false,
+      "meals": [
+        {"name": "Salmon + Veggie + Brown Rice", "ingredients": []},
+        {"name": "Chicken pesto pasta", "ingredients": ["Asparagus"]},
+        {"name": "Deli meat wraps & Sammies", "ingredients": ["Deli meat", "Bread", "Wraps", "Sliced cheese"]},
+        {"name": "Salads", "ingredients": ["1 red onion"]},
+        {"name": "Burrito bowl", "ingredients": ["Black beans", "Green cilantro? dressing"]},
+        {"name": "Mediterranean bowl", "ingredients": ["Cucumbers persian bag", "Cherry tom", "Avo", "Pickled red onion", "Mint", "Dried aleppo pepper", "Greek Yogurt", "Lemon"]},
+        {"name": "Snow Crab + Roasted/mashed Potatoes & salad", "ingredients": ["Potatoes"]}
+      ],
+      "grocery_items_by_category": {
+        "Bread/Tortillas/Bakery": ["Bread", "Wrap"],
+        "Deli Meat/Cheese/Dips": ["Deli meat", "Sliced chez"],
+        "Meat/Poultry": ["Pork"],
+        "Produce": ["Asparagus", "Red onion", "Persian cuc", "Cherry tom", "Avo", "Pickled red onion", "Mint", "Lemon", "Potatoes", "50/50 mix", "Green onions"],
+        "Eggs/dairy/vegan": ["Vegan butter", "Eggs", "Greek Yogurt"],
+        "Frozen": ["Lunch meals", "Cheddar biscuits", "Check hashbrowns?"],
+        "Pantry": ["Green cilantro dressing"],
+        "Pasta & Canned Goods": ["Brown Rice", "Black bean"],
+        "Asian/mexican": [],
+        "Other": ["Dried Oregano", "Dried Thyme", "Dried Aleppo pepper"]
+      }
+    },
+    {
+      "id": "entry-012",
+      "source_label": "Grocery + Costco + Asian + Meals",
+      "type": "grocery_and_brainstorm",
+      "has_weekly_plan": false,
+      "meals": [
+        {"name": "Enchiladas", "ingredients": ["Shred che (orig?)", "Mission tortillas", "Sour cream/crema/yogurt", "White Rice", "Enchilada sauce?"]},
+        {"name": "Tri-tip/chicken, veggie, and carb", "ingredients": ["Potatoes", "Quinoa?", "Zucchini", "Asparagus", "Bok Choy"]},
+        {"name": "Tapa apps", "ingredients": ["Salmon (SIR? bowl)", "Edamame (shelled?)", "Bok Choy"]},
+        {"name": "Chicken burgers", "ingredients": ["Buns", "Onions", "Slice che", "Head of Lettuce", "Tomatoes"]},
+        {"name": "Salads", "ingredients": ["Cucumber", "Salad toppers - mosh?", "Dressing?"]},
+        {"name": "Buddha bowls", "ingredients": ["Spinach or Arugula"]},
+        {"name": "Breakfast burritos", "ingredients": ["Eggs", "Cauliflower/brown"]},
+        {"name": "Sandwiches", "ingredients": ["Bread", "Deli meat", "Pasta sauce"]},
+        {"name": "Misc", "ingredients": ["Frozen Veggies (Costco) x2", "Avocados", "Extra onion", "Pasta sauce - bolognese", "Pasta?", "Egg bites veggie"]}
+      ],
+      "grocery_items_by_category": {
+        "Costco": ["White rice", "Chicken breast tenders", "Frozen veggies - broccoli/green beans/mix", "Avocados", "Frozen egg bites - white pepper", "Honey?", "Vegan butter?", "Sparkling water?", "Frozen Garlic/Ginger?", "Pancake Mix"],
+        "Asian Store": ["White Rice", "Sambal Oelek", "Natto"],
+        "Bread": ["Mission Tortillas", "Buns", "Bread"],
+        "Deli Meat/Cheese/Dips": ["Shred cheese", "Slice cheese", "Deli Meats"],
+        "Produce": ["Sweet potatoes", "Blueberries", "Blackberries", "Bananas", "Shiitake Mushrooms", "Potatoes", "Zucchini", "Asparagus", "Bok Choy", "Red Onion", "Yellow Onion", "Head of lettuce", "Tomatoes", "Cucumber", "Spinach or arugula (Buddha bowl)"],
+        "Eggs/dairy/vegan": ["Yogurt or sour cream", "Eggs", "Vegan butter"],
+        "Frozen": ["Shelled Edamame", "Cauliflower/brown", "Addl frozen Veggies", "Jackfruit patties", "Miltion's"],
+        "Pantry": ["Cereal", "Pancake Mix"],
+        "Pasta & Canned Goods": ["Salad toppers", "Pasta Sauce - bolg", "Pasta", "Honey", "Jam"],
+        "Asian/mexican": ["Enchilada Sauce"],
+        "Other": ["Vanilla Extract", "Bay Leaves", "Sparkling Water"]
+      }
+    },
+    {
+      "id": "entry-013",
+      "source_label": "Costco + Grocery + Brainstorm",
+      "type": "grocery_and_brainstorm",
+      "has_weekly_plan": false,
+      "meals": [
+        {"name": "Egg roll in bowl", "ingredients": []},
+        {"name": "Taco bowl", "ingredients": []},
+        {"name": "Lentil Shepherds pie", "ingredients": []},
+        {"name": "Sweet potato chickpea bowl", "ingredients": [], "url": "https://eatwithclarity.com/sweet-potato-chickpea-buddha-bowl/"},
+        {"name": "Buddha bowl", "ingredients": []},
+        {"name": "Egg bites", "ingredients": []},
+        {"name": "Freezer meals", "ingredients": []},
+        {"name": "Pesto Sausage Veggie bowl", "ingredients": []}
+      ],
+      "grocery_items_by_category": {
+        "Costco": ["Eggs", "Chicken breast", "Toilet paper?", "Fruit Bars", "Frozen veggies - broccoli and green beans and mix?", "Frozen garlic/ginger?", "Frozen fish - salmon?", "Paper towels?", "Milton's", "Beef jerky?", "Pho bowl", "Sparkling water", "Apple juice?"],
+        "Bread": ["Bread", "Bagels", "Mission tortillas x 2"],
+        "Deli Meat/Cheese/Dips": ["Turkey"],
+        "Meat/Poultry": ["Sugar free bacon x 2"],
+        "Produce": ["Shittake", "Cucumber", "Shredded cabbage or coleslaw mix", "Green onions", "Onions x 5 (Bag?)", "Bell peppers", "Garlic", "Fresh Rosemary", "Bag of Russet potatos", "Cauliflower head", "Sweet pot", "Avocados", "Potatoes", "Bananas", "50/50 salad mix"],
+        "Eggs/dairy/vegan": ["Real & fake butter"],
+        "Frozen": ["Cauli Hashbrowns", "Jackfruit frozen sausage", "Cheese biscuits", "Sweet treat"],
+        "Pantry": ["Cereal - vanilla or cinnamon GF!!", "Almond milk"],
+        "Pasta & Canned Goods": ["Pasta sauce", "Pesto sauce", "Spaghetti", "Smoked oysters"],
+        "Asian/mexican": ["Water chestnuts", "Peanut Sauce? Optional"],
+        "Other": ["Sesame ginger dressing?", "Apple juice"]
+      }
+    },
+    {
+      "id": "entry-014",
+      "source_label": "Grocery List Only",
+      "type": "grocery_only",
+      "has_weekly_plan": false,
+      "meals": [],
+      "grocery_items_by_category": {
+        "Bread": ["Bread"],
+        "Deli Meat/Cheese/Dips": ["Turkey", "Slice chz"],
+        "Frozen Fish": ["Frozen Fish"],
+        "Meat/Poultry": ["Chx tenders"],
+        "Produce": ["Yellow onion x 3", "Celery", "Green onion", "Garlic", "Shittake", "Zucchini", "Asparagus", "Butter Lettuce", "Avocados", "Salad mix", "Mint", "Cucs", "Sage"],
+        "Eggs/dairy/vegan": ["Eggs", "Almond milk", "Real butterp"],
+        "Frozen": ["Freezer meals", "Sweets", "Veggies"],
+        "Pasta & Canned Goods": ["Pasta sauce", "Pasta"],
+        "Other": ["Sparkling water"]
+      }
+    },
+    {
+      "id": "entry-015",
+      "source_label": "Grocery + Recipe Brainstorm",
+      "type": "grocery_and_brainstorm",
+      "has_weekly_plan": false,
+      "meals": [
+        {"name": "Fried Fish Tacos", "ingredients": ["Thaw tortillas", "Green cabbage", "Feta cheese", "Red onion", "Avocado"], "meal_count": 1},
+        {"name": "Green Cabbage Dly/Salad", "ingredients": ["Roasted veggies & Potatoes", "Taco Bowls", "Rice", "Onion", "Cheese", "Corn", "Spicy Mayo"], "meal_count": "3-4"},
+        {"name": "breakfast", "ingredients": ["Hash browns breakfast", "Avocados"]},
+        {"name": "Miso Cod", "ingredients": ["Whole edamames with quinoa"], "meal_count": 1},
+        {"name": "Chicken Buddha Bowl", "ingredients": ["Salad (50/50)", "Quinoa", "Sweet potatoes", "Avocado", "Cucumbers", "Sauce - tahini, sesame ginger, peanut"], "meal_count": 2},
+        {"name": "BBQ chicken skewers", "ingredients": ["Salad (romaine)", "Corn", "Grape tomatoes", "Black beans", "Cilantro", "Avocado"], "meal_count": 2},
+        {"name": "Tuna", "ingredients": []},
+        {"name": "Ground turkey - lettuce wraps", "ingredients": ["Seared tofu", "Mushrooms"]},
+        {"name": "Tofukatsu noodles", "ingredients": ["1.5 packs firm tofu", "Buckwheat soba noodles", "Garlic", "Ginger", "Green onions", "Mini or 1 large cucumber", "Radishes thinly sliced", "1 lime"]},
+        {"name": "Sandwich", "ingredients": ["Sparkling water"]}
+      ],
+      "grocery_items_by_category": {
+        "Bread": ["Bread"],
+        "Deli Meat/Cheese/Dips": ["Grated parm cheese", "Dairy free shred che", "Sliced che", "Ham/turkey", "Biltong"],
+        "Meat/Poultry": ["Ground turkey"],
+        "Produce": ["Green Cabbage head", "Romaine lettuce heads", "Grape tomatoes", "Yellow Onion", "Red onion x2", "Bell Pepper", "2x pack Avocados", "2 Pack of mini cucumbers", "1 cup baby spinach", "1 cup fresh basil", "1 shallot", "2 lemons", "1 lime", "Garlic", "Ginger", "Green onions", "Radishes", "Sweet Potatoes", "Butter lettuce? Or replace with romaine?", "Shiitake mushrooms"],
+        "Eggs/dairy/vegan": ["2x Firm Tofu"],
+        "Frozen": ["Hashbrowns", "Jackfruit sausage"],
+        "Pantry": ["Dipping tortilla chips", "Tahini or sesame ginger, or peanut sauce", "Pancake mix"],
+        "Pasta & Canned Goods": ["Tuna", "Mac & Cheese", "Buckwheat soba noodles"],
+        "Asian/mexican": ["Baby water chestnuts", "White rice?"],
+        "Other": ["Sparkling Waters", "White vinegar"]
+      }
+    },
+    {
+      "id": "entry-016",
+      "source_label": "Grocery + Brainstorm",
+      "type": "grocery_and_brainstorm",
+      "has_weekly_plan": false,
+      "meals": [
+        {"name": "White fish, veggie, grain", "ingredients": []},
+        {"name": "Burgers", "ingredients": []},
+        {"name": "Vermicelli kevins", "ingredients": []},
+        {"name": "Kevins and rice and veggie", "ingredients": []},
+        {"name": "Tri tip - broccoli - sweet potato (leftovers)", "ingredients": []},
+        {"name": "Tuna salad", "ingredients": []},
+        {"name": "Pasta bolognese", "ingredients": []},
+        {"name": "Chicken buddah bowls", "ingredients": []},
+        {"name": "Sandwich", "ingredients": []},
+        {"name": "Eggs - boil eggs", "ingredients": []},
+        {"name": "Oatmeal", "ingredients": []},
+        {"name": "Cereal with bananas", "ingredients": []},
+        {"name": "Natto", "ingredients": []},
+        {"name": "Vermicelli", "ingredients": []}
+      ],
+      "grocery_items_by_category": {
+        "Bread": ["Buns", "Bread", "Tortillas"],
+        "Deli Meat/Cheese/Dips": ["Slice chz", "Ham/turkey", "Hummus"],
+        "Meat/Poultry": ["Chicken?", "Ground pork"],
+        "Produce": ["Cuties", "Berries", "Butter lettuce", "Avocados", "Tomato", "Red onion", "Yellow onion", "Green onion", "Sweet potato extra", "Celery", "Broccoli", "Carrots", "Grape tommies", "Bananas", "Cucumber", "Lettuce mix", "Cabbage?", "Kale", "Garlic"],
+        "Pantry": ["Oatmeal", "Cereal?"],
+        "Pasta & Canned Goods": ["Bolognese noodles", "Pasta for pasta salad", "Bolognese sauce", "Mac n cheese"],
+        "Asian/mexican": ["Gringo bandits", "Enchilada sauce"],
+        "Other": ["Vegetable oil", "Teechino"],
+        "Asian store": ["Natto", "Vermicelli"],
+        "Costco": ["Tri tip?", "Tuna", "Pistachios", "Vacuum bags", "Salmon/tilapia wild caught?", "TP", "Chicken breast?", "Peanuts/nut mix", "Kirkland fruit and veggie packs"]
+      },
+      "notes": "Look up tritip seasoning"
+    },
+    {
+      "id": "entry-017",
+      "source_label": "Costco + Brainstorm",
+      "type": "grocery_and_brainstorm",
+      "has_weekly_plan": false,
+      "meals": [
+        {"name": "Green cabbage salad", "ingredients": ["Basil", "Cashews", "Shallot", "Lemon", "Chips"]},
+        {"name": "Shrimp", "ingredients": ["Dobanjiang"]},
+        {"name": "Soondubu", "ingredients": ["Mushroom"]},
+        {"name": "Lunch wrap", "ingredients": ["Avocados", "Slice chz", "Tortillas"]}
+      ],
+      "grocery_items_by_category": {
+        "Costco": ["Milton's", "Milton's pizza", "Veg/canola oil", "Sparkling water", "Fruit bars", "Olive oil", "Frozen brocolli / green beans / stir fry veg", "Frozen fruit", "Liquid IV", "Paper towels", "Sweet baby rays", "White vinegar", "Cuties", "Avocados", "Pho bowls", "Hand and dish soap", "Mission torts", "Cashews?", "Teccino"],
+        "Bread": ["Bread", "Wraps tortillas?"],
+        "Deli Meat/Cheese/Dips": ["Sliced chz"],
+        "Produce": ["Onions", "Basil", "Lemon", "Shallot", "Mushrooms", "Avocados"],
+        "Pantry": ["Chips"],
+        "Pasta & Canned Goods": ["Soups", "Horseradish sauce", "Cashews?"],
+        "Asian/mexican": ["Hoisin", "Dobanjiang"]
+      }
+    },
+    {
+      "id": "entry-018",
+      "source_label": "Grocery List - Consolidated",
+      "type": "grocery_only",
+      "has_weekly_plan": false,
+      "meals": [],
+      "grocery_items_by_category": {
+        "Bread/Bakery": ["Burger buns", "Tortilla"],
+        "Deli/Dairy/Cheese/Dips": ["Shred cheese", "Hummus", "Eggs", "Tofu", "Almond milk", "Kefir", "Cottage cheese", "Grated parm"],
+        "Protein": ["White fish", "Chx breast tenderloin"],
+        "Produce": ["Cuties", "Yellow onion x 2", "Cucumber", "Salad greens mostly spinach", "Green cabbage head", "3 Persian cucumbers", "Green onions", "Fresh basil", "Shallot", "2 lemons", "Shiitake mushrooms", "Blueberries and strawberries", "Broccoli", "Carrots", "Tomatoes"],
+        "Pantry": ["Tortilla chips", "Jam", "Penne Pasta noodles", "Salad dressing", "Cashews", "Lentils", "Enchilada sauce"]
+      },
+      "notes": "Two-section list; second consolidated list takes precedence. LO = Leftover"
+    },
+    {
+      "id": "entry-019",
+      "source_label": "Grocery + Meal Associations",
+      "type": "grocery_with_meal_links",
+      "has_weekly_plan": false,
+      "meals": [
+        {"name": "ChxChili", "ingredients": ["Onions", "Garlic", "Chicken breasts", "Cannellini beans", "Diced green chilies"]},
+        {"name": "LettuceWrap", "ingredients": ["Onions", "Garlic", "Red bell peppers", "Lettuce leaves", "Ground turkey", "Water chestnuts", "Rice vinegar"]},
+        {"name": "SFChx", "ingredients": ["Onions", "Garlic", "Red bell peppers", "Lime", "Chicken breasts", "Corn", "Salsa"]},
+        {"name": "TeriSalmon", "ingredients": ["Garlic", "Fresh ginger", "Green onions", "Salmon fillets"]}
+      ],
+      "grocery_items_by_category": {
+        "Bread": ["Tortillas", "Bread? Bagels?"],
+        "Cheese/Deli Meat": ["Ham gf", "P"],
+        "Produce": ["Onions - 3 medium", "Garlic - 8 cloves", "Red bell peppers - 2", "Lettuce leaves - ~10", "Lime - 1", "Fresh ginger - ~4 tsp", "Green onions - 2", "Broccoli", "Carrots", "Tomatoes", "Avocado", "Jalapeno", "Salad lettuce", "Red onion"],
+        "Eggs/dairy/vegan": ["Eggs", "Tofu", "Vegan butter"],
+        "Frozen": ["Easy meals"],
+        "Poultry/meat": ["Chicken breasts - 3 lbs", "Ground turkey - 1 lb", "Salmon fillets - 1 lb", "Chicken"],
+        "Pantry": ["Cannellini beans - 2 cans", "Water chestnuts - 1 can", "Corn - 1 can", "Trail mix"],
+        "Asian/mexican": ["Diced green chilies - 1 can", "Rice vinegar - 1 tbsp", "Salsa - 1 cup"],
+        "Other": ["Paper Towels", "Premade Protein shake"]
+      },
+      "notes": "Ingredients linked to meals: ChxChili, LettuceWrap, SFChx, TeriSalmon. k:2 in garlic unclear."
+    },
+    {
+      "id": "entry-020",
+      "source_label": "Breakfast Sammies + Veggie Pack + Asian",
+      "type": "grocery_and_meal_ideas",
+      "has_weekly_plan": false,
+      "meals": [
+        {"name": "Pre-made frozen breakfast sammies", "ingredients": ["Glutino english muffin x2?", "Eggs x12", "Bacon and/or Ham", "Sliced cheese"]},
+        {"name": "Veggie Pack", "ingredients": ["Baby Carrots", "Grape Tomatoes", "Cucumber", "Broccoli", "Hummus"]}
+      ],
+      "grocery_items_by_category": {
+        "Breakfast sammies": ["Glutino english muffin x2?", "Eggs x12", "Bacon and/or Ham", "Sliced cheese"],
+        "Veggie Pack": ["Baby Carrots", "Grape Tomatoes", "Cucumber", "Broccoli", "Dressing/Dipping Sauce", "Hummus"],
+        "General": ["Bread", "Chicken xtra", "Frozen broccoli", "Fried rice frozen veg", "Almond milk", "Gf pancake mix", "Tilapia frozen", "Red and yellow onions", "Avos", "Kimchi?", "Mochi balls"],
+        "Asian store": ["Gochujang", "Chili paste", "Vermicelli", "Natto", "GF oyster sauce", "Brown rice"]
+      },
+      "notes": "Breakfast must-haves: eggs, bacon/ham, cheese, english muffins. Gf = gluten-free."
+    },
+    {
+      "id": "entry-021",
+      "source_label": "Grocery List",
+      "type": "grocery_only",
+      "has_weekly_plan": false,
+      "meals": [],
+      "grocery_items_by_category": {
+        "Meat/Poultry": ["Chicken tenderloin", "Chicken breast", "Ground pork"],
+        "Produce": ["Cucumber", "Yellow Onion x 3", "Green onion", "2 carrots", "3 Yukon pot", "Red onion", "Taco lettuce", "Tomato", "Garlic", "Brusselsprouts", "Salad lettuce", "Corn", "Avocados"],
+        "Dairy": ["Yogurt"],
+        "Pantry": ["Lime juice", "Pasta sauce", "Oyster sauce", "White vinegar", "Certified oats", "Indian meal packet?"],
+        "Snacks": ["Chips", "Skinny pop", "Lunchables"]
+      },
+      "notes": "Two Chips entries (one checked, one unchecked). Silken tofu unchecked."
+    }
+  ],
+  "summary": {
+    "total_entries": 21,
+    "entries_with_weekly_plan": 2,
+    "entries_with_grocery": 20,
+    "entries_with_brainstorm": 17
+  },
+  "abbreviations": {
+    "LO": "Leftover",
+    "Chx": "Chicken",
+    "Chz": "Cheese",
+    "Avo": "Avocado",
+    "SFChx": "Santa Fe Chicken",
+    "TeriSalmon": "Teriyaki Salmon",
+    "WP": "White People (WP Taco Night = White People Taco Night)"
+  }
+}

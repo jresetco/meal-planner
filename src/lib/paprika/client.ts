@@ -192,8 +192,9 @@ export class PaprikaClient {
 
   /**
    * Get recipe manifest (uid + hash only). The /sync/recipes/ endpoint returns minimal data.
+   * Used for incremental sync: compare hashes to skip unchanged recipes.
    */
-  private async getRecipeManifest(): Promise<PaprikaRecipeManifest[]> {
+  async getRecipeManifest(): Promise<PaprikaRecipeManifest[]> {
     if (!this.token) {
       throw new Error('Not authenticated. Call login() first.')
     }
@@ -221,16 +222,26 @@ export class PaprikaClient {
   }
 
   /**
-   * Get all recipes with full details. The list endpoint returns only uid+hash;
+   * Get recipes with full details. The list endpoint returns only uid+hash;
    * we fetch each recipe individually to get name, categories, ingredients, etc.
-   * Uses batched concurrency (default 8) to avoid overwhelming the API.
+   * @param options.concurrency - Batch size for parallel fetches (default 8)
+   * @param options.existingHashes - Map of paprikaId -> hash; skip fetch if hash matches (incremental sync)
    */
-  async getRecipes(concurrency = 8): Promise<PaprikaRecipe[]> {
+  async getRecipes(
+    options: { concurrency?: number; existingHashes?: Record<string, string> } = {}
+  ): Promise<PaprikaRecipe[]> {
+    const { concurrency = 8, existingHashes = {} } = options
     const manifest = await this.getRecipeManifest()
+
+    // Only fetch recipes that are new or have changed
+    const toFetch = manifest.filter(
+      (m) => existingHashes[m.uid] !== m.hash
+    )
+
     const recipes: PaprikaRecipe[] = []
 
-    for (let i = 0; i < manifest.length; i += concurrency) {
-      const batch = manifest.slice(i, i + concurrency)
+    for (let i = 0; i < toFetch.length; i += concurrency) {
+      const batch = toFetch.slice(i, i + concurrency)
       const batchResults = await Promise.all(
         batch.map((m) =>
           this.getRecipe(m.uid).catch((err) => {
@@ -300,10 +311,10 @@ export class PaprikaClient {
       filtered = filtered.filter((recipe) => (recipe.rating ?? 0) >= options.minRating!)
     }
 
-    // Filter by categories: remove "*" (means "all"), skip if empty
+    // Filter by categories. "*" is part of the category name (Paprika uses it for sorting), not a wildcard.
     const filterCats = (options.categories ?? [])
-      .map((c) => c.trim())
-      .filter((c) => c && c !== '*')
+      .map((c) => (c ?? '').trim())
+      .filter(Boolean)
 
     if (filterCats.length > 0 && options.categoryMap) {
       // Recipe categories are UUIDs; map to names for matching
@@ -313,9 +324,10 @@ export class PaprikaClient {
         const recipeNames = recipeCats
           .map((uid) => catMap[uid] ?? '')
           .filter(Boolean)
-        const normalize = (s: string) => s.replace(/^\*+/, '').trim().toLowerCase()
         const matches = recipeNames.some((name) =>
-          filterCats.some((fc) => normalize(name).includes(normalize(fc)))
+          filterCats.some((fc) =>
+            name.toLowerCase().includes(fc.toLowerCase())
+          )
         )
         return matches
       })

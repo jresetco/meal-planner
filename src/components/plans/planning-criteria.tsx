@@ -230,7 +230,7 @@ export function PlanningCriteria({
                 </p>
               </div>
               <Textarea
-                placeholder="Example: No seafood on Mondays, prefer quick meals on weekdays, always include a vegetarian option..."
+                placeholder="Example goals: Low-carb, PCOS Friendly, Lots of Dark Leafy Greens (Kale, Spinach, Broccoli), Anti-inflammatory, Consider whole30 snacks and recipes. Add your own or edit as needed."
                 value={guidelines}
                 onChange={(e) => setGuidelines(e.target.value)}
                 rows={4}

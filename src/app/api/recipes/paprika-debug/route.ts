@@ -66,16 +66,17 @@ export async function GET(request: NextRequest) {
       .map((uid) => categoryMap[uid] ?? null)
       .filter(Boolean) as string[]
 
-    // Simulate filter logic (including leading-asterisk normalization)
+    // Simulate filter logic (* is part of category name, not wildcard)
     const filterCats = (settings.paprikaCategories ?? [])
       .map((c) => (c ?? '').trim())
-      .filter((c) => c && c !== '*')
+      .filter(Boolean)
 
-    const normalize = (s: string) => s.replace(/^\*+/, '').trim().toLowerCase()
     const wouldMatch =
       filterCats.length === 0 ||
       recipeCategoryNames.some((name) =>
-        filterCats.some((fc) => normalize(name).includes(normalize(fc)))
+        filterCats.some((fc) =>
+          name.toLowerCase().includes(fc.toLowerCase())
+        )
       )
 
     return NextResponse.json({

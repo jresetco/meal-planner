@@ -34,18 +34,73 @@ export async function POST(request: NextRequest) {
     // Create Paprika client and authenticate
     const paprika = await createPaprikaClient(email, password)
 
-    // Fetch recipes and categories (recipe categories are UUIDs; we need names for filtering)
-    // Note: getRecipes() fetches full details per recipe (list endpoint returns only uid+hash)
-    const [allRecipes, categoryMap] = await Promise.all([
-      paprika.getRecipes(),
+    // Fetch manifest + categories. Build existingHashes from cache + Recipe table.
+    // Cache stores hashes for all recipes we've ever fetched (including filtered-out).
+    // Recipe table has hashes for synced recipes. Merge both so we skip unchanged recipes.
+    const [manifest, categoryMap, cacheEntries, syncedRecipes] = await Promise.all([
+      paprika.getRecipeManifest(),
       paprika.getCategories(),
+      prisma.paprikaRecipeCache.findMany({
+        where: { householdId: session.user.householdId },
+        select: { paprikaId: true, paprikaHash: true },
+      }),
+      prisma.recipe.findMany({
+        where: {
+          householdId: session.user.householdId,
+          paprikaId: { not: null },
+          paprikaHash: { not: null },
+        },
+        select: { paprikaId: true, paprikaHash: true },
+      }),
     ])
 
+    const existingHashes: Record<string, string> = {}
+    for (const r of syncedRecipes) {
+      if (r.paprikaId && r.paprikaHash) existingHashes[r.paprikaId] = r.paprikaHash
+    }
+    for (const c of cacheEntries) {
+      existingHashes[c.paprikaId] = c.paprikaHash
+    }
+
+    // Only fetch full details for recipes that are new or changed (hash differs).
+    // Hash changes when recipe is updated or categories change in Paprika.
+    const needToFetch = manifest.filter((m) => existingHashes[m.uid] !== m.hash)
+    const allRecipes = await paprika.getRecipes({
+      existingHashes,
+      concurrency: 8,
+    })
+
+    // Update cache for all fetched recipes (including those filtered out by category).
+    // Run in parallel batches to avoid transaction timeout (262 upserts would exceed 5s default).
+    if (allRecipes.length > 0) {
+      const BATCH_SIZE = 25
+      for (let i = 0; i < allRecipes.length; i += BATCH_SIZE) {
+        const batch = allRecipes.slice(i, i + BATCH_SIZE)
+        await Promise.all(
+          batch.map((r) =>
+            prisma.paprikaRecipeCache.upsert({
+              where: {
+                householdId_paprikaId: {
+                  householdId: session.user.householdId,
+                  paprikaId: r.uid,
+                },
+              },
+              create: {
+                householdId: session.user.householdId,
+                paprikaId: r.uid,
+                paprikaHash: r.hash || '',
+              },
+              update: { paprikaHash: r.hash || '' },
+            })
+          )
+        )
+      }
+    }
+
     // Apply filters: minimum rating and category filtering
-    // - "*" in categories means "all" (no category filter)
-    // - Empty categories = sync all 3+ star recipes
+    // "*" is part of the category name (e.g. "*Add to Meal Planner App"), not a wildcard
     const categoryFilter = settings.paprikaCategories?.length
-      ? settings.paprikaCategories.filter((c) => c?.trim() && c.trim() !== '*')
+      ? settings.paprikaCategories.filter((c) => c?.trim())
       : undefined
 
     // Only apply category filter if we have a category map (recipe categories are UUIDs)
@@ -94,6 +149,7 @@ export async function POST(request: NextRequest) {
         categories: categoryNames,
         sourceUrl: paprikaRecipe.source_url || null,
         source: 'PAPRIKA' as const,
+        paprikaHash: paprikaRecipe.hash || null,
       }
 
       if (existing) {
@@ -122,11 +178,15 @@ export async function POST(request: NextRequest) {
       data: { paprikaLastSync: new Date() },
     })
 
+    const skippedUnchanged = manifest.length - needToFetch.length
+
     return NextResponse.json({
       success: true,
       ...syncResults,
       debug: {
+        manifestCount: manifest.length,
         fetchedFromApi: allRecipes.length,
+        skippedUnchanged,
         afterFilters: filteredRecipes.length,
         minRatingUsed: minRating,
         categoryFilterUsed: categoryFilter?.length ? categoryFilter : null,

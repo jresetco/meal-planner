@@ -33,15 +33,28 @@ model Household {
   updatedAt DateTime @updatedAt
 
   // Relations
-  users           User[]
-  recipes         Recipe[]
-  mealPlans       MealPlan[]
-  softRules       SoftRule[]
-  pantryStaples   PantryStaple[]
-  historicalPlans HistoricalPlan[]
-  mealSettings    MealSettings?
-  baselinePresets BaselinePreset[]
-  mealEditHistory MealEditHistory[]
+  users               User[]
+  recipes             Recipe[]
+  mealPlans           MealPlan[]
+  softRules           SoftRule[]
+  pantryStaples       PantryStaple[]
+  historicalPlans     HistoricalPlan[]
+  mealSettings        MealSettings?
+  baselinePresets     BaselinePreset[]
+  mealEditHistory     MealEditHistory[]
+  paprikaRecipeCache  PaprikaRecipeCache[]
+}
+
+model PaprikaRecipeCache {
+  id          String   @id @default(cuid())
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  paprikaId   String
+  paprikaHash String
+  updatedAt   DateTime @default(now())
+
+  @@unique([householdId, paprikaId])
+  @@index([householdId])
 }
 
 model MealSettings {
@@ -107,8 +120,9 @@ model Recipe {
   household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
 
   // Source tracking
-  source      RecipeSource @default(CUSTOM)
-  paprikaId   String?      @unique
+  source       RecipeSource @default(CUSTOM)
+  paprikaId    String?      @unique
+  paprikaHash  String?      // Paprika sync hash; skip re-fetch if unchanged
   sourceUrl   String?
 
   // Recipe details

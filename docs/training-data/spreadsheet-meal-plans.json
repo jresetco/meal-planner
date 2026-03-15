@@ -1,0 +1,6379 @@
+{
+  "_meta": {
+    "source": "Meal Plan History Snapshot - 3-15-26.xlsx",
+    "extracted": "2026-03-15",
+    "description": "Extracted from spreadsheet: Regular Meal Ideas, Current Goals, calendar tabs",
+    "note": "Calendar meals include dateStr (ISO) and dayOfWeek when inferable from tab name/monthYear; omitted when unknown"
+  },
+  "regularMealIdeas": {
+    "breakfast": [
+      "Eggs (Overeasy, scrambled)",
+      "Egg Bites",
+      "Oatmeal",
+      "Avo Toast",
+      "Eggs & Avo",
+      "Eggs & Bacon",
+      "Eggs & Chx Sausage",
+      "Misc Easy Dinners",
+      "Amy's Khao Soi + frozen greenbean, bell pepper, and mushrooms"
+    ],
+    "lunch": [
+      "Ham/Turkey Sandies",
+      "Chicken Wraps (Grilled or Shredded)",
+      "Hippie Bowl",
+      "Turkey Burrito bowl",
+      "Tuna Salad/Wrap/Sandwich/Lettuce Wrap",
+      "Pre-made Salad",
+      "Chx Fajita \"Salad\""
+    ],
+    "dinnerMains": [
+      "Poultry",
+      "Grilled Chicken",
+      "BBQ Chicken",
+      "Ground Turkey Pasta",
+      "Santa fe Chx Chili (Slowcook)",
+      "Ground Turkey Taco Bowl",
+      "Asian Turkey Lettuce Wraps",
+      "Fish",
+      "Honey Garlic Salmon",
+      "Lemon Butter Fish",
+      "Baked White Fish",
+      "Teriyaki salmon bowl",
+      "Vegetarian",
+      "Tofu & Veggie Stir Fry",
+      "Pork",
+      "Slow Cooker Carnitas"
+    ],
+    "dinnerSides": [
+      "Veggies",
+      "Asparagus",
+      "Brusselsprouts",
+      "Broccoli",
+      "Israeli Couscous",
+      "Mediteranean Couscous",
+      "Mashed Potatoes",
+      "Roated (Sweet) Potatoes"
+    ]
+  },
+  "currentGoals": [
+    {
+      "goal": "Low-carb",
+      "note": null
+    },
+    {
+      "goal": "PCOS Friendly",
+      "note": null
+    },
+    {
+      "goal": "Lots of Dark Leafy Greens",
+      "note": "Kale, Collard Greens, Spinach, Broccoli?"
+    },
+    {
+      "goal": "Anti-inflammatory",
+      "note": null
+    },
+    {
+      "goal": "Consider whole30 snacks and recipes",
+      "note": null
+    }
+  ],
+  "calendarPlans": [
+    {
+      "sheetName": "Pre-Roadtrip - June 24",
+      "monthYear": "June 2024",
+      "weeks": [
+        {
+          "dates": [
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29
+          ],
+          "meals": [
+            {
+              "dayIndex": 1,
+              "date": 24,
+              "breakfast": "Eggs",
+              "lunch": "Frozen Meals",
+              "dinner": "Tofu Stir-fry & Rice",
+              "dateStr": "2024-06-24",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 25,
+              "breakfast": "Eggs",
+              "lunch": "Tuna Salad Cups",
+              "dinner": "Chicken Sandwiches & Sweet Potatoes",
+              "dateStr": "2024-06-25",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 26,
+              "breakfast": "Eggs",
+              "lunch": "Premade Salad",
+              "dinner": "LO Stir Fry",
+              "dateStr": "2024-06-26",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 27,
+              "breakfast": "Eggs",
+              "lunch": "LO Tuna Salad",
+              "dinner": "D&D - Takeout",
+              "dateStr": "2024-06-27",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 28,
+              "breakfast": "Eggs",
+              "lunch": "Premade Salad",
+              "dinner": "Dinner w/ Will & Trista\n- Shrimp\n- Brusselsprouts\n- Couscous",
+              "dateStr": "2024-06-28",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 29,
+              "breakfast": "Eggs",
+              "lunch": "Greek Festival",
+              "dinner": "Eat out",
+              "dateStr": "2024-06-29",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            30,
+            1,
+            2,
+            null,
+            null,
+            null,
+            null
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 30,
+              "breakfast": "Eggs",
+              "lunch": "Frozen meal",
+              "dinner": "Chicken / Broccolli / Sweet Potatoes",
+              "dateStr": "2024-06-30",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 1,
+              "breakfast": "Eggs",
+              "lunch": "Miso soup with wontons",
+              "dinner": "LO Chx & Broccoli",
+              "dateStr": "2024-07-01",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 2,
+              "breakfast": "Eggs",
+              "lunch": "LO Miso soup",
+              "dinner": "On the road!",
+              "dateStr": "2024-07-02",
+              "dayOfWeek": "Tuesday"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sheetName": "Dec 23",
+      "monthYear": "Weekly Templates",
+      "weeks": [
+        {
+          "dates": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            "0"
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": null,
+              "breakfast": "IGNORE THIS WEEK",
+              "lunch": null,
+              "dinner": null
+            }
+          ]
+        },
+        {
+          "dates": [
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 3,
+              "breakfast": "Eggs",
+              "lunch": "Chicken Ceasar Salad",
+              "dinner": "Branzino/Veggie/Rice",
+              "dateStr": "2023-12-03",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 4,
+              "breakfast": "Eggs",
+              "lunch": "Leftover Salad",
+              "dinner": "Santa Fe Chicken and Rice",
+              "dateStr": "2023-12-04",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 5,
+              "breakfast": "Eggs",
+              "lunch": "Turkey Wraps",
+              "dinner": "Tilapia/Veggie/Brown Rice\n\n(need extra rice for fried rice tomorrow)",
+              "dateStr": "2023-12-05",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 6,
+              "breakfast": "Eggs",
+              "lunch": "Turkey Wraps",
+              "dinner": "Edamame Fried rice",
+              "dateStr": "2023-12-06",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 7,
+              "breakfast": "Eggs",
+              "lunch": "LO Fried Rice",
+              "dinner": "White Taco Night",
+              "dateStr": "2023-12-07",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 8,
+              "breakfast": "Eggs",
+              "lunch": "LO White Taco Night",
+              "dinner": "Eat Out",
+              "dateStr": "2023-12-08",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 9,
+              "breakfast": "Eggs",
+              "lunch": null,
+              "dinner": "Kelsey B'day with Julie",
+              "dateStr": "2023-12-09",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 10,
+              "breakfast": "Eggs",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2023-12-10",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 11,
+              "breakfast": "Egg Bites",
+              "lunch": "Frozen Meal?",
+              "dinner": "Shrimp & Veggies x2",
+              "dateStr": "2023-12-11",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 12,
+              "breakfast": "Egg Bites",
+              "lunch": "Hippie Bowls x3",
+              "dinner": "LO Shrimp & Veg",
+              "dateStr": "2023-12-12",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 13,
+              "breakfast": "Egg Bites",
+              "lunch": "LO Hippie Bowl",
+              "dinner": "Frozen Meal",
+              "dateStr": "2023-12-13",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 14,
+              "breakfast": "Egg Bites",
+              "lunch": "LO Hippie Bowl",
+              "dinner": "White Fish & Veggies x2",
+              "dateStr": "2023-12-14",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 15,
+              "breakfast": "Eggs",
+              "lunch": "LO Fish & Veg",
+              "dinner": "Eat Out",
+              "dateStr": "2023-12-15",
+              "dayOfWeek": "Friday"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sheetName": "Oct 23",
+      "monthYear": "October 2023",
+      "weeks": [
+        {
+          "dates": [
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 24,
+              "breakfast": null,
+              "lunch": "Blenders",
+              "dinner": "Tilapia, Brussels, Cauli Rice x2",
+              "dateStr": "2023-10-24",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 25,
+              "breakfast": "Cereal",
+              "lunch": "LO Tilapia, Rice, brussels",
+              "dinner": "Chicken, Potatoes, Broc",
+              "dateStr": "2023-10-25",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 26,
+              "breakfast": "Frozen Breakfast meals",
+              "lunch": "LO Chx, Broc, Potatoes",
+              "dinner": "Tri-Tip Sammys + Corn",
+              "dateStr": "2023-10-26",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 27,
+              "breakfast": "Frozen Breakfast meals",
+              "lunch": "LO Tri Tip Sammys & Corn",
+              "dinner": "Salmon, Edamame, & Rice x2",
+              "dateStr": "2023-10-27",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 28,
+              "breakfast": "Eat Out",
+              "lunch": "LO Tri Tip Sammys & Corn",
+              "dinner": "Chx Parm? Pasta",
+              "dateStr": "2023-10-28",
+              "dayOfWeek": "Saturday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 29,
+              "breakfast": null,
+              "lunch": "LO Salmon, Edamame & Rice",
+              "dinner": "Eat Out",
+              "dateStr": "2023-10-29",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 30,
+              "breakfast": null,
+              "lunch": "LO Chx Pasta",
+              "dinner": null,
+              "dateStr": "2023-10-30",
+              "dayOfWeek": "Monday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "meals": [
+            {
+              "dayIndex": 4,
+              "date": 5,
+              "breakfast": null,
+              "lunch": null,
+              "dinner": "Ground Turkey, Potatoes, & Broccoli x2",
+              "dateStr": "2023-10-05",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 6,
+              "breakfast": null,
+              "lunch": "Pre-made salad",
+              "dinner": "Chicken Parm, Spaghetti Squash, & Spinach x2",
+              "dateStr": "2023-10-06",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 7,
+              "breakfast": null,
+              "lunch": "LO Chx Parm",
+              "dinner": "LO Turkey & Potatoes",
+              "dateStr": "2023-10-07",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 8,
+              "breakfast": null,
+              "lunch": "Asian Turkey Lettuce Wraps & Rice x3",
+              "dinner": "Eat Out - Rare Society",
+              "dateStr": "2023-10-08",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 9,
+              "breakfast": null,
+              "lunch": "Pre-made Salad",
+              "dinner": "LO Lettuce Wraps",
+              "dateStr": "2023-10-09",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 10,
+              "breakfast": null,
+              "lunch": "LO Lettuce Wraps",
+              "dinner": "Crock Pot Santa Fe Chicken & Rice x3",
+              "dateStr": "2023-10-10",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 11,
+              "breakfast": null,
+              "lunch": "LO SF Chx",
+              "dinner": "Whole30 Chx Salad x2",
+              "dateStr": "2023-10-11",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 12,
+              "breakfast": null,
+              "lunch": "LO SF Chx",
+              "dinner": "Lemon butter Tilapia & Broccoli x2",
+              "dateStr": "2023-10-12",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 13,
+              "breakfast": null,
+              "lunch": "LO Chx Salad",
+              "dinner": "LO Tilapia & Broccoli",
+              "dateStr": "2023-10-13",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 14,
+              "breakfast": null,
+              "lunch": "Eat out - Summerland Trip",
+              "dinner": null,
+              "dateStr": "2023-10-14",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 15,
+              "breakfast": "Make Egg bites",
+              "lunch": "LO Chx Parm",
+              "dinner": "Grilled Shrimp, Veggies, and Rice x2",
+              "dateStr": "2023-10-15",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 16,
+              "breakfast": "Egg Bites",
+              "lunch": "LO Shrimp & Veg",
+              "dinner": "Tofu Stir Fry x3",
+              "dateStr": "2023-10-16",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 17,
+              "breakfast": "Egg Bites",
+              "lunch": "LO Tofu Stir Fry",
+              "dinner": "Vegan Lentil Shepherds Pie x2",
+              "dateStr": "2023-10-17",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 18,
+              "breakfast": "Egg Bites",
+              "lunch": "LO Tofu Stir Fry",
+              "dinner": "Asian Broccoli Salad",
+              "dateStr": "2023-10-18",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 19,
+              "breakfast": null,
+              "lunch": "LO Broccoli salad",
+              "dinner": "LO Shepherds Pie",
+              "dateStr": "2023-10-19",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 20,
+              "breakfast": null,
+              "lunch": "Asian Chx & Veg Skewers",
+              "dinner": "Eat out",
+              "dateStr": "2023-10-20",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 21,
+              "breakfast": null,
+              "lunch": "LO Chx Skewers",
+              "dinner": "Ground Turkey Burrito Bowl",
+              "dateStr": "2023-10-21",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 22,
+              "breakfast": null,
+              "lunch": "LO Ground Turkey Bowl",
+              "dinner": null,
+              "dateStr": "2023-10-22",
+              "dayOfWeek": "Sunday"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sheetName": "Sept 23",
+      "monthYear": "September 2022",
+      "weeks": [
+        {
+          "dates": [
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 20,
+              "breakfast": "Eggs + Avo",
+              "lunch": "Eat out - Natural Cafe",
+              "dinner": "Dumplings & Rice Soup",
+              "dateStr": "2022-09-20",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 21,
+              "breakfast": null,
+              "lunch": "Premade Salad + Chx",
+              "dinner": "Chicken + Roasted Broccoli & Sweet pots x2",
+              "dateStr": "2022-09-21",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 22,
+              "breakfast": null,
+              "lunch": "Premade Salad + Chx",
+              "dinner": "LO Chx + Broc",
+              "dateStr": "2022-09-22",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 23,
+              "breakfast": null,
+              "lunch": "Premade Salad + Chx",
+              "dinner": "Pulled Pork Lettuce Wraps + Brown Rice x3",
+              "dateStr": "2022-09-23",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 24,
+              "breakfast": null,
+              "lunch": "LO Lettuce Wraps",
+              "dinner": "Frozen Dumplings + Edamame",
+              "dateStr": "2022-09-24",
+              "dayOfWeek": "Saturday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 25,
+              "breakfast": null,
+              "lunch": "LO Lettuce Wraps",
+              "dinner": "Eat out - Topa Topa",
+              "dateStr": "2022-09-25",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 26,
+              "breakfast": null,
+              "lunch": "Eat out",
+              "dinner": "Eat out - Wedding",
+              "dateStr": "2022-09-26",
+              "dayOfWeek": "Monday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            27,
+            28,
+            29,
+            30,
+            31,
+            1,
+            2
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 27,
+              "breakfast": null,
+              "lunch": null,
+              "dinner": "Airfryer Salmon, Brown Rice, & Edamame x3",
+              "dateStr": "2022-09-27",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 28,
+              "breakfast": null,
+              "lunch": "LO Salmon + Lettuce Wrap",
+              "dinner": "Blk Pepper Chx Stir Fry + Cauli Rice x3",
+              "dateStr": "2022-09-28",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 29,
+              "breakfast": null,
+              "lunch": "LO Salmon + Lettuce Wrap",
+              "dinner": "LO Chx Stir Fry",
+              "dateStr": "2022-09-29",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 30,
+              "breakfast": null,
+              "lunch": "LO Chx Stir Fry",
+              "dinner": "Egg Roll in a Bowl x2",
+              "dateStr": "2022-09-30",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 31,
+              "breakfast": null,
+              "lunch": "LO Egg roll",
+              "dinner": "Chx & Cauli Rice & Sauteed Spinach x2"
+            },
+            {
+              "dayIndex": 5,
+              "date": 1,
+              "breakfast": null,
+              "lunch": "LO Chx Rice & Spinach",
+              "dinner": "Eat out",
+              "dateStr": "2022-10-01",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "meals": [
+            {
+              "dayIndex": 1,
+              "date": 4,
+              "breakfast": null,
+              "lunch": "Premade Salad",
+              "dinner": "Salmon Cuc Sushi Boat x2",
+              "dateStr": "2022-10-04",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 5,
+              "breakfast": null,
+              "lunch": "LO Salmon Boats",
+              "dinner": "Chicken + Roasted Broccoli & Potatoes x2",
+              "dateStr": "2022-10-05",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 6,
+              "breakfast": null,
+              "lunch": "Premade Salad",
+              "dinner": "Ground Turkey Wraps w/ Brown Rice",
+              "dateStr": "2022-10-06",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 7,
+              "breakfast": null,
+              "lunch": "LO Turkey Wraps",
+              "dinner": "LO Chx Broc & Potatoes",
+              "dateStr": "2022-10-07",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 8,
+              "breakfast": null,
+              "lunch": null,
+              "dinner": "Eat out",
+              "dateStr": "2022-10-08",
+              "dayOfWeek": "Saturday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 9,
+              "breakfast": null,
+              "lunch": null,
+              "dinner": "Spaghetti Squash & Chx Parm x2",
+              "dateStr": "2022-10-09",
+              "dayOfWeek": "Sunday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 10,
+              "breakfast": null,
+              "lunch": "LO Chx Parm",
+              "dinner": null,
+              "dateStr": "2022-10-10",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 11,
+              "breakfast": null,
+              "lunch": null,
+              "dinner": "Tilapia, Potatoes, Collard Greens x2",
+              "dateStr": "2022-10-11",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 12,
+              "breakfast": null,
+              "lunch": "LO Tilapia & Sides",
+              "dinner": "Chicken Fajita Bowl x2",
+              "dateStr": "2022-10-12",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 13,
+              "breakfast": null,
+              "lunch": "LO Chx Fajitas",
+              "dinner": "Tofu Stir Fry x3",
+              "dateStr": "2022-10-13",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 14,
+              "breakfast": null,
+              "lunch": "LO Tofu Stir Fry",
+              "dinner": null,
+              "dateStr": "2022-10-14",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 15,
+              "breakfast": null,
+              "lunch": "LO Tofu Stir Fry",
+              "dinner": "Eat out",
+              "dateStr": "2022-10-15",
+              "dayOfWeek": "Saturday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 16,
+              "breakfast": null,
+              "lunch": "Collard Greens & Chx Spring Rolls x2",
+              "dinner": null,
+              "dateStr": "2022-10-16",
+              "dayOfWeek": "Sunday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 17,
+              "breakfast": null,
+              "lunch": "LO Spring Rolls",
+              "dinner": null,
+              "dateStr": "2022-10-17",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 18,
+              "breakfast": null,
+              "lunch": null,
+              "dinner": "Chicken w/ Shallots & Spinach x2",
+              "dateStr": "2022-10-18",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 19,
+              "breakfast": null,
+              "lunch": "LO Chx & Shallots",
+              "dinner": null,
+              "dateStr": "2022-10-19",
+              "dayOfWeek": "Wednesday"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sheetName": "Jun 23",
+      "monthYear": "Weekly Templates",
+      "weeks": [
+        {
+          "dates": [
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            "0"
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": null,
+              "breakfast": "IGNORE THIS WEEK",
+              "lunch": null,
+              "dinner": null
+            }
+          ]
+        },
+        {
+          "dates": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "meals": [
+            {
+              "dayIndex": 3,
+              "date": 4,
+              "breakfast": "Smoothies/Boiled Egg",
+              "lunch": "Pre-made Salad",
+              "dinner": "BBQ Chicken & Corn x2",
+              "dateStr": "2023-06-04",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 5,
+              "breakfast": "Eggs",
+              "lunch": "Frozen Enchiladas (Kelsey Lunch with Hanna)",
+              "dinner": "Slow Cooker Tropical Pulled Chicken",
+              "dateStr": "2023-06-05",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 6,
+              "breakfast": "Eggs",
+              "lunch": "Frozen Enchiladas (Kelsey lunch with Ashutosh)",
+              "dinner": "LO Slow Cooker Chx (Kelsey dinner with Julie)",
+              "dateStr": "2023-06-06",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 7,
+              "breakfast": "Eggs",
+              "lunch": "LO Slow Cooker Chx (Kelsey has AA thing)",
+              "dinner": "Fish W/ Asparagus and cous cous",
+              "dateStr": "2023-06-07",
+              "dayOfWeek": "Wednesday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 8,
+              "breakfast": "Eggs",
+              "lunch": "LO Fish (Kelsey has glitter brunch)",
+              "dinner": "Cheesy Chicken Spaghetti Squash Casserole",
+              "dateStr": "2023-06-08",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 9,
+              "breakfast": "Eggs",
+              "lunch": "LO Chx",
+              "dinner": "Honey glazed salmon bowl",
+              "dateStr": "2023-06-09",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 10,
+              "breakfast": "Eggs",
+              "lunch": "LO Chx",
+              "dinner": "LO Salmon",
+              "dateStr": "2023-06-10",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sheetName": "May 23",
+      "monthYear": "May 2023",
+      "weeks": [
+        {
+          "dates": [
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20
+          ],
+          "meals": [
+            {
+              "dayIndex": 1,
+              "date": 15,
+              "breakfast": null,
+              "lunch": "Leftovers",
+              "dinner": "BBQ Chx/Corn/Rice",
+              "dateStr": "2023-05-15",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 16,
+              "breakfast": "Smoothie",
+              "lunch": "Shoyuzuke eggs & rice x2",
+              "dinner": "LO Chx/Corn/Rice",
+              "dateStr": "2023-05-16",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 17,
+              "breakfast": "Smoothie",
+              "lunch": "LO Shoyuzuke eggs & rice",
+              "dinner": "Baked Tilapia & Brussels x1.5",
+              "dateStr": "2023-05-17",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 18,
+              "breakfast": "Eggs",
+              "lunch": "Tuna Salad Lettuce Wraps x3(1)",
+              "dinner": "LO Tilapia & Brussels",
+              "dateStr": "2023-05-18",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 19,
+              "breakfast": "Eggs",
+              "lunch": "Tuna Salad Lettuce Wraps",
+              "dinner": "Eat Out",
+              "dateStr": "2023-05-19",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 20,
+              "breakfast": "Breakfast out",
+              "lunch": "LO Tuna Salad Lettuce Wraps",
+              "dinner": "Shrimp & Couscous",
+              "dateStr": "2023-05-20",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 21,
+              "breakfast": "Smoothie",
+              "lunch": "Egg Roll in a bowl",
+              "dinner": "LO Shrimp & Couscous",
+              "dateStr": "2023-05-21",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 22,
+              "breakfast": "Eggs",
+              "lunch": "LO Egg Roll bowl",
+              "dinner": "Carnitas Lettuce Wraps x3\n(START EARLY)",
+              "dateStr": "2023-05-22",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 23,
+              "breakfast": "Eggs",
+              "lunch": "LO Carnitas Wraps",
+              "dinner": "Blackened Fish Tacos",
+              "dateStr": "2023-05-23",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 24,
+              "breakfast": "Eggs",
+              "lunch": "LO Carnitas Wraps",
+              "dinner": "LO Blackened Fish Tacos",
+              "dateStr": "2023-05-24",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 25,
+              "breakfast": "Eggs",
+              "lunch": "Turkey/Avo/Onion Sammy",
+              "dinner": "Eat Out",
+              "dateStr": "2023-05-25",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 26,
+              "breakfast": "Eggs",
+              "lunch": "Turkey/Avo/Onion Sammy",
+              "dinner": "Tofu Stir Fry & Rice",
+              "dateStr": "2023-05-26",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 27,
+              "breakfast": "Eggs",
+              "lunch": "Hanna & Tanner Engagement Party",
+              "dinner": "Cooking Class!",
+              "dateStr": "2023-05-27",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            28,
+            29,
+            30,
+            31,
+            1,
+            2,
+            3
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 28,
+              "breakfast": null,
+              "lunch": "LO Stir Fry",
+              "dinner": null,
+              "dateStr": "2023-05-28",
+              "dayOfWeek": "Sunday"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sheetName": "Apr 23",
+      "monthYear": "April 2023",
+      "weeks": [
+        {
+          "dates": [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "meals": [
+            {
+              "dayIndex": 2,
+              "date": 4,
+              "breakfast": "Eggs & avo",
+              "lunch": "Leftovers & Nuggies",
+              "dinner": "Dinner w/ Kav",
+              "dateStr": "2023-04-04",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 5,
+              "breakfast": "Eggs & avo",
+              "lunch": "Premade Salad w/ Chx",
+              "dinner": "Dinner w/ Teri",
+              "dateStr": "2023-04-05",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 6,
+              "breakfast": "Eggs & avo",
+              "lunch": "Premade Salad w/ Chx",
+              "dinner": "Tilapia & Frozen Veggie Mix",
+              "dateStr": "2023-04-06",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 7,
+              "breakfast": "Eggs & avo",
+              "lunch": "LO Tilapia & Veggie",
+              "dinner": "Zuchini boats w/ Turkey & Cauli Rice",
+              "dateStr": "2023-04-07",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 8,
+              "breakfast": "Eggs & avo",
+              "lunch": "Molly baby shower",
+              "dinner": "LO Zuchini boats & Rice",
+              "dateStr": "2023-04-08",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 9,
+              "breakfast": "Eggs & avo",
+              "lunch": "Premade salad",
+              "dinner": null,
+              "dateStr": "2023-04-09",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 10,
+              "breakfast": "Eggs & avo",
+              "lunch": "Kelsey Lunch w/ Jadyn",
+              "dinner": null,
+              "dateStr": "2023-04-10",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 11,
+              "breakfast": null,
+              "lunch": null,
+              "dinner": "Hang w/ David & Caitlin",
+              "dateStr": "2023-04-11",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 15,
+              "breakfast": "Volunteering",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2023-04-15",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 16,
+              "breakfast": "Eat Out",
+              "lunch": "Chicken Salad",
+              "dinner": "Chicken rice crockpot",
+              "dateStr": "2023-04-16",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 17,
+              "breakfast": "Eggs",
+              "lunch": "LO Chicken rice crockpot",
+              "dinner": "Salmon w/ brocolli and potatoes",
+              "dateStr": "2023-04-17",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 18,
+              "breakfast": "Eggs",
+              "lunch": "Tuna Sanwiches",
+              "dinner": "Salmon Bake",
+              "dateStr": "2023-04-18",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 19,
+              "breakfast": "Eggs",
+              "lunch": "Chicken Salad",
+              "dinner": "Chicken Vermicelli",
+              "dateStr": "2023-04-19",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 20,
+              "breakfast": "Eggs",
+              "lunch": "soup dumplings",
+              "dinner": "LO vermicelli",
+              "dateStr": "2023-04-20",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 21,
+              "breakfast": "eggs",
+              "lunch": "Carne cauliflower",
+              "dinner": "eat out",
+              "dateStr": "2023-04-21",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 22,
+              "breakfast": "eggs",
+              "lunch": "Carne cali",
+              "dinner": "short rib bowl",
+              "dateStr": "2023-04-22",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 23,
+              "breakfast": "eggs",
+              "lunch": "lo short rib",
+              "dinner": "eat out",
+              "dateStr": "2023-04-23",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 27,
+              "breakfast": null,
+              "lunch": null,
+              "dinner": "LO food with Rice",
+              "dateStr": "2023-04-27",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 28,
+              "breakfast": "Eggs",
+              "lunch": "Frozen Indian Food",
+              "dinner": "Dinner w/ Ry and Jules",
+              "dateStr": "2023-04-28",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 29,
+              "breakfast": "Eggs",
+              "lunch": "Chicken Salad",
+              "dinner": "Chow mein with Egg",
+              "dateStr": "2023-04-29",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            30,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 30,
+              "breakfast": "Oatmeal",
+              "lunch": "Tuna Sandwich",
+              "dinner": "BBQ Chicken Brocolli and Rice",
+              "dateStr": "2023-04-30",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 1,
+              "breakfast": "Oatmeal",
+              "lunch": "Chicken Wrap",
+              "dinner": "LO BBQ Chicken Brocolli and Rice",
+              "dateStr": "2023-05-01",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 2,
+              "breakfast": "Oatmeal",
+              "lunch": "Tuna Sandwich",
+              "dinner": "Air Fried Salmon, brussels, and Potatoes",
+              "dateStr": "2023-05-02",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 3,
+              "breakfast": "Oatmeal",
+              "lunch": "Chicken Wrap",
+              "dinner": "LO Air Fried Salmon, brussels, and Potatoes",
+              "dateStr": "2023-05-03",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 4,
+              "breakfast": null,
+              "lunch": "Grad Trip!",
+              "dinner": "Grad Trip!",
+              "dateStr": "2023-05-04",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 5,
+              "breakfast": "Graduation Trip!",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2023-05-05",
+              "dayOfWeek": "Friday"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sheetName": "Mar 23",
+      "monthYear": "March 2023",
+      "weeks": [
+        {
+          "dates": [
+            26,
+            27,
+            28,
+            1,
+            2,
+            3,
+            4
+          ],
+          "meals": [
+            {
+              "dayIndex": 1,
+              "date": 27,
+              "breakfast": "Eggs & Avo",
+              "lunch": "Mosh Posh",
+              "dinner": "Carnitas Lettuce Wraps x2",
+              "dateStr": "2023-03-27",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 28,
+              "breakfast": "Eggs & Avo",
+              "lunch": "Salad w/ chx, squash, zucchini",
+              "dinner": "Salt & Pepper Chx Wings + Cauliflower Fried Rice",
+              "dateStr": "2023-03-28",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 1,
+              "breakfast": "Eggs & Avo",
+              "lunch": "LO Chx Wings",
+              "dinner": "LO Carnitas Lettuce Wraps",
+              "dateStr": "2023-04-01",
+              "dayOfWeek": "Saturday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 2,
+              "breakfast": "Eggs & Avo",
+              "lunch": "LO Salad",
+              "dinner": "Chx Parm w/ Spagetti Squash",
+              "dateStr": "2023-04-02",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 3,
+              "breakfast": "Eggs & Avo",
+              "lunch": "LO Chx Parm w/ Spagetti Squash",
+              "dinner": "Fish and Frozen Veggies",
+              "dateStr": "2023-04-03",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 4,
+              "breakfast": "Jeannines",
+              "lunch": "Hippie Bowl x2",
+              "dinner": "Chicken Vermicelli",
+              "dateStr": "2023-04-04",
+              "dayOfWeek": "Tuesday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 5,
+              "breakfast": "Eggs",
+              "lunch": "LO Hippie Bowl",
+              "dinner": "LO Chx Vermicelli",
+              "dateStr": "2023-04-05",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 6,
+              "breakfast": "Eggs",
+              "lunch": "LO Chx Vermicelli",
+              "dinner": null,
+              "dateStr": "2023-04-06",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 7,
+              "breakfast": null,
+              "lunch": "Hippie Bowl",
+              "dinner": null,
+              "dateStr": "2023-04-07",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 9,
+              "breakfast": null,
+              "lunch": "LO Hippie Bowl",
+              "dinner": "Reheat enchiladas",
+              "dateStr": "2023-04-09",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 10,
+              "breakfast": null,
+              "lunch": "Chx Pot Pie",
+              "dinner": "Pizza",
+              "dateStr": "2023-04-10",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 11,
+              "breakfast": "Ryan Bday",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2023-04-11",
+              "dayOfWeek": "Tuesday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 12,
+              "breakfast": "Helena Bakery",
+              "lunch": "LO Pizza",
+              "dinner": "Reheat enchiladas",
+              "dateStr": "2023-04-12",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 13,
+              "breakfast": "Eggs & Avo",
+              "lunch": "Hippie Bowl",
+              "dinner": "Fish and Veggies",
+              "dateStr": "2023-04-13",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 14,
+              "breakfast": "Acai Bowls/Smoothie",
+              "lunch": "LO Hippie Bowl",
+              "dinner": "Tofu Stir Fry & Cauli Rice",
+              "dateStr": "2023-04-14",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 15,
+              "breakfast": "Eggs & Avo",
+              "lunch": "LO Tofu Stir Fry",
+              "dinner": "Roasted Chx, Veggies, Rice",
+              "dateStr": "2023-04-15",
+              "dayOfWeek": "Saturday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 16,
+              "breakfast": "Eggs, Avo, Bacon, Eng Muffins",
+              "lunch": "Sandwiches",
+              "dinner": "Honey Salmon & Couscous",
+              "dateStr": "2023-04-16",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 17,
+              "breakfast": "Eggs, Avo, Bacon, Eng Muffins",
+              "lunch": "Sandwiches",
+              "dinner": "Opal Reservation",
+              "dateStr": "2023-04-17",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 18,
+              "breakfast": "Starbucks/Coffee Shop",
+              "lunch": "Cold Springs Tavern",
+              "dinner": "Chx & Veg Skewers + Rice",
+              "dateStr": "2023-04-18",
+              "dayOfWeek": "Tuesday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 19,
+              "breakfast": "Dart Coffee",
+              "lunch": "Sandwiches",
+              "dinner": "White Fish & Veggies",
+              "dateStr": "2023-04-19",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 24,
+              "breakfast": null,
+              "lunch": null,
+              "dinner": "Burgers, Brussels, and Roasted Potatoes",
+              "dateStr": "2023-04-24",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 25,
+              "breakfast": "Eggs & Avo",
+              "lunch": "Sandwiches",
+              "dinner": "Fish & LO Brussels",
+              "dateStr": "2023-04-25",
+              "dayOfWeek": "Tuesday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            1
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 26,
+              "breakfast": "Eggs & Avo",
+              "lunch": "LO Tilapia",
+              "dinner": "Turkey Taco Bowl",
+              "dateStr": "2023-04-26",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 27,
+              "breakfast": "Eggs & Avo",
+              "lunch": "LO Taco Bowl",
+              "dinner": "Flank Steak & Veggies",
+              "dateStr": "2023-04-27",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 28,
+              "breakfast": "Eggs & Avo",
+              "lunch": "Sandwiches",
+              "dinner": "Dinner with Kav",
+              "dateStr": "2023-04-28",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 29,
+              "breakfast": "Vendor Day",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2023-04-29",
+              "dayOfWeek": "Saturday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 30,
+              "breakfast": "Breakfast in LA",
+              "lunch": "Lunch on Drive home",
+              "dinner": null,
+              "dateStr": "2023-04-30",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 31,
+              "breakfast": null,
+              "lunch": "Tuna Sandwich x2",
+              "dinner": null
+            },
+            {
+              "dayIndex": 6,
+              "date": 1,
+              "breakfast": null,
+              "lunch": "Tuna Sandwiches",
+              "dinner": "Carnitas Lettuce Wraps x 4  (START EARLY!)",
+              "dateStr": "2023-05-01",
+              "dayOfWeek": "Monday"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sheetName": "Feb 23 (Whole30)",
+      "monthYear": "February 2023",
+      "weeks": [
+        {
+          "dates": [
+            29,
+            30,
+            31,
+            1,
+            2,
+            3,
+            4
+          ],
+          "meals": [
+            {
+              "dayIndex": 1,
+              "date": 30,
+              "breakfast": "Hardboiled Eggs & Avo",
+              "lunch": "LO Chili",
+              "dinner": "Shrimp - Zuch - Cauli Rice x2"
+            },
+            {
+              "dayIndex": 2,
+              "date": 31,
+              "breakfast": "Hardboiled Eggs & Avo",
+              "lunch": "Premade Salad + Chx",
+              "dinner": "Butternut Squash Alfredo x2"
+            },
+            {
+              "dayIndex": 3,
+              "date": 1,
+              "breakfast": "Fried Egg & Avo",
+              "lunch": "LO Shrimp/Zuch/Rice",
+              "dinner": "Dinner w/ Will & Trista",
+              "dateStr": "2023-03-01",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 2,
+              "breakfast": "Fruit Smoothie",
+              "lunch": "Premade Salad + Chx",
+              "dinner": "LO Butternut Squash Alfredo",
+              "dateStr": "2023-03-02",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 3,
+              "breakfast": "Hardboiled Eggs & Avo",
+              "lunch": null,
+              "dinner": "Chicken Kabobs + Cuc Salad + Cauli Rice X2",
+              "dateStr": "2023-03-03",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 4,
+              "breakfast": "Hardboiled Eggs & Avo",
+              "lunch": "LO Chicken Kabob",
+              "dinner": "Tikki Masala & Cauli Rice x2",
+              "dateStr": "2023-03-04",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 5,
+              "breakfast": "Eggs & Bacon",
+              "lunch": "Chicken Kabobs + Cuc Salad + spagetti squash X2",
+              "dinner": "LO Tikki Masala & Rice",
+              "dateStr": "2023-03-05",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 6,
+              "breakfast": "Hardboiled Eggs + Bacon +Avo",
+              "lunch": "LO Chicken Kabob",
+              "dinner": "Steak / Mash / Brussels x2",
+              "dateStr": "2023-03-06",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 7,
+              "breakfast": "Hardboiled Eggs + Bacon + Avo",
+              "lunch": "LO Steak & Potatoes",
+              "dinner": "Egg Roll in a Bowl",
+              "dateStr": "2023-03-07",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 8,
+              "breakfast": "Eggs, Avo, Bacon",
+              "lunch": "LO Egg Roll Bowl",
+              "dinner": "Beef & Broccoli + Cauli Rice x3",
+              "dateStr": "2023-03-08",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 9,
+              "breakfast": "Eggs, Avo, Bacon",
+              "lunch": "Butternut squash soup",
+              "dinner": "LO Beef & Broc",
+              "dateStr": "2023-03-09",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 10,
+              "breakfast": "Eggs, Avo, Bacon",
+              "lunch": "LO Soup",
+              "dinner": "LO Beef & Broc",
+              "dateStr": "2023-03-10",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 11,
+              "breakfast": "San Diego?",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2023-03-11",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 12,
+              "breakfast": "Eat out - Drive home",
+              "lunch": "Eat out - Drive home",
+              "dinner": "Zuppa Toscana Soup x2",
+              "dateStr": "2023-03-12",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 13,
+              "breakfast": "Eggs & Avo",
+              "lunch": "LO Zuppa Soup",
+              "dinner": "Meatloaf & frozen brussles and roasted potatoes",
+              "dateStr": "2023-03-13",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 14,
+              "breakfast": "Eggs & Avo",
+              "lunch": "Tuna Salad Lettuce Wraps x2",
+              "dinner": "Valentines Day Dinner - Arigato",
+              "dateStr": "2023-03-14",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 15,
+              "breakfast": "Eggs & Avo",
+              "lunch": "LO meatloaf",
+              "dinner": "Sweet Potato Chicken Poppers & Guac",
+              "dateStr": "2023-03-15",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 16,
+              "breakfast": "Eggs & Avo & Cheese",
+              "lunch": "LO Tuna Salad Wraps",
+              "dinner": "Protein Style In & Out",
+              "dateStr": "2023-03-16",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 17,
+              "breakfast": "Eggs & Avo",
+              "lunch": "Sheetpan Roasted Chicken & Veggies",
+              "dinner": "LO Sweet potato chicken",
+              "dateStr": "2023-03-17",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 18,
+              "breakfast": "Starbucks",
+              "lunch": "James Bday",
+              "dinner": null,
+              "dateStr": "2023-03-18",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 19,
+              "breakfast": "Hotel Breakfast",
+              "lunch": "Eat out - Drive home",
+              "dinner": "Slowcook Sloppy Joe in Sweet pot (Start EARLY)",
+              "dateStr": "2023-03-19",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 20,
+              "breakfast": "Eggs & Avo",
+              "lunch": "LO Sloppy Joe",
+              "dinner": "Carnitas Lettuce Wraps x2",
+              "dateStr": "2023-03-20",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 21,
+              "breakfast": "Eggs & Avo",
+              "lunch": null,
+              "dinner": "No More Whole30 Celebration!",
+              "dateStr": "2023-03-21",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 22,
+              "breakfast": "Eggs & Avo",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2023-03-22",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 23,
+              "breakfast": "Eggs & Avo",
+              "lunch": "Chx Fajitas Salad x1.5",
+              "dinner": "Reheat Turkey Chili",
+              "dateStr": "2023-03-23",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 24,
+              "breakfast": "Eggs & Avo",
+              "lunch": null,
+              "dinner": "LO Turkey Chili",
+              "dateStr": "2023-03-24",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 25,
+              "breakfast": "Jeannines",
+              "lunch": "Hippie Bowl x2",
+              "dinner": "Chicken Vermicelli?",
+              "dateStr": "2023-03-25",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            26,
+            27,
+            28,
+            29,
+            30,
+            31,
+            32
+          ],
+          "meals": [
+            {
+              "dayIndex": 1,
+              "date": 27,
+              "breakfast": "Eggs & Avo",
+              "lunch": null,
+              "dinner": "Carnitas Lettuce Wraps x2",
+              "dateStr": "2023-03-27",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 28,
+              "breakfast": "Eggs & Avo",
+              "lunch": "Pre-made Salad",
+              "dinner": null,
+              "dateStr": "2023-03-28",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 29,
+              "breakfast": "Eggs & Avo",
+              "lunch": "Pre-made Salad",
+              "dinner": "LO Carnitas Lettuce Wraps",
+              "dateStr": "2023-03-29",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 30,
+              "breakfast": "Eggs & Avo",
+              "lunch": "Chx Fajitas Salad x1.5",
+              "dinner": null,
+              "dateStr": "2023-03-30",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 31,
+              "breakfast": "Eggs & Avo",
+              "lunch": null,
+              "dinner": "LO Turkey Chili",
+              "dateStr": "2023-03-31",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 32,
+              "breakfast": "Jeannines",
+              "lunch": "Hippie Bowl x2",
+              "dinner": "Chicken Vermicelli?"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sheetName": "Jan 23",
+      "monthYear": "January 2023",
+      "weeks": [
+        {
+          "dates": [
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31
+          ],
+          "meals": [
+            {
+              "dayIndex": 3,
+              "date": 28,
+              "breakfast": "Starbucks",
+              "lunch": "Frozen Meal",
+              "dinner": "Tofu Stir Fry x2",
+              "dateStr": "2023-01-28",
+              "dayOfWeek": "Saturday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 29,
+              "breakfast": "Hard boiled eggs",
+              "lunch": "Pre-made Salad",
+              "dinner": "LO Tofu Stir Fry",
+              "dateStr": "2023-01-29",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 30,
+              "breakfast": "Hard boiled eggs",
+              "lunch": "Pre-made Salad",
+              "dinner": "BBQ Chicken & Corn x2",
+              "dateStr": "2023-01-30",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 31,
+              "breakfast": "Hard boiled eggs",
+              "lunch": "LO BBQ Chx",
+              "dinner": "New Years",
+              "dateStr": "2023-01-31",
+              "dayOfWeek": "Tuesday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 1,
+              "breakfast": "Hard boiled eggs",
+              "lunch": "Seabass & Asparagus",
+              "dinner": "Frozen Meal",
+              "dateStr": "2023-01-01",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 2,
+              "breakfast": "Egg Bites",
+              "lunch": "LO Seabass & Asparagus",
+              "dinner": "Chicken & Broccolli x2",
+              "dateStr": "2023-01-02",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 3,
+              "breakfast": "Egg Bites",
+              "lunch": "Hippie Bowls x3",
+              "dinner": "LO Chicken & Broc",
+              "dateStr": "2023-01-03",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 4,
+              "breakfast": "Egg Bites",
+              "lunch": "LO Hippie Bowl",
+              "dinner": "Frozen Meal",
+              "dateStr": "2023-01-04",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 5,
+              "breakfast": "Egg Bites",
+              "lunch": "LO Hippie Bowl",
+              "dinner": "White Fish & Zuch x2",
+              "dateStr": "2023-01-05",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 6,
+              "breakfast": "Hard boiled eggs",
+              "lunch": "LO Fish & Veg",
+              "dinner": "Eat Out",
+              "dateStr": "2023-01-06",
+              "dayOfWeek": "Friday"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sheetName": "Dec 22",
+      "monthYear": "December 2022",
+      "weeks": [
+        {
+          "dates": [
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "meals": [
+            {
+              "dayIndex": 2,
+              "date": 6,
+              "breakfast": "Avo Toast + Bacon",
+              "lunch": "Ham/Turkey Sandies x2?",
+              "dinner": "Leftovers",
+              "dateStr": "2022-12-06",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 7,
+              "breakfast": "Eggs & Bacon",
+              "lunch": "Leftovers",
+              "dinner": "Santa Fe Chicken Slow x 4\n(START MID-DAY)",
+              "dateStr": "2022-12-07",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 8,
+              "breakfast": "Eggs + Avo",
+              "lunch": "LO Santa Fe Chx",
+              "dinner": "Enchiladas",
+              "dateStr": "2022-12-08",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 9,
+              "breakfast": "Eggs + Bacon",
+              "lunch": "LO Santa Fe Chx",
+              "dinner": "Eat Out - Anniversary Dinner",
+              "dateStr": "2022-12-09",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 10,
+              "breakfast": "Go to TJs - early\nPotato Hash 2x",
+              "lunch": "LO Santa Fe Chx",
+              "dinner": "Fish & Brussels x2",
+              "dateStr": "2022-12-10",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 11,
+              "breakfast": "LO Potato Hash",
+              "lunch": "Pre-made Salad",
+              "dinner": "LO Fish & Brussels",
+              "dateStr": "2022-12-11",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 12,
+              "breakfast": "Oatmeal",
+              "lunch": "Pre-made Salad",
+              "dinner": "Ground Turkey Rice Bowl x2",
+              "dateStr": "2022-12-12",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 13,
+              "breakfast": "Oatmeal",
+              "lunch": "Pre-made Salad",
+              "dinner": "LO Rice bowl",
+              "dateStr": "2022-12-13",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 14,
+              "breakfast": "Oatmeal",
+              "lunch": "Pre-made Salad",
+              "dinner": "Salmon & Edamame x2",
+              "dateStr": "2022-12-14",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 15,
+              "breakfast": "Oatmeal",
+              "lunch": "LO Salmon Bowl",
+              "dinner": "Frozen Dinner",
+              "dateStr": "2022-12-15",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 16,
+              "breakfast": "Eggs",
+              "lunch": "Soup",
+              "dinner": "Dinner w/ Julie & Ryan?",
+              "dateStr": "2022-12-16",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 17,
+              "breakfast": "Go to TJs - early\nEggs",
+              "lunch": "Pre-made Salad",
+              "dinner": "Chicken & Asparagus x2",
+              "dateStr": "2022-12-17",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 18,
+              "breakfast": "Eggs",
+              "lunch": "Pre-made Salad",
+              "dinner": "LO Chx & Asparagus",
+              "dateStr": "2022-12-18",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 19,
+              "breakfast": "Egg Bites",
+              "lunch": "Pre-made Salad",
+              "dinner": "Tofu Stir Fry x2",
+              "dateStr": "2022-12-19",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 20,
+              "breakfast": "Egg Bites",
+              "lunch": "Pre-made Salad",
+              "dinner": "LO Tofu Stir Fry",
+              "dateStr": "2022-12-20",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 21,
+              "breakfast": "Egg Bites",
+              "lunch": "Pre-made Salad",
+              "dinner": "BBQ Chicken & Corn x2",
+              "dateStr": "2022-12-21",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 22,
+              "breakfast": "Egg Bites",
+              "lunch": "LO BBQ Chx",
+              "dinner": "Frozen Dinner",
+              "dateStr": "2022-12-22",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 23,
+              "breakfast": "San Diego",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2022-12-23",
+              "dayOfWeek": "Friday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 25,
+              "breakfast": "San Diego",
+              "lunch": null,
+              "dinner": "Frozen Meal?",
+              "dateStr": "2022-12-25",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 26,
+              "breakfast": "Eggs",
+              "lunch": "Frozen Meal?",
+              "dinner": "Shrimp & Veggies x2",
+              "dateStr": "2022-12-26",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 27,
+              "breakfast": "Eggs",
+              "lunch": "Hippie Bowls x3",
+              "dinner": "LO Shrimp & Veg",
+              "dateStr": "2022-12-27",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 28,
+              "breakfast": "Eggs",
+              "lunch": "LO Hippie Bowl",
+              "dinner": "Frozen Meal",
+              "dateStr": "2022-12-28",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 29,
+              "breakfast": "Eggs",
+              "lunch": "LO Hippie Bowl",
+              "dinner": "White Fish & Veggies x2",
+              "dateStr": "2022-12-29",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 30,
+              "breakfast": "Eggs",
+              "lunch": "LO Fish & Veg",
+              "dinner": "Eat Out",
+              "dateStr": "2022-12-30",
+              "dayOfWeek": "Friday"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sheetName": "Nov 22",
+      "monthYear": "November 2022",
+      "weeks": [
+        {
+          "dates": [
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 6,
+              "breakfast": "Eggs",
+              "lunch": "Chx Sausage / Green beans / Rice",
+              "dinner": "Enchiladas",
+              "dateStr": "2022-11-06",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 7,
+              "breakfast": "Scone",
+              "lunch": "LO Chx Sausage / Green Beans / Rice",
+              "dinner": "Branzino & Brussels",
+              "dateStr": "2022-11-07",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 8,
+              "breakfast": "Scramble (cut bell peppers)",
+              "lunch": "Premade Salad + Chicken",
+              "dinner": "Pollo Tacos",
+              "dateStr": "2022-11-08",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 9,
+              "breakfast": "Avo Toast",
+              "lunch": "LO Branzino & Brussels",
+              "dinner": "Anniversary Dinner",
+              "dateStr": "2022-11-09",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 10,
+              "breakfast": "Potato Hash",
+              "lunch": "LO Pollo Taco",
+              "dinner": "LO Anniversary Dinner",
+              "dateStr": "2022-11-10",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 11,
+              "breakfast": "LO Potato Hash",
+              "lunch": "Premade Salad + Chicken",
+              "dinner": "Turkey Chilli",
+              "dateStr": "2022-11-11",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 12,
+              "breakfast": "Lotusland",
+              "lunch": "Lunch @ Tre lune",
+              "dinner": "Eat Out",
+              "dateStr": "2022-11-12",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 13,
+              "breakfast": "Egg Scramble/Avo Toast",
+              "lunch": "Premade Salad + Chicken",
+              "dinner": "Raviola and Marinara",
+              "dateStr": "2022-11-13",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 14,
+              "breakfast": "Egg bites",
+              "lunch": "LO Raviola and Marinara",
+              "dinner": "Chx+Broc+Rice (x1)",
+              "dateStr": "2022-11-14",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 15,
+              "breakfast": "Egg bites",
+              "lunch": "Chicken + Caul Stirfry",
+              "dinner": "Eat Out",
+              "dateStr": "2022-11-15",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 16,
+              "breakfast": "Egg bites",
+              "lunch": "LO Chx + Caul Stirfry",
+              "dinner": "Teryaki Chx + Rice + Stirfry Veggies",
+              "dateStr": "2022-11-16",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 17,
+              "breakfast": "Egg bites",
+              "lunch": "LO Teryaki Chx + Rice + Stirfry Veggies",
+              "dinner": "Eat Out",
+              "dateStr": "2022-11-17",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 18,
+              "breakfast": null,
+              "lunch": "San Diego",
+              "dinner": null,
+              "dateStr": "2022-11-18",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 19,
+              "breakfast": null,
+              "lunch": "San Diego",
+              "dinner": null,
+              "dateStr": "2022-11-19",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 20,
+              "breakfast": "Eggs",
+              "lunch": "Frozen",
+              "dinner": "Frozen",
+              "dateStr": "2022-11-20",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 21,
+              "breakfast": null,
+              "lunch": "KELSEY BIRTHDAY!",
+              "dinner": null,
+              "dateStr": "2022-11-21",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 22,
+              "breakfast": "Eggs",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2022-11-22",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 23,
+              "breakfast": "Avo Toast",
+              "lunch": null,
+              "dinner": "Milk and Honey",
+              "dateStr": "2022-11-23",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 24,
+              "breakfast": "Avo Toast",
+              "lunch": "Nortons?",
+              "dinner": "Holdrens",
+              "dateStr": "2022-11-24",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 25,
+              "breakfast": "Boathouse",
+              "lunch": null,
+              "dinner": "Salmon, veggies, cous cous",
+              "dateStr": "2022-11-25",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 26,
+              "breakfast": "Trip to Solvang",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2022-11-26",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            27,
+            28,
+            29,
+            30,
+            1,
+            2,
+            3
+          ],
+          "meals": [
+            {
+              "dayIndex": 2,
+              "date": 29,
+              "breakfast": null,
+              "lunch": null,
+              "dinner": "Eat Out",
+              "dateStr": "2022-11-29",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 2,
+              "breakfast": null,
+              "lunch": null,
+              "dinner": "Eat Out",
+              "dateStr": "2022-12-02",
+              "dayOfWeek": "Friday"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sheetName": "Oct 22",
+      "monthYear": "October/November 2022",
+      "weeks": [
+        {
+          "dates": [
+            null,
+            null,
+            null,
+            19,
+            20,
+            21,
+            22
+          ],
+          "meals": [
+            {
+              "dayIndex": 3,
+              "date": 19,
+              "breakfast": "Avo Toast",
+              "lunch": "Eat Out",
+              "dinner": "Stuffed peppers",
+              "dateStr": "2022-11-19",
+              "dayOfWeek": "Saturday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 20,
+              "breakfast": "Eggs/Bacon/Brocolli/Avocado",
+              "lunch": "LO Stuffed Peppers",
+              "dinner": "Vermicelli Noodle (2x)",
+              "dateStr": "2022-11-20",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 21,
+              "breakfast": "Eggs/Bacon/Brocolli/Avocado",
+              "lunch": "Eat Out",
+              "dinner": "Eat Out",
+              "dateStr": "2022-11-21",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 22,
+              "breakfast": "Avo Toast",
+              "lunch": "Eat Out",
+              "dinner": "LO Stuffed Peppers",
+              "dateStr": "2022-11-22",
+              "dayOfWeek": "Tuesday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 23,
+              "breakfast": "Avo Toast",
+              "lunch": "Eat Out",
+              "dinner": "Tilapia & Veggies",
+              "dateStr": "2022-11-23",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 24,
+              "breakfast": "Eggs",
+              "lunch": "Left Over Food/Tilapia",
+              "dinner": "Chicken Slow cooker",
+              "dateStr": "2022-11-24",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 25,
+              "breakfast": "Eggs",
+              "lunch": "Tuna Sandwich",
+              "dinner": "LO Chicken Slow cooker",
+              "dateStr": "2022-11-25",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 26,
+              "breakfast": "Eggs/Bacon/Brocolli/Avocado",
+              "lunch": "LO Tuna Sandwich",
+              "dinner": "Air Fry Salmon Power Bowl (2x)",
+              "dateStr": "2022-11-26",
+              "dayOfWeek": "Saturday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 27,
+              "breakfast": "Eggs/Bacon/Brocolli/Avocado",
+              "lunch": "LO Air Fry Salmon Power Bowl",
+              "dinner": "Eat Out w/ leftovers",
+              "dateStr": "2022-11-27",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 28,
+              "breakfast": "Avo Toast",
+              "lunch": "Chicken Wrap",
+              "dinner": "Leftovers",
+              "dateStr": "2022-11-28",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 29,
+              "breakfast": "Avo Toast",
+              "lunch": "LO Chx Wrap",
+              "dinner": "Halloween Party",
+              "dateStr": "2022-11-29",
+              "dayOfWeek": "Tuesday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            30,
+            31,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 30,
+              "breakfast": "Eggs",
+              "lunch": "LO Chx Wrap",
+              "dinner": "Crock Pot Santa Fe Chicken(x3)",
+              "dateStr": "2022-11-30",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 31,
+              "breakfast": "Frozen Eggs",
+              "lunch": "LO Crock Pot Santa Fe Chicken",
+              "dinner": "Citrus Shrimp Salad x2"
+            },
+            {
+              "dayIndex": 2,
+              "date": 1,
+              "breakfast": "Frozen Eggs",
+              "lunch": "LO Shrimp Salad",
+              "dinner": "Eat Out",
+              "dateStr": "2022-12-01",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 2,
+              "breakfast": null,
+              "lunch": "LO Crock Pot Santa Fe Chicken",
+              "dinner": null,
+              "dateStr": "2022-12-02",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 4,
+              "breakfast": null,
+              "lunch": null,
+              "dinner": "Eat Out",
+              "dateStr": "2022-12-04",
+              "dayOfWeek": "Sunday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ],
+          "meals": [
+            {
+              "dayIndex": 2,
+              "date": 8,
+              "breakfast": null,
+              "lunch": null,
+              "dinner": "Eat Out",
+              "dateStr": "2022-12-08",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 11,
+              "breakfast": null,
+              "lunch": null,
+              "dinner": "Eat Out",
+              "dateStr": "2022-12-11",
+              "dayOfWeek": "Sunday"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sheetName": "Sept 22",
+      "monthYear": "Sept 2022",
+      "weeks": [
+        {
+          "dates": [
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ],
+          "meals": [
+            {
+              "dayIndex": 1,
+              "date": 5,
+              "breakfast": null,
+              "lunch": null,
+              "dinner": "Eat Out",
+              "dateStr": "2022-09-05",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 6,
+              "breakfast": "Eggs",
+              "lunch": "LO Viet",
+              "dinner": "Chicken/Corn/Rice",
+              "dateStr": "2022-09-06",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 7,
+              "breakfast": "Eggs",
+              "lunch": "LO Chix/corn/rice",
+              "dinner": "Tilapia/Cous Cous/Spinach",
+              "dateStr": "2022-09-07",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 8,
+              "breakfast": "Eggs",
+              "lunch": "LO Tilapia/Cous Cous/Spinach",
+              "dinner": "Ling Lings",
+              "dateStr": "2022-09-08",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 9,
+              "breakfast": "Eggs",
+              "lunch": "LO Tilapia/Cous Cous/Spinach",
+              "dinner": "Swedish House Mafia",
+              "dateStr": "2022-09-09",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 10,
+              "breakfast": "Swedish House Mafia",
+              "lunch": null,
+              "dinner": "Eat Out",
+              "dateStr": "2022-09-10",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            11,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 11,
+              "breakfast": "Eggs",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2022-09-11",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 12,
+              "breakfast": "Leftovers",
+              "lunch": null,
+              "dinner": "Eat Out",
+              "dateStr": "2022-09-12",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 13,
+              "breakfast": "Oatmeal",
+              "lunch": null,
+              "dinner": "Enchiladas?",
+              "dateStr": "2022-09-13",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 14,
+              "breakfast": "Oatmeal",
+              "lunch": "LO Enchiladas?",
+              "dinner": "Chicken, Eggs, & Rice Bowl x3",
+              "dateStr": "2022-09-14",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 15,
+              "breakfast": "Oatmeal",
+              "lunch": "LO Chicken Rice bowl",
+              "dinner": null,
+              "dateStr": "2022-09-15",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 16,
+              "breakfast": "Oatmeal",
+              "lunch": "LO Chicken Rice bowl",
+              "dinner": null,
+              "dateStr": "2022-09-16",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 17,
+              "breakfast": "Eggs",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2022-09-17",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            18,
+            19,
+            20,
+            21,
+            22,
+            23,
+            24
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 18,
+              "breakfast": "Eggs",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2022-09-18",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 19,
+              "breakfast": "Eggs",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2022-09-19",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 20,
+              "breakfast": "Eggs",
+              "lunch": null,
+              "dinner": "Eat Out",
+              "dateStr": "2022-09-20",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 21,
+              "breakfast": "Eggs",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2022-09-21",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 22,
+              "breakfast": "Eggs",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2022-09-22",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 23,
+              "breakfast": "Eggs",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2022-09-23",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 24,
+              "breakfast": "Eggs",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2022-09-24",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            25,
+            26,
+            27,
+            28,
+            29,
+            30,
+            31
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 25,
+              "breakfast": "Eggs",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2022-09-25",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 26,
+              "breakfast": "Oatmeal",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2022-09-26",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 27,
+              "breakfast": "Oatmeal",
+              "lunch": null,
+              "dinner": "Eat Out",
+              "dateStr": "2022-09-27",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 28,
+              "breakfast": "Oatmeal",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2022-09-28",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 29,
+              "breakfast": "Oatmeal",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2022-09-29",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 30,
+              "breakfast": "Oatmeal",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2022-09-30",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 31,
+              "breakfast": "Eggs",
+              "lunch": null,
+              "dinner": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sheetName": "August 22",
+      "monthYear": "August 2022",
+      "weeks": [
+        {
+          "dates": [
+            31,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "meals": [
+            {
+              "dayIndex": 1,
+              "date": 1,
+              "breakfast": "Eggs",
+              "lunch": "LO Chinese",
+              "dinner": "Frozen Enchiladas",
+              "dateStr": "2022-08-01",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 2,
+              "breakfast": "Oatmeal",
+              "lunch": "Tuna Salad Sammie",
+              "dinner": "Eat Out",
+              "dateStr": "2022-08-02",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 3,
+              "breakfast": "Oatmeal",
+              "lunch": "LO Tuna Salad Sammie",
+              "dinner": "Vegan Shepherds Pie x2",
+              "dateStr": "2022-08-03",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 4,
+              "breakfast": "Oatmeal",
+              "lunch": "LO Shepherds Pie",
+              "dinner": "Chicken Al Pastor Lettuce Wraps",
+              "dateStr": "2022-08-04",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 5,
+              "breakfast": "Oatmeal",
+              "lunch": "LO Shepherds Pie",
+              "dinner": "LO Al Pastor",
+              "dateStr": "2022-08-05",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 6,
+              "breakfast": "Eggs",
+              "lunch": "Brendan Party",
+              "dinner": "Tom Segura",
+              "dateStr": "2022-08-06",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 7,
+              "breakfast": "Eggs",
+              "lunch": "Tuna Salad Sammie x2",
+              "dinner": "Hot Honey Chicken Bowls",
+              "dateStr": "2022-08-07",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 8,
+              "breakfast": "Eggs",
+              "lunch": "LO Tuna Salad Sammie",
+              "dinner": "LO Hot Honey Chicken",
+              "dateStr": "2022-08-08",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 9,
+              "breakfast": "Eggs",
+              "lunch": "Pre-made Salad",
+              "dinner": "Eat Out",
+              "dateStr": "2022-08-09",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 10,
+              "breakfast": "Eggs",
+              "lunch": "LO Pre-made salad",
+              "dinner": "Tofu Tikka Masala & Naan x2",
+              "dateStr": "2022-08-10",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 11,
+              "breakfast": "Eggs",
+              "lunch": "LO Tikka",
+              "dinner": "Shoyuzuke Egg Bowl & Spicy Edamame",
+              "dateStr": "2022-08-11",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 12,
+              "breakfast": "Eggs",
+              "lunch": "LO Egg Bowl & Edamame",
+              "dinner": "Eat Out",
+              "dateStr": "2022-08-12",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 13,
+              "breakfast": "Eggs",
+              "lunch": "Chicken Casserole",
+              "dinner": "Buffalo Chickpea Zucchini Boats",
+              "dateStr": "2022-08-13",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 14,
+              "breakfast": "Eggs",
+              "lunch": "LO Zuch boats",
+              "dinner": "LO Chicken Casserole",
+              "dateStr": "2022-08-14",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 15,
+              "breakfast": "Eggs",
+              "lunch": "Frozen Meals",
+              "dinner": "Frozen Enchiladas",
+              "dateStr": "2022-08-15",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 16,
+              "breakfast": "Vancouver",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2022-08-16",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 17,
+              "breakfast": "Vancouver",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2022-08-17",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 18,
+              "breakfast": "Vancouver",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2022-08-18",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 19,
+              "breakfast": "Vancouver",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2022-08-19",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 20,
+              "breakfast": "Vancouver",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2022-08-20",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 21,
+              "breakfast": "Eggs",
+              "lunch": "Eat Out",
+              "dinner": "Peanut Butter Chicken",
+              "dateStr": "2022-08-21",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 22,
+              "breakfast": "Eggs",
+              "lunch": "Pre-made Salad",
+              "dinner": "LO Peanut Butter Chicken",
+              "dateStr": "2022-08-22",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 23,
+              "breakfast": "Oatmeal",
+              "lunch": "LO Pre-made salad",
+              "dinner": "Eat Out",
+              "dateStr": "2022-08-23",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 24,
+              "breakfast": "Oatmeal",
+              "lunch": "Spanakopita",
+              "dinner": "Tofu & Veggie Stir Fry",
+              "dateStr": "2022-08-24",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 25,
+              "breakfast": "Oatmeal",
+              "lunch": "LO Tofu Stir Fry",
+              "dinner": "Frozen Enchiladas",
+              "dateStr": "2022-08-25",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 26,
+              "breakfast": "Oatmeal",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2022-08-26",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 27,
+              "breakfast": "Eggs",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2022-08-27",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            28,
+            29,
+            30,
+            31,
+            1,
+            2,
+            3
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 28,
+              "breakfast": "Eggs",
+              "lunch": "Chicken Wraps",
+              "dinner": "Veggie & Fish Bake",
+              "dateStr": "2022-08-28",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 29,
+              "breakfast": "Egg Bites",
+              "lunch": "LO Chicken Wraps",
+              "dinner": "LO Veggie & Fish Bake",
+              "dateStr": "2022-08-29",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 30,
+              "breakfast": "Egg Bites",
+              "lunch": "Pre-made Salad",
+              "dinner": "Eat Out",
+              "dateStr": "2022-08-30",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 31,
+              "breakfast": "Egg Bites",
+              "lunch": "Pre-made Salad",
+              "dinner": "Black Pepper Chicken & Veggies (Kelsey - Recipe)",
+              "dateStr": "2022-08-31",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 1,
+              "breakfast": "Egg Bites",
+              "lunch": "LO BP Chicken",
+              "dinner": "Frozen Enchiladas",
+              "dateStr": "2022-09-01",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 2,
+              "breakfast": "Egg Bites",
+              "lunch": "LO BP Chicken",
+              "dinner": "Eat Out",
+              "dateStr": "2022-09-02",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 3,
+              "breakfast": "Tahoe",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2022-09-03",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sheetName": "July 22",
+      "monthYear": "July 2022",
+      "weeks": [
+        {
+          "dates": [
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ],
+          "meals": [
+            {
+              "dayIndex": 1,
+              "date": 4,
+              "breakfast": "Lighthouse",
+              "lunch": "Ramen",
+              "dinner": "Eat Out",
+              "dateStr": "2022-07-04",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 5,
+              "breakfast": "Leftovers",
+              "lunch": "Tuna Salad Sandies x2",
+              "dinner": "Eat Out",
+              "dateStr": "2022-07-05",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 6,
+              "breakfast": "Eggs",
+              "lunch": "LO Tuna Salad Sandy",
+              "dinner": "Coconut Chickpea Curry x3",
+              "dateStr": "2022-07-06",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 7,
+              "breakfast": "Eggs",
+              "lunch": "LO Chickpea Curry",
+              "dinner": "Chicken & Veggies x2",
+              "dateStr": "2022-07-07",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 8,
+              "breakfast": "Eggs",
+              "lunch": "LO Chicken & Veggies",
+              "dinner": "LO Chickpea Curry",
+              "dateStr": "2022-07-08",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 9,
+              "breakfast": "Anniversary Breakfast",
+              "lunch": "Anniversary Lunch",
+              "dinner": "Anniversary Fondue",
+              "dateStr": "2022-07-09",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 10,
+              "breakfast": "Eggs (+Egg Bites)",
+              "lunch": "Spanikopita",
+              "dinner": "LO Fondue",
+              "dateStr": "2022-07-10",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 11,
+              "breakfast": "Egg Bites",
+              "lunch": "Frozen Shepherds Pies",
+              "dinner": "Chicken & Veggies",
+              "dateStr": "2022-07-11",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 12,
+              "breakfast": "Egg Bites",
+              "lunch": "Hippie Bowls x2",
+              "dinner": "Eat Out",
+              "dateStr": "2022-07-12",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 13,
+              "breakfast": "Egg Bites",
+              "lunch": "LO Hippie Bowl",
+              "dinner": "LO Chicken & Veggies",
+              "dateStr": "2022-07-13",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 14,
+              "breakfast": "Egg Bites",
+              "lunch": "Chicago Trip",
+              "dinner": "Chicago Trip",
+              "dateStr": "2022-07-14",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 15,
+              "breakfast": "Chicago Trip",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2022-07-15",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 16,
+              "breakfast": "Chicago Trip",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2022-07-16",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            17,
+            18,
+            19,
+            20,
+            21,
+            22,
+            23
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 17,
+              "breakfast": "Chicago Trip",
+              "lunch": "Chicago Trip",
+              "dinner": "Eat Out",
+              "dateStr": "2022-07-17",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 18,
+              "breakfast": "Eggs",
+              "lunch": "Mac & Cheese",
+              "dinner": "Ling Lings + Bao Buns",
+              "dateStr": "2022-07-18",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 19,
+              "breakfast": "Eggs",
+              "lunch": "Frozen Enchiladas",
+              "dinner": "Eat Out",
+              "dateStr": "2022-07-19",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 20,
+              "breakfast": "Eggs",
+              "lunch": "Pre-made Salad",
+              "dinner": "Baked Tilapia/Halibut & Veggies x2",
+              "dateStr": "2022-07-20",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 21,
+              "breakfast": "Eggs",
+              "lunch": "LO Fish & Veggie",
+              "dinner": "White Chicken Chili x3",
+              "dateStr": "2022-07-21",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 22,
+              "breakfast": "Eggs",
+              "lunch": "Pre-made Salad",
+              "dinner": "LO Chicken Chili",
+              "dateStr": "2022-07-22",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 23,
+              "breakfast": "Eggs",
+              "lunch": "LO Chicken Chili",
+              "dinner": "Eat Out",
+              "dateStr": "2022-07-23",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            24,
+            25,
+            26,
+            27,
+            28,
+            29,
+            30
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 24,
+              "breakfast": "Eat Out",
+              "lunch": "Frozen Meal",
+              "dinner": "Chicken Enchiladas - Make new Frozen Batch",
+              "dateStr": "2022-07-24",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 25,
+              "breakfast": "Oatmeal",
+              "lunch": "Pre-made Salad",
+              "dinner": "Vegan Shepherds Pie x2",
+              "dateStr": "2022-07-25",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 26,
+              "breakfast": "Oatmeal",
+              "lunch": "LO Shepherds Pie",
+              "dinner": "Eat Out",
+              "dateStr": "2022-07-26",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 27,
+              "breakfast": "Oatmeal",
+              "lunch": "Pre-made Salad",
+              "dinner": "Tofu Tiki Masala & Naan x2",
+              "dateStr": "2022-07-27",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 28,
+              "breakfast": "Oatmeal?",
+              "lunch": "LO Masala",
+              "dinner": "Eat Out",
+              "dateStr": "2022-07-28",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 29,
+              "breakfast": "Eggs",
+              "lunch": "Teriyaki Chicken Sandwiches x2",
+              "dinner": "Eat Out",
+              "dateStr": "2022-07-29",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 30,
+              "breakfast": "Eat Out",
+              "lunch": "LO Teriyaki Chx Sandies",
+              "dinner": "Grilled Shrimp, Veggies, Couscous",
+              "dateStr": "2022-07-30",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sheetName": "June 22",
+      "monthYear": "June 2022",
+      "weeks": [
+        {
+          "dates": [
+            29,
+            30,
+            31,
+            1,
+            2,
+            3,
+            4
+          ],
+          "meals": [
+            {
+              "dayIndex": 2,
+              "date": 31,
+              "breakfast": null,
+              "lunch": null,
+              "dinner": "Eat Out"
+            },
+            {
+              "dayIndex": 3,
+              "date": 1,
+              "breakfast": null,
+              "lunch": "Ling Lings",
+              "dinner": "Chicken & Pasta",
+              "dateStr": "2022-07-01",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 2,
+              "breakfast": "Eggs",
+              "lunch": "Steamed Dumplings (Frozen)",
+              "dinner": "Indian (Frozen)",
+              "dateStr": "2022-07-02",
+              "dayOfWeek": "Saturday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 3,
+              "breakfast": "Eggs",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2022-07-03",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 4,
+              "breakfast": null,
+              "lunch": null,
+              "dinner": "Brendan Housewarming",
+              "dateStr": "2022-07-04",
+              "dayOfWeek": "Monday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 5,
+              "breakfast": "Starbucks",
+              "lunch": "Vinh's Going Away",
+              "dinner": null,
+              "dateStr": "2022-07-05",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 6,
+              "breakfast": "Egg Sandwich",
+              "lunch": "French Onion Soup",
+              "dinner": "Carne Asada Chx + Fajita Veggies",
+              "dateStr": "2022-07-06",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 7,
+              "breakfast": "Eggs",
+              "lunch": "LO Carne Asada Chx",
+              "dinner": "Eat Out",
+              "dateStr": "2022-07-07",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 8,
+              "breakfast": "Eggs",
+              "lunch": "LO Carne Asada Chx",
+              "dinner": "Enchiladas (Frozen)",
+              "dateStr": "2022-07-08",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 9,
+              "breakfast": "Frozen Smoothie Pack",
+              "lunch": "Top Ramen",
+              "dinner": "Shrimp, Couscous & Asparagus",
+              "dateStr": "2022-07-09",
+              "dayOfWeek": "Saturday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 10,
+              "breakfast": "Bacon Avo Toast",
+              "lunch": "Turkey Sandwiches & Chips",
+              "dinner": "Eat out",
+              "dateStr": "2022-07-10",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 11,
+              "breakfast": "Starbucks?",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2022-07-11",
+              "dayOfWeek": "Monday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 12,
+              "breakfast": "Eggs",
+              "lunch": "Ham/Turkey Sandies",
+              "dinner": "BBQ Chicken & Corn x3",
+              "dateStr": "2022-07-12",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 13,
+              "breakfast": "Egg Sandwich",
+              "lunch": "LO BBQ Chicken",
+              "dinner": "Ground Turkey Burrito Bowl x2",
+              "dateStr": "2022-07-13",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 14,
+              "breakfast": "Eggs",
+              "lunch": "LO BBQ Chicken",
+              "dinner": "Eat Out",
+              "dateStr": "2022-07-14",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 15,
+              "breakfast": "Eggs",
+              "lunch": "LO Ground Turkey Bowl",
+              "dinner": "Salmon Rice Bowl (+Crab?) x2",
+              "dateStr": "2022-07-15",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 16,
+              "breakfast": "Frozen Smoothie Pack",
+              "lunch": "Ham/Turkey Sandies",
+              "dinner": "LO Salmon Rice Bowl",
+              "dateStr": "2022-07-16",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25
+          ],
+          "meals": [
+            {
+              "dayIndex": 1,
+              "date": 20,
+              "breakfast": "Egg Sandwich",
+              "lunch": "Shepherds Pie",
+              "dinner": "Enchiladas (Frozen)",
+              "dateStr": "2022-07-20",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 21,
+              "breakfast": "Eggs",
+              "lunch": "Hippie Bowl x2",
+              "dinner": "Eat Out",
+              "dateStr": "2022-07-21",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 22,
+              "breakfast": "Eggs",
+              "lunch": "Ling Lings",
+              "dinner": "Hot Honey Chickpea Bowls x2",
+              "dateStr": "2022-07-22",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 23,
+              "breakfast": "Frozen Smoothie Pack",
+              "lunch": "LO Hippie Bowl",
+              "dinner": "LO Honey Chickpea",
+              "dateStr": "2022-07-23",
+              "dayOfWeek": "Saturday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 24,
+              "breakfast": "Egg Sandwich",
+              "lunch": "Take out - pick up food",
+              "dinner": "Paso Robles",
+              "dateStr": "2022-07-24",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 25,
+              "breakfast": "Paso Robles",
+              "lunch": "Paso Robles",
+              "dinner": "Blackened Fish Tacos x2",
+              "dateStr": "2022-07-25",
+              "dayOfWeek": "Monday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            26,
+            27,
+            28,
+            29,
+            30,
+            1,
+            2
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 26,
+              "breakfast": "Eggs",
+              "lunch": "LO Blackened fish tacos",
+              "dinner": "Vermicelli Chicken x3",
+              "dateStr": "2022-07-26",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 27,
+              "breakfast": "Egg Sandwich",
+              "lunch": "Tuna Salad Wrap x2",
+              "dinner": "LO Vermicelli Chicken",
+              "dateStr": "2022-07-27",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 28,
+              "breakfast": "Eggs",
+              "lunch": "LO Vermicelli Chicken",
+              "dinner": "Eat Out",
+              "dateStr": "2022-07-28",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 29,
+              "breakfast": "Eggs",
+              "lunch": "Tuna Salad Wrap",
+              "dinner": "Vegan Lentil Shepherds Pie x2",
+              "dateStr": "2022-07-29",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 30,
+              "breakfast": "Eggs",
+              "lunch": "Whole30 Chicken Salad x2",
+              "dinner": "LO Shepherds Pie",
+              "dateStr": "2022-07-30",
+              "dayOfWeek": "Saturday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 1,
+              "breakfast": "Starbucks",
+              "lunch": "LO Whole30 Chicken Salad",
+              "dinner": "Eat Out",
+              "dateStr": "2022-08-01",
+              "dayOfWeek": "Monday"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sheetName": "May 22",
+      "monthYear": "May 2022",
+      "weeks": [
+        {
+          "dates": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "meals": [
+            {
+              "dayIndex": 1,
+              "date": 2,
+              "breakfast": "Eggs",
+              "lunch": "Mac and Cheese",
+              "dinner": "Coconut Curry",
+              "dateStr": "2022-05-02",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 3,
+              "breakfast": "Quinoa Eggs",
+              "lunch": "Eat Out",
+              "dinner": "Butter Pasta",
+              "dateStr": "2022-05-03",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 4,
+              "breakfast": "Oatmeal",
+              "lunch": "LO Coconut Curry",
+              "dinner": "Viet Chicken Noodles x3",
+              "dateStr": "2022-05-04",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 5,
+              "breakfast": "Oatmeal",
+              "lunch": "LO Viet Chicken Noodles",
+              "dinner": "Chuck/Catie Dinner",
+              "dateStr": "2022-05-05",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 6,
+              "breakfast": "Eggs",
+              "lunch": "LO Viet Chicken Noodles",
+              "dinner": "Crockpot chicken and rice x2",
+              "dateStr": "2022-05-06",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 7,
+              "breakfast": "Eggs",
+              "lunch": "LO crockpot chicken and rice",
+              "dinner": "One-Pot Basil Chicken Baked Ziti x2",
+              "dateStr": "2022-05-07",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 8,
+              "breakfast": "Eggs",
+              "lunch": "Golf - Eat Out",
+              "dinner": "Frozen marinated chicken and veggies",
+              "dateStr": "2022-05-08",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 9,
+              "breakfast": "Eat Out",
+              "lunch": "Eat Out",
+              "dinner": "Eat Out",
+              "dateStr": "2022-05-09",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 10,
+              "breakfast": "Eggs",
+              "lunch": "LO chicken and veggies",
+              "dinner": "LO One-Pot Basil Chicken Baked Ziti",
+              "dateStr": "2022-05-10",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 11,
+              "breakfast": "Eggs",
+              "lunch": "Hippie Bowl x2",
+              "dinner": "LO chicken and veggies",
+              "dateStr": "2022-05-11",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 12,
+              "breakfast": "Eggs",
+              "lunch": "LO Hippie bowl",
+              "dinner": "Baked Salmon & Veggies",
+              "dateStr": "2022-05-12",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 13,
+              "breakfast": "Eggs",
+              "lunch": "Grilled Shrimp tacos x2",
+              "dinner": "Eat Out",
+              "dateStr": "2022-05-13",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 14,
+              "breakfast": "Eggs",
+              "lunch": "LO salmon and veggies",
+              "dinner": "BBQ",
+              "dateStr": "2022-05-14",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            15,
+            16,
+            17,
+            18,
+            19,
+            20,
+            21
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 15,
+              "breakfast": "Eggs",
+              "lunch": "Mac and Cheese",
+              "dinner": "LO Shrimp Tacos",
+              "dateStr": "2022-05-15",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 16,
+              "breakfast": "Oatmeal",
+              "lunch": "Chicken pasta salad x2",
+              "dinner": "Frozen marinated chicken and veggies",
+              "dateStr": "2022-05-16",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 17,
+              "breakfast": "Oatmeal",
+              "lunch": "LO chicken and veggies",
+              "dinner": "Eat Out",
+              "dateStr": "2022-05-17",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 18,
+              "breakfast": "Oatmeal",
+              "lunch": "LO Chicken pasta salad",
+              "dinner": "LO chicken and veggies",
+              "dateStr": "2022-05-18",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 19,
+              "breakfast": "Oatmeal",
+              "lunch": "Pre-made salad",
+              "dinner": "Ground turkey pasta x3",
+              "dateStr": "2022-05-19",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 20,
+              "breakfast": "Oatmeal",
+              "lunch": "LO Turkey pasta",
+              "dinner": "Eat Out",
+              "dateStr": "2022-05-20",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 21,
+              "breakfast": "Eggs",
+              "lunch": "Pre-made salad",
+              "dinner": "LO Turkey pasta",
+              "dateStr": "2022-05-21",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            22,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 22,
+              "breakfast": "Eggs",
+              "lunch": "LO Sloppy Joe",
+              "dinner": "Turkey Pasta",
+              "dateStr": "2022-05-22",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 23,
+              "breakfast": "Oatmeal",
+              "lunch": "LO sloppy joe",
+              "dinner": "Frozen Chicken and Veggies",
+              "dateStr": "2022-05-23",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 24,
+              "breakfast": "Oatmeal",
+              "lunch": "LO Turkey Pasta",
+              "dinner": "LO Frozen Chicken and Veggies",
+              "dateStr": "2022-05-24",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 25,
+              "breakfast": "Oatmeal",
+              "lunch": "LO Frozen Chicken and Veggies",
+              "dinner": "Kung Pao Chx & Chow Mein",
+              "dateStr": "2022-05-25",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 26,
+              "breakfast": "Oatmeal",
+              "lunch": "Shepards Pie",
+              "dinner": "Indian w/ Naan",
+              "dateStr": "2022-05-26",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 27,
+              "breakfast": "Eggs",
+              "lunch": "Soup Dumplings w/ Edamame",
+              "dinner": "Eat Out",
+              "dateStr": "2022-05-27",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 28,
+              "breakfast": "Eggs",
+              "lunch": "French Onion Soup",
+              "dinner": "Ramen",
+              "dateStr": "2022-05-28",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sheetName": "Mar 22",
+      "monthYear": "March 2022",
+      "weeks": [
+        {
+          "dates": [
+            27,
+            28,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 27,
+              "breakfast": "Eggs",
+              "lunch": "Mac and cheese",
+              "dinner": "Eat Out",
+              "dateStr": "2022-03-27",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 28,
+              "breakfast": "Egg Bites",
+              "lunch": "Risotto",
+              "dinner": "Hello Fresh (Zuccini Boat)",
+              "dateStr": "2022-03-28",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 1,
+              "breakfast": "Egg Bites",
+              "lunch": "LO Mac and Cheese",
+              "dinner": "Eat Out",
+              "dateStr": "2022-04-01",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 2,
+              "breakfast": "Egg Bites",
+              "lunch": "LO Risotto",
+              "dinner": "Hello Fresh (Chicken)",
+              "dateStr": "2022-04-02",
+              "dayOfWeek": "Saturday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 3,
+              "breakfast": "Egg Bites",
+              "lunch": "Frozen shrimp",
+              "dinner": "Hello Fresh (fried eggs)",
+              "dateStr": "2022-04-03",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 4,
+              "breakfast": "Egg Bites",
+              "lunch": "Frozen",
+              "dinner": "Out of town",
+              "dateStr": "2022-04-04",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 5,
+              "breakfast": "Out of town",
+              "lunch": "Out of town",
+              "dinner": "Out of town",
+              "dateStr": "2022-04-05",
+              "dayOfWeek": "Tuesday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 6,
+              "breakfast": "Out of town",
+              "lunch": "Out of town",
+              "dinner": "Out of town",
+              "dateStr": "2022-04-06",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 7,
+              "breakfast": "Eggs",
+              "lunch": "Tuna Wrap",
+              "dinner": "Thai Spicy Chicken",
+              "dateStr": "2022-04-07",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 8,
+              "breakfast": "Eggs",
+              "lunch": "LO Thai Spicy Chicken",
+              "dinner": "Eat Out",
+              "dateStr": "2022-04-08",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 9,
+              "breakfast": "Eggs",
+              "lunch": "LO Thai Spicy Chicken",
+              "dinner": "Hello Fresh (pasta)",
+              "dateStr": "2022-04-09",
+              "dayOfWeek": "Saturday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 10,
+              "breakfast": "Eggs",
+              "lunch": "LO Tuna Wrap",
+              "dinner": "Hello Fresh (Beef lettuce wraps)",
+              "dateStr": "2022-04-10",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 11,
+              "breakfast": "Eggs",
+              "lunch": "Waldorf chicken salad (whole 30)",
+              "dinner": "Eat Out",
+              "dateStr": "2022-04-11",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 12,
+              "breakfast": "Eggs",
+              "lunch": "Hello Fresh (Beef lettuce wraps)",
+              "dinner": "Honey balsamic chicken x2 + x2 freezer meals",
+              "dateStr": "2022-04-12",
+              "dayOfWeek": "Tuesday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 13,
+              "breakfast": "Eggs",
+              "lunch": "Waldorf chicken salad (whole 30) X2",
+              "dinner": "Tilapia/Hallibut + veggies (x2)",
+              "dateStr": "2022-04-13",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 14,
+              "breakfast": "Oatmeal",
+              "lunch": "LO Honey Balsamic",
+              "dinner": "Swedish Meatballs x2 + x2 freezer meals",
+              "dateStr": "2022-04-14",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 15,
+              "breakfast": "Oatmeal",
+              "lunch": "LO Waldorf chicken salad",
+              "dinner": "LO Tilapia/halibut",
+              "dateStr": "2022-04-15",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 16,
+              "breakfast": "Oatmeal",
+              "lunch": "LO swedish meatballs",
+              "dinner": "Hello Fresh (Chicken)",
+              "dateStr": "2022-04-16",
+              "dayOfWeek": "Saturday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 17,
+              "breakfast": "Oatmeal",
+              "lunch": "Chicken Wrap",
+              "dinner": "Hello Fresh (Shepards pie)",
+              "dateStr": "2022-04-17",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 18,
+              "breakfast": "Oatmeal",
+              "lunch": "Chicken Wrap",
+              "dinner": "Eat Out",
+              "dateStr": "2022-04-18",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 19,
+              "breakfast": "Eggs",
+              "lunch": "Taco Salad",
+              "dinner": "White chicken chili",
+              "dateStr": "2022-04-19",
+              "dayOfWeek": "Tuesday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 20,
+              "breakfast": "Eggs",
+              "lunch": "LO Taco Salad",
+              "dinner": "LO White chicken chili",
+              "dateStr": "2022-04-20",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 21,
+              "breakfast": "Egg Bites",
+              "lunch": "Hippie Bowl",
+              "dinner": "Grilled shrimp",
+              "dateStr": "2022-04-21",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 22,
+              "breakfast": "Egg Bites",
+              "lunch": "LO grilled shrimp",
+              "dinner": "Eat Out",
+              "dateStr": "2022-04-22",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 23,
+              "breakfast": "Egg Bites",
+              "lunch": "LO Hippie bowl",
+              "dinner": "Hello Fresh (Chicken)",
+              "dateStr": "2022-04-23",
+              "dayOfWeek": "Saturday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 24,
+              "breakfast": "Egg Bites",
+              "lunch": "Honey balsamic freezer",
+              "dinner": "Hello Fresh (Chicken)",
+              "dateStr": "2022-04-24",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 25,
+              "breakfast": "Egg Bites",
+              "lunch": "Honey balsamic freezer",
+              "dinner": "Eat Out",
+              "dateStr": "2022-04-25",
+              "dayOfWeek": "Monday"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sheetName": "Feb 22",
+      "monthYear": "February 2022",
+      "weeks": [
+        {
+          "dates": [
+            30,
+            31,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 30,
+              "breakfast": "Eggs",
+              "lunch": "Left over BBQ chicken",
+              "dinner": "Eat Out"
+            },
+            {
+              "dayIndex": 1,
+              "date": 31,
+              "breakfast": "Egg Bites",
+              "lunch": "LO Enchiladas",
+              "dinner": "Thai Meatballs & Rice x3"
+            },
+            {
+              "dayIndex": 2,
+              "date": 1,
+              "breakfast": "Egg Bites",
+              "lunch": "LO Meatballs & Rice",
+              "dinner": "Eat Out",
+              "dateStr": "2022-03-01",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 2,
+              "breakfast": "Egg Bites",
+              "lunch": "LO Meatballs & Rice",
+              "dinner": "Hello Fresh",
+              "dateStr": "2022-03-02",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 3,
+              "breakfast": "Egg Bites",
+              "lunch": "Shredded Chicken Wrap",
+              "dinner": "Hello Fresh",
+              "dateStr": "2022-03-03",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 4,
+              "breakfast": "Egg Bites",
+              "lunch": "Hippie Bowl",
+              "dinner": "Eat Out",
+              "dateStr": "2022-03-04",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 5,
+              "breakfast": "Eggs",
+              "lunch": "Hippie Bowl",
+              "dinner": "Chicken stirfry x2",
+              "dateStr": "2022-03-05",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 6,
+              "breakfast": "Eggs",
+              "lunch": "LO Chicken stirfry",
+              "dinner": "Ground Turkey Tacos x3 \n+ Freeze x3",
+              "dateStr": "2022-03-06",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 7,
+              "breakfast": "Oatmeal",
+              "lunch": "LO Tacos",
+              "dinner": "Eat Out",
+              "dateStr": "2022-03-07",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 8,
+              "breakfast": "Oatmeal",
+              "lunch": "Tuna Salad Wrap x3",
+              "dinner": "LO Tacos",
+              "dateStr": "2022-03-08",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 9,
+              "breakfast": "Oatmeal",
+              "lunch": "LO Tuna Salad Wrap",
+              "dinner": "Hello Fresh",
+              "dateStr": "2022-03-09",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 10,
+              "breakfast": "Oatmeal",
+              "lunch": "LO Tuna Salad Wrap",
+              "dinner": "Hello Fresh",
+              "dateStr": "2022-03-10",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 11,
+              "breakfast": "Eggs",
+              "lunch": "Pre-made salad",
+              "dinner": "Eat Out + LO",
+              "dateStr": "2022-03-11",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 12,
+              "breakfast": "Eggs",
+              "lunch": "LO Eat Out",
+              "dinner": "Instant Pot Jambalaya x3",
+              "dateStr": "2022-03-12",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            13,
+            14,
+            15,
+            16,
+            17,
+            18,
+            19
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 13,
+              "breakfast": "Eggs",
+              "lunch": "LO Jambalaya",
+              "dinner": "Shrimp Stiry Fry + Freeze x2",
+              "dateStr": "2022-03-13",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 14,
+              "breakfast": "Eggs",
+              "lunch": "LO Jambalaya",
+              "dinner": "Chicken and veggies (2x) + freeze x1",
+              "dateStr": "2022-03-14",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 15,
+              "breakfast": "Eggs",
+              "lunch": "Hippie Bowl",
+              "dinner": "Eat Out",
+              "dateStr": "2022-03-15",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 16,
+              "breakfast": "Eggs",
+              "lunch": "LO chicken and veggies",
+              "dinner": "Hello Fresh",
+              "dateStr": "2022-03-16",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 17,
+              "breakfast": "Eggs",
+              "lunch": "LO Hippie Bowl",
+              "dinner": "Hello Fresh",
+              "dateStr": "2022-03-17",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 18,
+              "breakfast": "Eggs",
+              "lunch": "LO Freezer Chicken & Veggies",
+              "dinner": "B'day Dinner",
+              "dateStr": "2022-03-18",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 19,
+              "breakfast": "Eat out",
+              "lunch": "Eat out",
+              "dinner": "B'day Dinner",
+              "dateStr": "2022-03-19",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            20,
+            21,
+            22,
+            23,
+            24,
+            25,
+            26
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 20,
+              "breakfast": "Eat out",
+              "lunch": "Eat out",
+              "dinner": "Slow Cooker - Garlic Lemon Chicken\n*START EARLY*",
+              "dateStr": "2022-03-20",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 21,
+              "breakfast": "Eggs",
+              "lunch": "LO Garlic Chx",
+              "dinner": "LO Freezer Shimp Stir Fry",
+              "dateStr": "2022-03-21",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 22,
+              "breakfast": "Eggs",
+              "lunch": "LO Freezer Shimp Stir Fry",
+              "dinner": "Eat Out",
+              "dateStr": "2022-03-22",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 23,
+              "breakfast": "Eggs",
+              "lunch": "LO Freezer Tacos",
+              "dinner": "Hello Fresh",
+              "dateStr": "2022-03-23",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 24,
+              "breakfast": "Eggs",
+              "lunch": "LO Freezer Tacos",
+              "dinner": "Mushroom & Cauli Rice Risotto x3",
+              "dateStr": "2022-03-24",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 25,
+              "breakfast": "Eggs",
+              "lunch": "LO Risotto",
+              "dinner": "Eat Out",
+              "dateStr": "2022-03-25",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 26,
+              "breakfast": "Eggs",
+              "lunch": "LO Risotto",
+              "dinner": "Instant Pot Chicken & Rice Buritto Bowl",
+              "dateStr": "2022-03-26",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sheetName": "Jan 22",
+      "monthYear": "January 2022",
+      "weeks": [
+        {
+          "dates": [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "meals": [
+            {
+              "dayIndex": 3,
+              "date": 5,
+              "breakfast": "Eggs",
+              "lunch": "Soup",
+              "dinner": "At home food",
+              "dateStr": "2022-01-05",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 6,
+              "breakfast": "Eggs",
+              "lunch": "Wrap",
+              "dinner": "Frozen Meal",
+              "dateStr": "2022-01-06",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 7,
+              "breakfast": "Eggs",
+              "lunch": "Wrap",
+              "dinner": "LO Frozen Meal",
+              "dateStr": "2022-01-07",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 8,
+              "breakfast": "Egg Bowls",
+              "lunch": "LO Frozen Meal",
+              "dinner": "Eat Out",
+              "dateStr": "2022-01-08",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 9,
+              "breakfast": "Egg Bowls",
+              "lunch": "Sesame Noodles",
+              "dinner": "Grilled salmon, rice, salad",
+              "dateStr": "2022-01-09",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 10,
+              "breakfast": "Oatmeal",
+              "lunch": "LO Sesame Noodles",
+              "dinner": "Enchiladas (+1 freezer batch)",
+              "dateStr": "2022-01-10",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 11,
+              "breakfast": "Oatmeal",
+              "lunch": "Mason jar salad",
+              "dinner": "Eat Out",
+              "dateStr": "2022-01-11",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 12,
+              "breakfast": "Oatmeal",
+              "lunch": "LO Enchiladas",
+              "dinner": "Hello Fresh",
+              "dateStr": "2022-01-12",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 13,
+              "breakfast": "Oatmeal",
+              "lunch": "Mason jar salad",
+              "dinner": "Hello Fresh",
+              "dateStr": "2022-01-13",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 14,
+              "breakfast": "Eggs",
+              "lunch": "Eat out",
+              "dinner": "Sloppy Joe (+1 freezer meal)",
+              "dateStr": "2022-01-14",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 15,
+              "breakfast": "Eggs",
+              "lunch": "LO Sloppy Joe",
+              "dinner": "Chicken noodle dish",
+              "dateStr": "2022-01-15",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            16,
+            17,
+            18,
+            19,
+            20,
+            21,
+            22
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 16,
+              "breakfast": "Eggs",
+              "lunch": "LO Chicken noodle dish",
+              "dinner": "Spicy butternut cassarole",
+              "dateStr": "2022-01-16",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 17,
+              "breakfast": "Egg bites",
+              "lunch": "LO Spicy butternut cassarole",
+              "dinner": "Eat Out",
+              "dateStr": "2022-01-17",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 18,
+              "breakfast": "Egg bites",
+              "lunch": "LO Sloppy Joe",
+              "dinner": "LO Spicy butternut cassarole",
+              "dateStr": "2022-01-18",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 19,
+              "breakfast": "Egg bites",
+              "lunch": "LO Enchiladas",
+              "dinner": "Hello Fresh",
+              "dateStr": "2022-01-19",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 20,
+              "breakfast": "Egg bites",
+              "lunch": "LO Enchiladas",
+              "dinner": "Hello Fresh",
+              "dateStr": "2022-01-20",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 21,
+              "breakfast": "Egg bites",
+              "lunch": "LO Sloppy Joe",
+              "dinner": "Eat out",
+              "dateStr": "2022-01-21",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 22,
+              "breakfast": "Eggs",
+              "lunch": "Eat Out",
+              "dinner": "White fish - tilapia or halibut + veggies",
+              "dateStr": "2022-01-22",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            29
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 23,
+              "breakfast": "Eggs",
+              "lunch": "Hippie Bowl",
+              "dinner": "LO Tilapia/halibut",
+              "dateStr": "2022-01-23",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 24,
+              "breakfast": "Eggs",
+              "lunch": "LO Hippie Bowl",
+              "dinner": "Freezer meal",
+              "dateStr": "2022-01-24",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 25,
+              "breakfast": "Eggs",
+              "lunch": "LO Freezer meal",
+              "dinner": "Eat Out",
+              "dateStr": "2022-01-25",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 26,
+              "breakfast": "Eggs",
+              "lunch": "LO Freezer meal",
+              "dinner": "Hello Fresh",
+              "dateStr": "2022-01-26",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 27,
+              "breakfast": "Eggs",
+              "lunch": "Mason jar salad",
+              "dinner": "BBQ grilled chicken/corn",
+              "dateStr": "2022-01-27",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 28,
+              "breakfast": "Eggs",
+              "lunch": "LO BBQ grilled chicken/corn",
+              "dinner": "Hello Fresh",
+              "dateStr": "2022-01-28",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 29,
+              "breakfast": "Eggs",
+              "lunch": "Soups",
+              "dinner": "Eat Out",
+              "dateStr": "2022-01-29",
+              "dayOfWeek": "Saturday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            30,
+            31,
+            null,
+            null,
+            null,
+            null,
+            null
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 30,
+              "breakfast": null,
+              "lunch": "Ground turkey pasta",
+              "dinner": null,
+              "dateStr": "2022-01-30",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 31,
+              "breakfast": null,
+              "lunch": "LO Pasta",
+              "dinner": null,
+              "dateStr": "2022-01-31",
+              "dayOfWeek": "Monday"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sheetName": "Dec21",
+      "monthYear": "December 2021",
+      "weeks": [
+        {
+          "dates": [
+            28,
+            29,
+            30,
+            1,
+            2,
+            3,
+            4
+          ],
+          "meals": [
+            {
+              "dayIndex": 1,
+              "date": 29,
+              "breakfast": null,
+              "lunch": null,
+              "dinner": "Pizza @ Jadyn's",
+              "dateStr": "2021-12-29",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 30,
+              "breakfast": null,
+              "lunch": "Sandwich/Pasta",
+              "dinner": "Eat Out",
+              "dateStr": "2021-12-30",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 1,
+              "breakfast": "Eggs",
+              "lunch": "Frozen lunch",
+              "dinner": "Hello Fresh",
+              "dateStr": "2022-01-01",
+              "dayOfWeek": "Saturday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 2,
+              "breakfast": "Eggs",
+              "lunch": null,
+              "dinner": "Hello Fresh",
+              "dateStr": "2022-01-02",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 3,
+              "breakfast": "Eggs",
+              "lunch": "Frozen meal",
+              "dinner": "Eat Out",
+              "dateStr": "2022-01-03",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 4,
+              "breakfast": "Goleta coffee & Beach",
+              "lunch": "HelloFresh",
+              "dinner": "Tri Tip & Rice",
+              "dateStr": "2022-01-04",
+              "dayOfWeek": "Tuesday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 5,
+              "breakfast": null,
+              "lunch": "LO Tri tip French Dip",
+              "dinner": "Hello Fresh",
+              "dateStr": "2022-01-05",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 6,
+              "breakfast": "Eggs",
+              "lunch": "LO Tri tip French Dip",
+              "dinner": "Chicken bbq",
+              "dateStr": "2022-01-06",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 7,
+              "breakfast": "Eggs",
+              "lunch": "Turkey Pasta",
+              "dinner": "Eat Out",
+              "dateStr": "2022-01-07",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 8,
+              "breakfast": "Eggs",
+              "lunch": "Chicken bbq + Corn",
+              "dinner": "Hello Fresh",
+              "dateStr": "2022-01-08",
+              "dayOfWeek": "Saturday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 9,
+              "breakfast": "Eggs",
+              "lunch": "LO Turkey Pasta",
+              "dinner": "Hello Fresh",
+              "dateStr": "2022-01-09",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 10,
+              "breakfast": "Eggs",
+              "lunch": "LO BBQ Chx + Corn",
+              "dinner": "Eat out",
+              "dateStr": "2022-01-10",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 11,
+              "breakfast": "Fly to Florida",
+              "lunch": "Florida",
+              "dinner": "-",
+              "dateStr": "2022-01-11",
+              "dayOfWeek": "Tuesday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            12,
+            13,
+            14,
+            15,
+            16,
+            17,
+            18
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 12,
+              "breakfast": null,
+              "lunch": "Florida",
+              "dinner": null,
+              "dateStr": "2022-01-12",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 13,
+              "breakfast": null,
+              "lunch": "Florida",
+              "dinner": null,
+              "dateStr": "2022-01-13",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 14,
+              "breakfast": null,
+              "lunch": "Florida",
+              "dinner": null,
+              "dateStr": "2022-01-14",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 15,
+              "breakfast": null,
+              "lunch": "Florida",
+              "dinner": "Hello Fresh",
+              "dateStr": "2022-01-15",
+              "dayOfWeek": "Saturday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 16,
+              "breakfast": null,
+              "lunch": "Florida",
+              "dinner": "Hello Fresh",
+              "dateStr": "2022-01-16",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 17,
+              "breakfast": null,
+              "lunch": "Florida",
+              "dinner": null,
+              "dateStr": "2022-01-17",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 18,
+              "breakfast": null,
+              "lunch": "Florida",
+              "dinner": null,
+              "dateStr": "2022-01-18",
+              "dayOfWeek": "Tuesday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            19,
+            20,
+            21,
+            22,
+            23,
+            24,
+            25
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 19,
+              "breakfast": null,
+              "lunch": null,
+              "dinner": "Turkey pasta",
+              "dateStr": "2022-01-19",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 20,
+              "breakfast": "Eggs",
+              "lunch": "Turkey pasta",
+              "dinner": "Tacos",
+              "dateStr": "2022-01-20",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 21,
+              "breakfast": "Eggs",
+              "lunch": "Turkey pasta",
+              "dinner": "Eat out or dinner Vinh",
+              "dateStr": "2022-01-21",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 22,
+              "breakfast": "Eggs",
+              "lunch": "Tacos",
+              "dinner": "Jadyn Party (bacon wraped dates)",
+              "dateStr": "2022-01-22",
+              "dayOfWeek": "Saturday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 23,
+              "breakfast": "Eggs",
+              "lunch": "Frozen meal",
+              "dinner": "Hello Fresh",
+              "dateStr": "2022-01-23",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 24,
+              "breakfast": "Eggs",
+              "lunch": "LO Frozen meal",
+              "dinner": "Hello Fresh",
+              "dateStr": "2022-01-24",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 25,
+              "breakfast": "Donuts & Oranges",
+              "lunch": "LO Frozen meal",
+              "dinner": "Chinese",
+              "dateStr": "2022-01-25",
+              "dayOfWeek": "Tuesday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            "26 (Kels out of town)",
+            "27 (Kels out of town)",
+            "28 (Kels out of town)",
+            29,
+            30,
+            31,
+            44197
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": "26 (Kels out of town)",
+              "breakfast": "*James to meal plan",
+              "lunch": null,
+              "dinner": null,
+              "dateStr": "2022-01-26",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 2,
+              "date": "28 (Kels out of town)",
+              "breakfast": null,
+              "lunch": null,
+              "dinner": "Eat Out",
+              "dateStr": "2022-01-28",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 31,
+              "breakfast": "NYE Trip",
+              "lunch": "NYE Trip",
+              "dinner": "NYE Trip",
+              "dateStr": "2022-01-31",
+              "dayOfWeek": "Monday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 44197,
+              "breakfast": "NYE Trip",
+              "lunch": "NYE Trip",
+              "dinner": "NYE Trip"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "sheetName": "November 21",
+      "monthYear": "November  2021",
+      "weeks": [
+        {
+          "dates": [
+            31,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 31,
+              "breakfast": "*James makes egg bites",
+              "lunch": null,
+              "dinner": null
+            },
+            {
+              "dayIndex": 1,
+              "date": 1,
+              "breakfast": "Eggs Bites",
+              "lunch": "Hippie Bowl",
+              "dinner": "Grilled Chicken w/ veggies X3",
+              "dateStr": "2021-12-01",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 2,
+              "breakfast": "Eggs Bites",
+              "lunch": "LO Grilled chicken wraps",
+              "dinner": "Eat Out",
+              "dateStr": "2021-12-02",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 3,
+              "breakfast": "Eggs Bites",
+              "lunch": "LO Hippie Bowl",
+              "dinner": "Hello Fresh",
+              "dateStr": "2021-12-03",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 4,
+              "breakfast": "Eggs Bites",
+              "lunch": "LO Grilled chicken wraps",
+              "dinner": "Hello Fresh",
+              "dateStr": "2021-12-04",
+              "dayOfWeek": "Saturday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 5,
+              "breakfast": "Eggs",
+              "lunch": "Freezer Meal",
+              "dinner": "Eat Out",
+              "dateStr": "2021-12-05",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 6,
+              "breakfast": "Eggs",
+              "lunch": "LO Freezer Meal",
+              "dinner": "Sloppy Joe X2",
+              "dateStr": "2021-12-06",
+              "dayOfWeek": "Monday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 7,
+              "breakfast": "Eggs",
+              "lunch": "LO Sloppy Joe",
+              "dinner": "Chicken dumpling soup X3",
+              "dateStr": "2021-12-07",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 8,
+              "breakfast": "Oatmeal",
+              "lunch": "LO Freezer Meal",
+              "dinner": "Pasta",
+              "dateStr": "2021-12-08",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 9,
+              "breakfast": "Oatmeal",
+              "lunch": "LO Chicken dumpling soup",
+              "dinner": "Eat Out",
+              "dateStr": "2021-12-09",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 10,
+              "breakfast": "Eggs",
+              "lunch": "LO Chicken dumpling soup",
+              "dinner": "Hello Fresh",
+              "dateStr": "2021-12-10",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 11,
+              "breakfast": "Eggs",
+              "lunch": "Sweet Potato Salad",
+              "dinner": "Hello Fresh",
+              "dateStr": "2021-12-11",
+              "dayOfWeek": "Saturday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 12,
+              "breakfast": "Eggs",
+              "lunch": "LO Sweet Potato Salad",
+              "dinner": "Eat Out",
+              "dateStr": "2021-12-12",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 13,
+              "breakfast": "Eggs",
+              "lunch": "LO Eat Out or Eat Out",
+              "dinner": "Spring Rolls",
+              "dateStr": "2021-12-13",
+              "dayOfWeek": "Monday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            14,
+            15,
+            16,
+            17,
+            18,
+            19,
+            20
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 14,
+              "breakfast": "Eggs",
+              "lunch": "LO Spring Rolls",
+              "dinner": "Freezer Meal",
+              "dateStr": "2021-12-14",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 15,
+              "breakfast": "Eggs",
+              "lunch": "LO Freezer Meal",
+              "dinner": "Salmon X2",
+              "dateStr": "2021-12-15",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 16,
+              "breakfast": "Eggs",
+              "lunch": "LO Salmon",
+              "dinner": "Eat Out",
+              "dateStr": "2021-12-16",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 17,
+              "breakfast": "Eggs",
+              "lunch": "LO Freezer Meal",
+              "dinner": "Hello Fresh",
+              "dateStr": "2021-12-17",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 18,
+              "breakfast": "Eggs",
+              "lunch": "Burrito Bowl",
+              "dinner": "Hello Fresh",
+              "dateStr": "2021-12-18",
+              "dayOfWeek": "Saturday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 19,
+              "breakfast": "Eggs",
+              "lunch": "LO Burrito Bowl",
+              "dinner": "Eat Out",
+              "dateStr": "2021-12-19",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 20,
+              "breakfast": "Eggs",
+              "lunch": "Sandy",
+              "dinner": "Birthday Party",
+              "dateStr": "2021-12-20",
+              "dayOfWeek": "Monday"
+            }
+          ]
+        },
+        {
+          "dates": [
+            21,
+            22,
+            23,
+            24,
+            25,
+            26,
+            27
+          ],
+          "meals": [
+            {
+              "dayIndex": 0,
+              "date": 21,
+              "breakfast": "Birthday Breakfast",
+              "lunch": "Picnic",
+              "dinner": "Birthday Dinner",
+              "dateStr": "2021-12-21",
+              "dayOfWeek": "Tuesday"
+            },
+            {
+              "dayIndex": 1,
+              "date": 22,
+              "breakfast": "Eggs",
+              "lunch": "LO Sandys",
+              "dinner": null,
+              "dateStr": "2021-12-22",
+              "dayOfWeek": "Wednesday"
+            },
+            {
+              "dayIndex": 2,
+              "date": 23,
+              "breakfast": "Eggs",
+              "lunch": null,
+              "dinner": "Eat Out",
+              "dateStr": "2021-12-23",
+              "dayOfWeek": "Thursday"
+            },
+            {
+              "dayIndex": 3,
+              "date": 24,
+              "breakfast": "Eggs",
+              "lunch": null,
+              "dinner": "Eat Out (Drive to SD)",
+              "dateStr": "2021-12-24",
+              "dayOfWeek": "Friday"
+            },
+            {
+              "dayIndex": 4,
+              "date": 25,
+              "breakfast": null,
+              "lunch": "Thanksgiving",
+              "dinner": null,
+              "dateStr": "2021-12-25",
+              "dayOfWeek": "Saturday"
+            },
+            {
+              "dayIndex": 5,
+              "date": 26,
+              "breakfast": null,
+              "lunch": "Thanksgiving",
+              "dinner": null,
+              "dateStr": "2021-12-26",
+              "dayOfWeek": "Sunday"
+            },
+            {
+              "dayIndex": 6,
+              "date": 27,
+              "breakfast": null,
+              "lunch": "Thanksgiving",
+              "dinner": null,
+              "dateStr": "2021-12-27",
+              "dayOfWeek": "Monday"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "recipeCandidates": [
+    "Amy's Khao Soi + frozen greenbean, bell pepper, and mushrooms",
+    "Asian Turkey Lettuce Wraps",
+    "Asparagus",
+    "Avo Toast",
+    "BBQ Chicken",
+    "Baked White Fish",
+    "Broccoli",
+    "Brusselsprouts",
+    "Chicken Wraps (Grilled or Shredded)",
+    "Chx Fajita \"Salad\"",
+    "Egg Bites",
+    "Eggs & Avo",
+    "Eggs & Bacon",
+    "Eggs & Chx Sausage",
+    "Eggs (Overeasy, scrambled)",
+    "Fish",
+    "Grilled Chicken",
+    "Ground Turkey Pasta",
+    "Ground Turkey Taco Bowl",
+    "Ham/Turkey Sandies",
+    "Hippie Bowl",
+    "Honey Garlic Salmon",
+    "Israeli Couscous",
+    "Lemon Butter Fish",
+    "Mashed Potatoes",
+    "Mediteranean Couscous",
+    "Misc Easy Dinners",
+    "Oatmeal",
+    "Pork",
+    "Poultry",
+    "Pre-made Salad",
+    "Roated (Sweet) Potatoes",
+    "Santa fe Chx Chili (Slowcook)",
+    "Slow Cooker Carnitas",
+    "Teriyaki salmon bowl",
+    "Tofu & Veggie Stir Fry",
+    "Tuna Salad/Wrap/Sandwich/Lettuce Wrap",
+    "Turkey Burrito bowl",
+    "Vegetarian",
+    "Veggies"
+  ]
+}
