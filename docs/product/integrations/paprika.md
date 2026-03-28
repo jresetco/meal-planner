@@ -48,6 +48,7 @@ Paprika 3 with Cloud Sync
 - Periodic sync (daily or on-demand)
 - Check for new/updated recipes
 - Handle deleted recipes
+- **Category-only changes:** Paprika’s manifest `hash` often **does not** change when you only move a recipe to another category. The app therefore **refetches** (1) every recipe already linked in the DB (`paprikaId`), and (2) when a **category filter** is configured, every **cached** Paprika recipe not yet in the DB—so moving a recipe into your “meal planner” category is picked up on the next sync without editing the recipe body.
 
 ## Authentication
 - Paprika uses email/password authentication

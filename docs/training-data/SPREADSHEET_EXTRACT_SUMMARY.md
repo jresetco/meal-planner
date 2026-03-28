@@ -15,7 +15,8 @@ Add these to the Planning Guidelines textarea when creating a plan. Edit or remo
 
 ## Recipe Candidates
 
-**Full merged list (Regular Meal Ideas + OneNote):** See `RECIPES_TO_ADD.md`
+**Outstanding recipe queue:** `RECIPES_TO_ADD.md` (delete rows when done)  
+**Training labels, aliases & Paprika mappings (historical + intelligence):** `recipe-training-registry.json`, `RECIPE_TRAINING_LABELS.md`
 
 From Regular Meal Ideas tab:
 

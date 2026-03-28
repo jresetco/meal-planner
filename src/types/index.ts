@@ -124,6 +124,13 @@ export interface BaselinePreset {
 // Slot configuration for pre-generation
 export type SlotConfigStatus = 'AVAILABLE' | 'SKIP' | 'PINNED'
 
+/** Default slot status when opening the meal grid (breakfast skipped unless user changes row defaults). */
+export const DEFAULT_SLOT_STATUS_BY_MEAL_TYPE: Record<MealType, Exclude<SlotConfigStatus, 'PINNED'>> = {
+  BREAKFAST: 'SKIP',
+  LUNCH: 'AVAILABLE',
+  DINNER: 'AVAILABLE',
+}
+
 export interface MealSlotConfig {
   date: Date
   mealType: MealType

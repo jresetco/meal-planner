@@ -1,110 +1,122 @@
-# Recipes to Add (Queue)
+# Recipes to Add
 
-Consolidated from **Regular Meal Ideas** (spreadsheet) + **OneNote** meal brainstorms. Add to Paprika if not already present. More recent data preferred for categories and details.
+**Outstanding custom recipes** — create these in the app (or sync from Paprika after you add them there). When a row is done, **remove it from this file**.
 
-**Sources:** `spreadsheet-meal-plans.json` (regularMealIdeas), `onenote-meal-plans.json` (entries)
+### How rows are handled elsewhere
+
+| Your decision | What to do |
+| --- | --- |
+| **Mapped to Paprika** | Add/sync the recipe in Paprika, run **Paprika → DB** sync, add the training label → **`paprikaId`** in [`recipe-training-registry.json`](./recipe-training-registry.json) `paprikaMappings.entries` (or legacy `byTrainingLabel` until backfilled); run `npx tsx scripts/backfill-registry-paprika-entries.ts --write` to capture IDs. **Remove the row** from here. |
+| **Finalized ingredients** | Create a **Recipe** in the DB with `ingredients` from that column (parse into `{ name, quantity, unit }` as needed). Then **remove the row**. |
+| **Merge with another entry** | Fold aliases into the surviving recipe in the registry + one row here; **remove** the merged row. |
+| **Skip** | Do not create a recipe; optionally list under `queueProcessed` in `recipe-training-registry.json`. **Remove the row** from here. |
+
+**Registry & aliases (historical plans + intelligence):** [`recipe-training-registry.json`](./recipe-training-registry.json), [`RECIPE_TRAINING_LABELS.md`](./RECIPE_TRAINING_LABELS.md)  
+**Entry IDs & quotes:** [`MANUAL_RECIPES_BASELINE.md`](./MANUAL_RECIPES_BASELINE.md)
+
+### Bulk-create manual recipes in the DB
+
+Your canonical manual list (names, aliases, `keyIngredientsDraft`) lives in **`manualRecipeLabels.recipes`** in the registry. Keep that in sync with the tables in this file when you edit ingredients.
+
+**Default import scope:** only **Master list**, **Lunch**, and **Dinner mains** (allowlist: `BULK_IMPORT_QUEUE_CANONICAL_NAMES` in `scripts/import-manual-recipes-from-registry.ts`). Other `manualRecipeLabels` rows stay **backlog** for aliases / a later import.
+
+1. **Dry run:** `npx tsx scripts/import-manual-recipes-from-registry.ts`  
+2. **Insert:** `npx tsx scripts/import-manual-recipes-from-registry.ts --write`  
+3. **Everything in `manualRecipeLabels`:** add **`--all-manual`**.
+
+The script creates **`CUSTOM`** recipes, parses ingredients from comma/semicolon-separated text, stores aliases/sources in **notes**, adds a **`manual`** category tag, and **skips** any name that already exists (including Paprika-synced rows with the same title). Use **`--skip-no-ingredients`** if you only want rows that have a non-empty ingredient draft.
+
+After import, remove completed rows from this doc and use **Recipes** in the app to tweak names, amounts, or instructions.
+
+### Backlog (manual — not in default bulk import)
+
+Still in **`manualRecipeLabels.recipes`** for training / aliases, but **not** created by the default import:
+
+- **Breakfast** — Eggs (Overeasy, scrambled), Oatmeal, Avo Toast, Eggs & Avo, Eggs & Bacon, Eggs & Chx Sausage, Pre-made frozen breakfast sammies  
+- **Dinner sides** — Asparagus, Brussels sprouts, Broccoli, Israeli Couscous, Mediterranean Couscous, Mashed Potatoes, Roasted (Sweet) Potatoes  
+
+To promote an item: add its exact **`canonicalName`** to the allowlist in the script, or run with **`--all-manual`**.
+
+**Kimchi vs Buddha:** **Kimchi Bliss bowls (Tempeh)** → Paprika *Kimchi Brown Rice Bliss Bowls*. **Generic Buddha bowl** stays manual until you map it.
 
 ---
 
-## High Priority (clear recipes, high frequency)
+## Processed (2026-03-14)
 
-| Recipe | Aliases | Key Ingredients | Source |
-|--------|---------|-----------------|--------|
-| **White People Taco Night** | WP Taco Night, White Taco Night | Ground beef, seasoning, tortillas, cheese, lettuce, tomato, red onion | OneNote, Spreadsheet |
-| **Santa Fe Chicken Chili** | Santa fe Chx Chili, ChxChili | Chicken, cannellini beans, diced green chilies, onions, garlic | Spreadsheet, OneNote |
-| **Asian Turkey Lettuce Wraps** | LettuceWrap, Turkey lettuce wrap | Ground turkey, lettuce, water chestnuts, rice vinegar, garlic, bell peppers | Spreadsheet, OneNote |
-| **Hippie Bowl** | — | Taters, mixed beef, zucchini, radishes | Both |
-| **Buddha Bowl** | Chicken Buddha Bowl, Quinoa Buddha Bowl, Kimchi Bliss bowls | Base: lettuce, quinoa, veggies; variants vary | Both |
-| **Tofu & Veggie Stir Fry** | Tofu Stir fry | Tofu, veggies | Spreadsheet |
-| **Honey Garlic Salmon** | Honey Garlic Glazed Salmon, TeriSalmon | Salmon, garlic, ginger, green onions | Both |
-| **Teriyaki Salmon Bowl** | Salmon rice bowl | Salmon, rice, teriyaki | Spreadsheet |
-| **Slow Cooker Carnitas** | — | Pork | Spreadsheet |
-| **Fried Fish Tacos** | Fish tacos | Fish, tortillas, cabbage, feta, red onion, avocado | Both |
-| **Ground Turkey Taco Bowl** | — | Ground turkey, taco fixings | Spreadsheet |
-| **Egg Bites** | — | Eggs, cheese, veggies | Both |
-| **Sundubu / Soondubu** | — | Paste, mushrooms, eggs, tofu | Both |
-| **Miso soup with wontons** | — | Miso, wontons | Spreadsheet |
-| **Cashew Chicken** | Cashew Chx Recipe | Chicken breast, ginger, cashews | OneNote (has URL) |
+Removed from the active queue per your notes:
+
+| Item | Outcome |
+| --- | --- |
+| Slow Cooker Carnitas | Paprika: *Paleo Instant Pot Carnitas (Whole30, Gluten-Free) with Slow Cooker Instructions* — mapping added to registry |
+| Lemon Butter Fish | Paprika: *Easy Lemon Butter Fish in 15 Minutes* — mapping added |
+| Kelsey enchiladas | Paprika: *Kelsey's Famous Enchiladas (from LO Santa Fe Chx)* — mapping added |
+| Maryann's Enchiladas | Paprika: *Maryann's White People Enchiladas* — mapping added |
+| Chicken Parm w/ spaghetti squash | Paprika: *Chicken Parmesan with Spaghetti Squash* — mapping added |
+| Hoisin garlic noodles | Paprika: *Hoisin Garlic Noodles* — mapping added |
+| Chicken Wraps (Grilled or Shredded) | **Merged** into *Lunch wrap (Chicken or Turkey)* |
+| Egg Bites, Miso soup with wontons, Chili (beef), Baked White Fish, Pre-made Salad, Lentil Shepherds pie, Sweet potato chickpea bowl, Tofukatsu noodles | **Skip** — not tracked as desired additions |
 
 ---
 
-## Breakfast
+## Master list
 
-| Recipe | Notes |
-|--------|-------|
-| Eggs (Overeasy, scrambled) | Simple |
-| Egg Bites | |
-| Oatmeal | |
-| Avo Toast | |
-| Eggs & Avo | |
-| Eggs & Bacon | |
-| Eggs & Chx Sausage | |
-| Pre-made frozen breakfast sammies | Glutino muffin, eggs, bacon/ham, sliced cheese |
+| Recipe | Aliases (see registry) | Finalized ingredients |
+| --- | --- | --- |
+| **White People Taco Night** | WP Taco Night, White Taco Night, Tacos, … | Ground beef, taco seasoning, tortillas, shredded cheese, lettuce, tomato, red onion; optional: sour cream, avocado |
+| **Buddha Bowl** (generic) | Chicken Buddha Bowl, Quinoa Buddha bowl, … | Lettuce, quinoa, veggies; tahini / sesame ginger / peanut style sauces — confirm default (see baseline) |
+| **Fried Fish Tacos** | Fish tacos, Fish taco, … | Fried Fish (Frozen), tortillas, red cabbage or coleslaw mix, feta (or Cotija) cheese, pickled red onion, avocado, spicy mayo (make @ home) |
+| **Grilled Chicken** | | — |
+| **Crunch Wrap** | | Beef, taco seasoning, shredded cheese, XL tortilla, Tostada shell (small), lettuce, tomato, sour cream or greek yogurt plain |
+
+---
+
+## Breakfast (backlog — not in default DB import)
+
+| Recipe | Aliases | Finalized ingredients |
+| --- | --- | --- |
+| Eggs (Overeasy, scrambled) | scrambled, overeasy | Eggs |
+| Oatmeal | | — |
+| Avo Toast | | — |
+| Eggs & Avo | | — |
+| Eggs & Bacon | | — |
+| Eggs & Chx Sausage | | — |
+| Pre-made frozen breakfast sammies | Glutino muffin, … | Glutino muffin, eggs, bacon/ham, sliced cheese |
 
 ---
 
 ## Lunch
 
-| Recipe | Notes |
-|--------|-------|
-| Ham/Turkey Sandies | Sandwiches |
-| Chicken Wraps (Grilled or Shredded) | |
-| Hippie Bowl | |
-| Turkey Burrito bowl | |
-| Tuna Salad/Wrap/Sandwich/Lettuce Wrap | |
-| Pre-made Salad | Premade Salad, Pre-made salad, etc. |
-| Chx Fajita "Salad" | |
-| Lunch Salads | Beans, beets, cottage cheese, avos, etc. |
-| Lunch wrap | Tortillas, cheese, lettuce, deli meat |
+| Recipe | Aliases | Finalized ingredients |
+| --- | --- | --- |
+| Ham/Turkey Sandies | Sandwiches | Bread, Sliced turkey or ham, mayo, dijon mustard, avocado, red onion, optional - lettuce |
+| Tuna Sandwich or Lettuce Cup | | Bread or Butter lettuce cups, canned tuna, red or yellow onion, celery, sriracha, mayo |
+| Lunch Salads | | Salad Mix, dressing, cucumbers, red onion, tomatoes, Black Beans, beets, cottage cheese, avocado, optional: quinoa, |
+| **Lunch wrap (Chicken or Turkey)** | Chicken Wraps (Grilled or Shredded), … | Tortillas, chicken breast (pre-made) or sliced ham/turkey, shredded lettuce, dressing, shredded cheese |
 
 ---
 
-## Dinner Mains
+## Dinner mains
 
-| Recipe | Notes |
-|--------|-------|
-| Grilled Chicken | |
-| BBQ Chicken | |
-| Ground Turkey Pasta | |
-| Ground Turkey Taco Bowl | |
-| Asian Turkey Lettuce Wraps | |
-| Honey Garlic Salmon | |
-| Lemon Butter Fish | |
-| Baked White Fish | |
-| Teriyaki salmon bowl | |
-| Tofu & Veggie Stir Fry | |
-| Slow Cooker Carnitas | |
-| White People Taco Night | WP Taco Night; ground beef, tortillas, cheese, lettuce, tomato, red onion |
-| Chicken Broccoli Casserole | |
-| Chicken Parm w/ spaghetti squash | |
-| Slow cooker white chicken chili | |
-| Chicken pesto pasta | + Asparagus |
-| Egg roll in bowl | Coleslaw/cabbage mix, green onions |
-| Kelsey enchiladas | Mission tortillas, shred cheese, Greek yogurt, chicken breast |
-| Lentil Shepherds pie | |
-| Sweet potato chickpea bowl | Has URL |
-| Pesto Sausage Veggie bowl | |
-| Chicken Vermicelli | |
-| Tofukatsu noodles | Firm tofu, buckwheat soba, etc. |
-| Slow-cooker Kung Pao Chicken | |
-| Hoisin garlic noodles | |
-| Chili (beef) | Entry-008 has full ingredient list |
-| Enchiladas | Siete sauce, cheese, tortillas, etc. |
-| Crunch Wrap | Beef, cheese, tortilla, crunchy shell, lettuce, sour cream |
+| Recipe | Aliases | Finalized ingredients |
+| --- | --- | --- |
+| Ground Turkey Pasta | | Ground turkey, Pasta noodles, Pasta sauce, yellow onion |
+| Chicken pesto pasta | | Chicken breast, Asparagus, pesto sauce, |
+| Pesto Sausage Veggie bowl | | Chicken sausage, Pesto sauce, zucchini, pasta noodles |
+| Chicken Vermicelli | | Chicken breast, Oyster sauce, yellow onion, vermicelli noodles, cucumber, fish sauce (homemade), Chili paste, mint (optional) |
 
 ---
 
-## Dinner Sides
+## Dinner sides (backlog — not in default DB import)
 
-| Recipe | Notes |
-|--------|-------|
-| Asparagus | |
-| Brussels sprouts | (fix: Brusselsprouts) |
-| Broccoli | |
-| Israeli Couscous | |
-| Mediterranean Couscous | (fix: Mediteranean) |
-| Mashed Potatoes | |
-| Roasted (Sweet) Potatoes | (fix: Roated) |
+| Recipe | Aliases | Finalized ingredients |
+| --- | --- | --- |
+| Asparagus | | — |
+| Brussels sprouts | Brusselsprouts | — |
+| Broccoli | | — |
+| Israeli Couscous | | — |
+| Mediterranean Couscous | Mediteranean, … | — |
+| Mashed Potatoes | | — |
+| Roasted (Sweet) Potatoes | Roated | — |
 
 ---
 
@@ -117,21 +129,4 @@ Consolidated from **Regular Meal Ideas** (spreadsheet) + **OneNote** meal brains
 
 ---
 
-## White People Taco Night – Full Spec
-
-**Canonical name:** White People Taco Night  
-**Aliases:** WP Taco Night, White Taco Night
-
-**Ingredients:**
-- Ground beef
-- Taco seasoning
-- Tortillas
-- Shredded cheese
-- Lettuce
-- Tomato
-- Red onion
-- (Sour cream, avocado as optional)
-
----
-
-*Last updated: 2026-03-15. Re-run extraction and merge as new data arrives.*
+*Paprika audit: regenerate [`PAPRIKA_RECIPE_AUDIT.md`](./PAPRIKA_RECIPE_AUDIT.md) with `npx tsx scripts/audit-recipes-to-paprika.ts` after syncing new Paprika titles.*

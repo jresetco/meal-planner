@@ -37,37 +37,66 @@ export async function POST(request: NextRequest) {
     // Fetch manifest + categories. Build existingHashes from cache + Recipe table.
     // Cache stores hashes for all recipes we've ever fetched (including filtered-out).
     // Recipe table has hashes for synced recipes. Merge both so we skip unchanged recipes.
-    const [manifest, categoryMap, cacheEntries, syncedRecipes] = await Promise.all([
-      paprika.getRecipeManifest(),
-      paprika.getCategories(),
-      prisma.paprikaRecipeCache.findMany({
-        where: { householdId: session.user.householdId },
-        select: { paprikaId: true, paprikaHash: true },
-      }),
-      prisma.recipe.findMany({
-        where: {
-          householdId: session.user.householdId,
-          paprikaId: { not: null },
-          paprikaHash: { not: null },
-        },
-        select: { paprikaId: true, paprikaHash: true },
-      }),
-    ])
+    const [manifest, categoryMap, cacheEntries, syncedRecipesWithHash, recipesWithPaprikaId] =
+      await Promise.all([
+        paprika.getRecipeManifest(),
+        paprika.getCategories(),
+        prisma.paprikaRecipeCache.findMany({
+          where: { householdId: session.user.householdId },
+          select: { paprikaId: true, paprikaHash: true },
+        }),
+        prisma.recipe.findMany({
+          where: {
+            householdId: session.user.householdId,
+            paprikaId: { not: null },
+            paprikaHash: { not: null },
+          },
+          select: { paprikaId: true, paprikaHash: true },
+        }),
+        prisma.recipe.findMany({
+          where: {
+            householdId: session.user.householdId,
+            paprikaId: { not: null },
+          },
+          select: { paprikaId: true },
+        }),
+      ])
 
     const existingHashes: Record<string, string> = {}
-    for (const r of syncedRecipes) {
+    for (const r of syncedRecipesWithHash) {
       if (r.paprikaId && r.paprikaHash) existingHashes[r.paprikaId] = r.paprikaHash
     }
     for (const c of cacheEntries) {
       existingHashes[c.paprikaId] = c.paprikaHash
     }
 
-    // Only fetch full details for recipes that are new or changed (hash differs).
-    // Hash changes when recipe is updated or categories change in Paprika.
-    const needToFetch = manifest.filter((m) => existingHashes[m.uid] !== m.hash)
+    const categoryFilter = settings.paprikaCategories?.length
+      ? settings.paprikaCategories.filter((c) => c?.trim())
+      : undefined
+    const categoryFilterActive = Boolean(categoryFilter?.length)
+
+    /** Paprika often keeps the same manifest hash when only categories change — refetch so filters stay accurate. */
+    const alwaysRefetchUids = new Set<string>()
+    for (const r of recipesWithPaprikaId) {
+      if (r.paprikaId) alwaysRefetchUids.add(r.paprikaId)
+    }
+    if (categoryFilterActive) {
+      const inDb = new Set(
+        recipesWithPaprikaId.map((r) => r.paprikaId).filter((id): id is string => Boolean(id))
+      )
+      for (const c of cacheEntries) {
+        if (!inDb.has(c.paprikaId)) alwaysRefetchUids.add(c.paprikaId)
+      }
+    }
+
+    const needToFetch = manifest.filter(
+      (m) =>
+        existingHashes[m.uid] !== m.hash || alwaysRefetchUids.has(m.uid)
+    )
     const allRecipes = await paprika.getRecipes({
       existingHashes,
       concurrency: 8,
+      alwaysRefetchUids,
     })
 
     // Update cache for all fetched recipes (including those filtered out by category).
@@ -99,9 +128,7 @@ export async function POST(request: NextRequest) {
 
     // Apply filters: minimum rating and category filtering
     // "*" is part of the category name (e.g. "*Add to Meal Planner App"), not a wildcard
-    const categoryFilter = settings.paprikaCategories?.length
-      ? settings.paprikaCategories.filter((c) => c?.trim())
-      : undefined
+    // (categoryFilter computed above for alwaysRefetchUids)
 
     // Only apply category filter if we have a category map (recipe categories are UUIDs)
     const hasCategoryMap = Object.keys(categoryMap).length > 0
@@ -120,6 +147,8 @@ export async function POST(request: NextRequest) {
       updated: 0,
       skipped: 0,
     }
+    const createdRecipes: { name: string; paprikaId: string }[] = []
+    const updatedRecipes: { name: string; paprikaId: string }[] = []
 
     for (const paprikaRecipe of filteredRecipes) {
       // Check if recipe already exists
@@ -159,6 +188,7 @@ export async function POST(request: NextRequest) {
           data: recipeData,
         })
         syncResults.updated++
+        updatedRecipes.push({ name: paprikaRecipe.name, paprikaId: paprikaRecipe.uid })
       } else {
         // Create new recipe
         await prisma.recipe.create({
@@ -169,6 +199,7 @@ export async function POST(request: NextRequest) {
           },
         })
         syncResults.created++
+        createdRecipes.push({ name: paprikaRecipe.name, paprikaId: paprikaRecipe.uid })
       }
     }
 
@@ -183,9 +214,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       ...syncResults,
+      createdRecipes,
+      updatedRecipes,
       debug: {
         manifestCount: manifest.length,
         fetchedFromApi: allRecipes.length,
+        refetchedDespiteSameHash: alwaysRefetchUids.size,
         skippedUnchanged,
         afterFilters: filteredRecipes.length,
         minRatingUsed: minRating,

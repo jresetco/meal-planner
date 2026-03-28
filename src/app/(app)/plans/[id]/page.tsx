@@ -42,9 +42,19 @@ import {
 } from 'lucide-react'
 import { cn, formatDate } from '@/lib/utils'
 import type { MealPlan, PlannedMeal, Recipe, MealType } from '@/types'
+import { RecipeMealHover } from '@/components/plans/recipe-meal-hover'
 
 interface MealWithRecipe extends PlannedMeal {
-  recipe: Pick<Recipe, 'id' | 'name' | 'imageUrl'> | null
+  recipe: Pick<
+    Recipe,
+    | 'id'
+    | 'name'
+    | 'imageUrl'
+    | 'ingredients'
+    | 'instructions'
+    | 'description'
+    | 'servings'
+  > | null
 }
 
 interface MealPlanWithMeals extends MealPlan {
@@ -453,7 +463,7 @@ export default function PlanDetailPage() {
                 
                 if (!isInRange) {
                   return (
-                    <div key={day.toISOString()} className="h-28 bg-slate-50 rounded-lg" />
+                    <div key={day.toISOString()} className="min-h-28 bg-slate-50 rounded-lg" />
                   )
                 }
                 
@@ -461,7 +471,7 @@ export default function PlanDetailPage() {
                   return (
                     <div 
                       key={day.toISOString()} 
-                      className="h-28 border-2 border-dashed border-slate-200 rounded-lg flex items-center justify-center text-slate-400"
+                      className="min-h-28 border-2 border-dashed border-slate-200 rounded-lg flex items-center justify-center text-slate-400"
                     >
                       <Utensils className="h-5 w-5" />
                     </div>
@@ -475,16 +485,20 @@ export default function PlanDetailPage() {
                   <Card 
                     key={day.toISOString()} 
                     className={cn(
-                      "h-28 overflow-hidden transition-all hover:shadow-md group",
+                      "min-h-28 transition-all hover:shadow-md group",
                       meal.isLocked && "ring-2 ring-emerald-500 bg-emerald-50/50"
                     )}
                   >
                     <CardContent className="p-2 h-full flex flex-col">
                       <div className="flex items-start justify-between gap-1">
-                        <span className="text-sm font-medium line-clamp-2 flex-1">
+                        <RecipeMealHover
+                          recipe={meal.recipe}
+                          mealName={mealName}
+                          triggerClassName="text-sm font-medium flex-1 break-words text-pretty"
+                        >
                           {meal.isLeftover && <span className="text-orange-600">LO: </span>}
                           {mealName}
-                        </span>
+                        </RecipeMealHover>
                         <div className="flex items-center gap-0.5 shrink-0">
                           {/* Lock button - always visible */}
                           <Button

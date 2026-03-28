@@ -23,7 +23,15 @@ export async function GET(
       plannedMeals: {
         include: {
           recipe: {
-            select: { id: true, name: true, imageUrl: true },
+            select: {
+              id: true,
+              name: true,
+              imageUrl: true,
+              ingredients: true,
+              instructions: true,
+              description: true,
+              servings: true,
+            },
           },
         },
         orderBy: [{ date: 'asc' }, { mealType: 'asc' }],

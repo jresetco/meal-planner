@@ -29,7 +29,13 @@ import {
   addWeeks, 
   isSameMonth 
 } from 'date-fns'
-import type { MealSlotConfig, MealType, SlotConfigStatus, Recipe } from '@/types'
+import {
+  DEFAULT_SLOT_STATUS_BY_MEAL_TYPE,
+  type MealSlotConfig,
+  type MealType,
+  type SlotConfigStatus,
+  type Recipe,
+} from '@/types'
 
 interface MealPlanGridProps {
   dateRange: { start: Date; end: Date }
@@ -37,6 +43,23 @@ interface MealPlanGridProps {
   recipes: Pick<Recipe, 'id' | 'name' | 'categories'>[]
   onContinue: (mealSlots: MealSlotConfig[]) => void
   onBack: () => void
+}
+
+const inferMealTypeDefaultsFromSlots = (
+  slots: MealSlotConfig[]
+): Record<MealType, Exclude<SlotConfigStatus, 'PINNED'>> => {
+  const result: Record<MealType, Exclude<SlotConfigStatus, 'PINNED'>> = {
+    ...DEFAULT_SLOT_STATUS_BY_MEAL_TYPE,
+  }
+  for (const mealType of ['BREAKFAST', 'LUNCH', 'DINNER'] as MealType[]) {
+    const relevant = slots.filter((s) => s.mealType === mealType && s.status !== 'PINNED')
+    if (relevant.length === 0) continue
+    const first = relevant[0].status
+    if (first !== 'AVAILABLE' && first !== 'SKIP') continue
+    const allSame = relevant.every((s) => s.status === first)
+    if (allSame) result[mealType] = first
+  }
+  return result
 }
 
 export function MealPlanGrid({ 
@@ -50,7 +73,7 @@ export function MealPlanGrid({
     if (initialSlots && initialSlots.length > 0) {
       return initialSlots
     }
-    
+
     const days = eachDayOfInterval(dateRange)
     const slots: MealSlotConfig[] = []
     days.forEach((date) => {
@@ -58,12 +81,20 @@ export function MealPlanGrid({
         slots.push({
           date,
           mealType,
-          status: 'AVAILABLE',
+          status: DEFAULT_SLOT_STATUS_BY_MEAL_TYPE[mealType],
         })
       })
     })
     return slots
   })
+
+  const [mealTypeDefaults, setMealTypeDefaults] = useState<
+    Record<MealType, Exclude<SlotConfigStatus, 'PINNED'>>
+  >(() =>
+    initialSlots && initialSlots.length > 0
+      ? inferMealTypeDefaultsFromSlots(initialSlots)
+      : { ...DEFAULT_SLOT_STATUS_BY_MEAL_TYPE }
+  )
   
   const [reserveModal, setReserveModal] = useState<{
     isOpen: boolean
@@ -87,6 +118,21 @@ export function MealPlanGrid({
     currentWeek = addWeeks(currentWeek, 1)
   }
   
+  const applyDefaultToMealType = (mealType: MealType, status: Exclude<SlotConfigStatus, 'PINNED'>) => {
+    setMealTypeDefaults((prev) => ({ ...prev, [mealType]: status }))
+    setMealSlots((prev) =>
+      prev.map((slot) => {
+        if (slot.mealType !== mealType || slot.status === 'PINNED') return slot
+        return {
+          ...slot,
+          status,
+          pinnedRecipeId: undefined,
+          pinnedRecipeName: undefined,
+        }
+      })
+    )
+  }
+
   const handleStatusChange = (index: number, status: string) => {
     if (status === 'PINNED') {
       setReserveModal({ isOpen: true, slotIndex: index })
@@ -131,14 +177,6 @@ export function MealPlanGrid({
     return date >= dateRange.start && date <= dateRange.end
   }
 
-  const getMealLabel = (mealType: MealType) => {
-    switch (mealType) {
-      case 'BREAKFAST': return 'B'
-      case 'LUNCH': return 'L'
-      case 'DINNER': return 'D'
-    }
-  }
-
   return (
     <div className="min-h-screen bg-slate-50 p-6">
       <div className="max-w-6xl mx-auto space-y-4">
@@ -165,6 +203,43 @@ export function MealPlanGrid({
         
         <Card className="p-4">
           <div className="space-y-3">
+            <div className="rounded-lg border border-slate-200 bg-slate-50/80 p-4 space-y-3">
+              <div>
+                <p className="text-sm font-semibold text-slate-900">Default for each meal type</p>
+                <p className="text-xs text-slate-600 mt-1">
+                  Applies to every day in your range for that row. Pinned recipes are not changed.
+                  Breakfast defaults to Skip; change a row below to update all non-pinned slots.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-4">
+                {(
+                  [
+                    { type: 'BREAKFAST' as const, label: 'Breakfast' },
+                    { type: 'LUNCH' as const, label: 'Lunch' },
+                    { type: 'DINNER' as const, label: 'Dinner' },
+                  ] as const
+                ).map(({ type, label }) => (
+                  <div key={type} className="flex flex-col gap-1.5 min-w-[140px]">
+                    <span className="text-xs font-medium text-slate-700">{label}</span>
+                    <Select
+                      value={mealTypeDefaults[type]}
+                      onValueChange={(value) =>
+                        applyDefaultToMealType(type, value as Exclude<SlotConfigStatus, 'PINNED'>)
+                      }
+                    >
+                      <SelectTrigger className="h-8 text-xs bg-white" aria-label={`Default status for ${label}`}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="AVAILABLE">Available</SelectItem>
+                        <SelectItem value="SKIP">Skip</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             {/* Weekday headers */}
             <div className="grid grid-cols-7 gap-1.5">
               {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((day) => (
@@ -244,7 +319,10 @@ export function MealPlanGrid({
                                     value={slot.pinnedRecipeId ? 'PINNED' : slot.status}
                                     onValueChange={(value) => handleStatusChange(slotIndex, value)}
                                   >
-                                    <SelectTrigger className="h-6 text-[9px] px-1.5 py-0 border-slate-300 !bg-white shadow-sm">
+                                    <SelectTrigger
+                                      className="h-6 text-[9px] px-1.5 py-0 border-slate-300 !bg-white shadow-sm"
+                                      title={slot.pinnedRecipeName ?? undefined}
+                                    >
                                       <SelectValue>
                                         {slot.pinnedRecipeName ? (
                                           <span className="truncate">{slot.pinnedRecipeName}</span>

@@ -226,16 +226,22 @@ export class PaprikaClient {
    * we fetch each recipe individually to get name, categories, ingredients, etc.
    * @param options.concurrency - Batch size for parallel fetches (default 8)
    * @param options.existingHashes - Map of paprikaId -> hash; skip fetch if hash matches (incremental sync)
+   * @param options.alwaysRefetchUids - Manifest uids to fetch even when hash is unchanged. Use when
+   *   Paprika does not bump hash on category-only edits (so planner category filter can pick up moves).
    */
   async getRecipes(
-    options: { concurrency?: number; existingHashes?: Record<string, string> } = {}
+    options: {
+      concurrency?: number
+      existingHashes?: Record<string, string>
+      alwaysRefetchUids?: ReadonlySet<string>
+    } = {}
   ): Promise<PaprikaRecipe[]> {
-    const { concurrency = 8, existingHashes = {} } = options
+    const { concurrency = 8, existingHashes = {}, alwaysRefetchUids = new Set<string>() } = options
     const manifest = await this.getRecipeManifest()
 
-    // Only fetch recipes that are new or have changed
+    // Fetch when hash changed, or when caller needs fresh details (categories, etc.)
     const toFetch = manifest.filter(
-      (m) => existingHashes[m.uid] !== m.hash
+      (m) => existingHashes[m.uid] !== m.hash || alwaysRefetchUids.has(m.uid)
     )
 
     const recipes: PaprikaRecipe[] = []

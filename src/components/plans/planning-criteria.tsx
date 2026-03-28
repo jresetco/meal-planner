@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -53,18 +53,52 @@ export function PlanningCriteria({
   const [guidelines, setGuidelines] = useState(initialData?.guidelines || '')
   const [searchQuery, setSearchQuery] = useState('')
   const [presetDialogOpen, setPresetDialogOpen] = useState(false)
-  
-  const handlePresetChange = (value: string) => {
-    setBaselinePresetId(value)
-    const preset = presets.find(p => p.id === value)
-    if (preset) {
+  const didApplyBaselineRef = useRef(false)
+
+  const applyPresetById = useCallback(
+    (id: string) => {
+      const preset = presets.find((p) => p.id === id)
+      if (!preset) return
+      setBaselinePresetId(id)
       setMaxLeftovers(preset.maxLeftovers)
       setServingsPerMeal(preset.servingsPerMeal)
       setGuidelines(preset.guidelines || '')
-      // Load guaranteed meals from preset
-      const meals = recipes.filter(r => preset.guaranteedMealIds.includes(r.id))
-      setGuaranteedMeals(meals.map(m => ({ id: m.id, name: m.name })))
+      const meals = recipes.filter((r) => preset.guaranteedMealIds.includes(r.id))
+      setGuaranteedMeals(meals.map((m) => ({ id: m.id, name: m.name })))
+    },
+    [presets, recipes]
+  )
+
+  useEffect(() => {
+    if (presets.length === 0 || didApplyBaselineRef.current) return
+
+    if (initialData?.baselinePresetId) {
+      applyPresetById(initialData.baselinePresetId)
+      didApplyBaselineRef.current = true
+      return
     }
+
+    const defaultPreset = presets.find((p) => p.isDefault) ?? presets[0]
+    if (defaultPreset) {
+      applyPresetById(defaultPreset.id)
+      didApplyBaselineRef.current = true
+    }
+  }, [presets, initialData?.baselinePresetId, applyPresetById])
+
+  useEffect(() => {
+    if (recipes.length === 0 || presets.length === 0 || !baselinePresetId) return
+    const preset = presets.find((p) => p.id === baselinePresetId)
+    if (!preset || preset.guaranteedMealIds.length === 0) return
+    setGuaranteedMeals((prev) => {
+      if (prev.length > 0) return prev
+      const meals = recipes.filter((r) => preset.guaranteedMealIds.includes(r.id))
+      return meals.map((m) => ({ id: m.id, name: m.name }))
+    })
+  }, [recipes, presets, baselinePresetId])
+
+  const handlePresetChange = (value: string) => {
+    didApplyBaselineRef.current = true
+    applyPresetById(value)
   }
   
   const handleAddMeal = (recipe: Pick<Recipe, 'id' | 'name'>) => {

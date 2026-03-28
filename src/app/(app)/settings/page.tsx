@@ -149,9 +149,17 @@ export default function SettingsPage() {
       const data = await response.json()
       
       if (response.ok) {
-        const msg = data.debug?.afterFilters === 0 && data.debug?.fetchedFromApi > 0
+        let msg = data.debug?.afterFilters === 0 && data.debug?.fetchedFromApi > 0
           ? `${data.message}\n\nDebug: ${data.debug.fetchedFromApi} recipes from Paprika, 0 after filters. Check rating (3+ stars) and category filter.`
           : data.message
+        const created = data.createdRecipes as { name: string; paprikaId: string }[] | undefined
+        const updated = data.updatedRecipes as { name: string; paprikaId: string }[] | undefined
+        if (created?.length) {
+          msg += `\n\nCreated (${created.length}):\n${created.map((r) => `• ${r.name}`).join('\n')}`
+        }
+        if (updated?.length) {
+          msg += `\n\nUpdated (${updated.length}):\n${updated.map((r) => `• ${r.name}`).join('\n')}`
+        }
         alert(msg)
         // Refresh last sync time
         const settingsRes = await fetch('/api/settings/meal')

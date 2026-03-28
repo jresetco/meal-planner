@@ -1,6 +1,7 @@
 // Simplified auth - no authentication required for now
 // Phase 3: Add proper authentication (Google OAuth, etc.)
 
+import { cache } from 'react'
 import prisma from '@/lib/db'
 
 // Default household ID for the single-user/household mode
@@ -52,19 +53,21 @@ async function ensureDefaultUserAndHousehold() {
   return { user, household }
 }
 
-// Mock session for API routes
-export async function getSession() {
+// Mock session for API routes — one Prisma bootstrap per request when called from RSC tree.
+async function getSessionUncached() {
   await ensureDefaultUserAndHousehold()
-  
+
   return {
     user: {
       id: DEFAULT_USER_ID,
       householdId: DEFAULT_HOUSEHOLD_ID,
       email: 'user@mealplanner.local',
       name: 'Default User',
-    }
+    },
   }
 }
+
+export const getSession = cache(getSessionUncached)
 
 // Alias for compatibility
 export const auth = getSession

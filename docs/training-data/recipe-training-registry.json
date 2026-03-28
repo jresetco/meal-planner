@@ -1,0 +1,704 @@
+{
+  "_readme": "Prefer paprikaMappings.entries (stable paprikaId). byTrainingLabel is legacy title fallback — rename-safe when entries are populated. Run: npx tsx scripts/backfill-registry-paprika-entries.ts --write",
+  "schemaVersion": 2,
+  "updated": "2026-03-25",
+  "paprikaMappings": {
+    "description": "Prefer entries (paprikaId). byTrainingLabel is legacy fallback when a label is not in entries.",
+    "entries": [
+      {
+        "paprikaId": "2D2323AF-139F-455A-89E4-15146BA1442B",
+        "trainingLabels": [
+          "Salmon rice bowl",
+          "Teriyaki Salmon Bowl"
+        ],
+        "displayNameHint": "Air Fried Teriyaki Salmon Bites Rice Bowl"
+      },
+      {
+        "paprikaId": "2E53843C-2919-4620-93E9-5D69C045D615",
+        "trainingLabels": [
+          "Asian Turkey Lettuce Wraps",
+          "LettuceWrap",
+          "Turkey lettuce wrap"
+        ],
+        "displayNameHint": "Asian Turkey Lettuce Wraps"
+      },
+      {
+        "paprikaId": "2508A780-7643-476E-8692-D829D5EC322B",
+        "trainingLabels": [
+          "Chicken Parm",
+          "Chicken Parm w/ spaghetti squash"
+        ],
+        "displayNameHint": "Chicken Parmesan with Spaghetti Squash"
+      },
+      {
+        "paprikaId": "D32307E1-F963-42DE-B76E-85250F8B8D18",
+        "trainingLabels": [
+          "ChxChili",
+          "Santa Fe Chicken Chili",
+          "Santa fe Chx Chili (Slowcook)"
+        ],
+        "displayNameHint": "Crock Pot Santa Fe Chicken"
+      },
+      {
+        "paprikaId": "B0354999-C598-4699-8428-D458638541A3",
+        "trainingLabels": [
+          "Lemon Butter Fish",
+          "Lemon butter Tilapia"
+        ],
+        "displayNameHint": "Easy Lemon Butter Fish in 15 Minutes"
+      },
+      {
+        "paprikaId": "7C83C1E3-78B9-4094-AD0B-7D6876CB0132",
+        "trainingLabels": [
+          "Egg roll in bowl",
+          "Eggroll in bowl"
+        ],
+        "displayNameHint": "Egg Roll in a Bowl"
+      },
+      {
+        "paprikaId": "CA0E6E45-16DD-446B-8151-FEA64958F128",
+        "trainingLabels": [
+          "Hippie Bowl"
+        ],
+        "displayNameHint": "Hippie Bowl"
+      },
+      {
+        "paprikaId": "4F5528F4-C7AF-4542-8021-E395C11E4F55",
+        "trainingLabels": [
+          "Hoisin garlic noodles"
+        ],
+        "displayNameHint": "Hoisin Garlic Noodles"
+      },
+      {
+        "paprikaId": "F3CDD6C2-65F2-4530-8674-2C475029ED5B",
+        "trainingLabels": [
+          "Honey Garlic Glazed Salmon",
+          "Honey Garlic Salmon",
+          "TeriSalmon"
+        ],
+        "displayNameHint": "Honey Garlic Glazed Salmon"
+      },
+      {
+        "paprikaId": "E6CEF13A-18E4-427C-9227-DB148E8E3A51",
+        "trainingLabels": [
+          "BBQ Chicken"
+        ],
+        "displayNameHint": "Instant Pot BBQ Chicken"
+      },
+      {
+        "paprikaId": "ADE36037-B144-4E22-BEE8-57CFE9A0C633",
+        "trainingLabels": [
+          "Cashew Chicken",
+          "Cashew Chx Recipe"
+        ],
+        "displayNameHint": "Instant Pot Cashew Chicken: Whole30, Paleo, 30 Minutes"
+      },
+      {
+        "paprikaId": "8040571D-97A3-46BD-A162-6E27C13F3F8D",
+        "trainingLabels": [
+          "Ground Turkey Taco Bowl"
+        ],
+        "displayNameHint": "Juicy Ground Turkey Tacos {Such Easy Recipe}"
+      },
+      {
+        "paprikaId": "3F7C1B54-663E-4041-B93B-BAF417937397",
+        "trainingLabels": [
+          "Kelsey enchiladas"
+        ],
+        "displayNameHint": "Kelsey's Famous Enchiladas (from LO Santa Fe Chx)"
+      },
+      {
+        "paprikaId": "EA4EDEF6-E9E4-4262-9C55-F782DF9F7360",
+        "trainingLabels": [
+          "Kimchi Bliss bowls (Tempeh)"
+        ],
+        "displayNameHint": "Kimchi Brown Rice Bliss Bowls"
+      },
+      {
+        "paprikaId": "82FC6ACF-80A1-41EC-BC02-BC6A275B5B36",
+        "trainingLabels": [
+          "Soondubu",
+          "Sundubu",
+          "Sundubu / Soondubu"
+        ],
+        "displayNameHint": "Korean Sundubu Stew"
+      },
+      {
+        "paprikaId": "3784BE76-BF0B-4DC3-857D-504ED28260A5",
+        "trainingLabels": [
+          "Enchiladas",
+          "Frozen Enchiladas",
+          "Maryann's Enchiladas"
+        ],
+        "displayNameHint": "Maryann's White People Enchiladas"
+      },
+      {
+        "paprikaId": "C2DDABE8-13B9-4013-B710-E7683A77F118",
+        "trainingLabels": [
+          "Carnitas Lettuce Wraps",
+          "LO Carnitas",
+          "Slow Cooker Carnitas"
+        ],
+        "displayNameHint": "Paleo Instant Pot Carnitas (Whole30, Gluten-Free) with Slow Cooker Instructions"
+      },
+      {
+        "paprikaId": "177E1C85-4A6F-43B9-91B3-3D53F4175F61",
+        "trainingLabels": [
+          "Turkey Burrito bowl"
+        ],
+        "displayNameHint": "Skinny Burrito Bowl"
+      },
+      {
+        "paprikaId": "59159073-EA37-4A08-87B8-DC6A5FF2E7A8",
+        "trainingLabels": [
+          "Slow-cooker Kung Pao Chicken"
+        ],
+        "displayNameHint": "Skinny Slow Cooker Kung Pao Chicken"
+      },
+      {
+        "paprikaId": "0A8F0571-D60B-4F90-912F-A5EDB26F8A54",
+        "trainingLabels": [
+          "Chx Fajita \"Salad\""
+        ],
+        "displayNameHint": "Vegan Fajita Bowl with Cilantro Cauliflower Rice"
+      },
+      {
+        "paprikaId": "CE13391E-3EC9-4942-B9C1-BE34D6F03CD3",
+        "trainingLabels": [
+          "Tofu & Veggie Stir Fry",
+          "Tofu Stir fry"
+        ],
+        "displayNameHint": "Weeknight Tofu Stir Fry"
+      },
+      {
+        "paprikaId": "D242A586-502D-4FF6-B1EB-2C2FB16F318D",
+        "trainingLabels": [
+          "Slow cooker white chicken chili"
+        ],
+        "displayNameHint": "White Chicken Chili"
+      },
+      {
+        "paprikaId": "C7E0EEE1-585B-43D0-89FE-24C083A5876E",
+        "trainingLabels": [
+          "Chicken Broccoli Casserole"
+        ],
+        "displayNameHint": "Whole30 Chicken Broccoli Casserole (Paleo)"
+      },
+      {
+        "paprikaId": "18B6E97E-702A-4462-AC32-AC06E372A8A1",
+        "trainingLabels": [
+          "Whole30 Chicken Salad"
+        ],
+        "displayNameHint": "Whole30 Chicken Salad"
+      }
+    ],
+    "byTrainingLabel": {
+      "Santa Fe Chicken Chili": "Crock Pot Santa Fe Chicken",
+      "Santa fe Chx Chili (Slowcook)": "Crock Pot Santa Fe Chicken",
+      "ChxChili": "Crock Pot Santa Fe Chicken",
+      "Asian Turkey Lettuce Wraps": "Asian Turkey Lettuce Wraps",
+      "LettuceWrap": "Asian Turkey Lettuce Wraps",
+      "Turkey lettuce wrap": "Asian Turkey Lettuce Wraps",
+      "Hippie Bowl": "Hippie Bowl",
+      "Kimchi Bliss bowls (Tempeh)": "Kimchi Brown Rice Bliss Bowls",
+      "Tofu & Veggie Stir Fry": "Weeknight Tofu Stir Fry",
+      "Tofu Stir fry": "Weeknight Tofu Stir Fry",
+      "Honey Garlic Salmon": "Honey Garlic Glazed Salmon",
+      "Honey Garlic Glazed Salmon": "Honey Garlic Glazed Salmon",
+      "TeriSalmon": "Honey Garlic Glazed Salmon",
+      "Teriyaki Salmon Bowl": "Air Fried Teriyaki Salmon Bites Rice Bowl",
+      "Salmon rice bowl": "Air Fried Teriyaki Salmon Bites Rice Bowl",
+      "Ground Turkey Taco Bowl": "Juicy Ground Turkey Tacos {Such Easy Recipe}",
+      "Sundubu / Soondubu": "Korean Sundubu Stew",
+      "Sundubu": "Korean Sundubu Stew",
+      "Soondubu": "Korean Sundubu Stew",
+      "Cashew Chicken": "Instant Pot Cashew Chicken: Whole30, Paleo, 30 Minutes",
+      "Cashew Chx Recipe": "Instant Pot Cashew Chicken: Whole30, Paleo, 30 Minutes",
+      "BBQ Chicken": "Instant Pot BBQ Chicken",
+      "Chicken Broccoli Casserole": "Whole30 Chicken Broccoli Casserole (Paleo)",
+      "Slow cooker white chicken chili": "White Chicken Chili",
+      "Egg roll in bowl": "Egg Roll in a Bowl",
+      "Eggroll in bowl": "Egg Roll in a Bowl",
+      "Slow-cooker Kung Pao Chicken": "Skinny Slow Cooker Kung Pao Chicken",
+      "Turkey Burrito bowl": "Skinny Burrito Bowl",
+      "Chx Fajita \"Salad\"": "Vegan Fajita Bowl with Cilantro Cauliflower Rice",
+      "Whole30 Chicken Salad": "Whole30 Chicken Salad",
+      "Slow Cooker Carnitas": "Paleo Instant Pot Carnitas (Whole30, Gluten-Free) with Slow Cooker Instructions",
+      "LO Carnitas": "Paleo Instant Pot Carnitas (Whole30, Gluten-Free) with Slow Cooker Instructions",
+      "Carnitas Lettuce Wraps": "Paleo Instant Pot Carnitas (Whole30, Gluten-Free) with Slow Cooker Instructions",
+      "Lemon Butter Fish": "Easy Lemon Butter Fish in 15 Minutes",
+      "Lemon butter Tilapia": "Easy Lemon Butter Fish in 15 Minutes",
+      "Kelsey enchiladas": "Kelsey's Famous Enchiladas (from LO Santa Fe Chx)",
+      "Maryann's Enchiladas": "Maryann's White People Enchiladas",
+      "Frozen Enchiladas": "Maryann's White People Enchiladas",
+      "Enchiladas": "Maryann's White People Enchiladas",
+      "Chicken Parm w/ spaghetti squash": "Chicken Parmesan with Spaghetti Squash",
+      "Chicken Parm": "Chicken Parmesan with Spaghetti Squash",
+      "Hoisin garlic noodles": "Hoisin Garlic Noodles"
+    }
+  },
+  "manualRecipeLabels": {
+    "description": "Recipes without a Paprika mapping — canonical name + aliases for NLP / historical text. Default bulk import (import-manual-recipes-from-registry.ts) only includes Master list + Lunch + Dinner mains from RECIPES_TO_ADD.md; breakfast and sides remain backlog unless --all-manual or the allowlist is extended.",
+    "recipes": [
+      {
+        "canonicalName": "White People Taco Night",
+        "aliases": [
+          "WP Taco Night",
+          "White Taco Night",
+          "Tacos",
+          "WP tacos",
+          "LO White Taco Night"
+        ],
+        "categories": [
+          "dinner"
+        ],
+        "sources": [
+          "OneNote",
+          "Spreadsheet"
+        ],
+        "keyIngredientsDraft": "Ground beef, taco seasoning, tortillas, shredded cheese, lettuce, tomato, red onion; optional: sour cream, avocado",
+        "notes": "Training label 'Tacos' usually means this recipe, not Paprika Blackened Fish Tacos."
+      },
+      {
+        "canonicalName": "Buddha Bowl",
+        "aliases": [
+          "Chicken Buddha Bowl",
+          "Quinoa Buddha bowl",
+          "Buddha bowls",
+          "Buddha bowl",
+          "Quinoa Buddha Bowl"
+        ],
+        "categories": [
+          "lunch",
+          "dinner"
+        ],
+        "sources": [
+          "OneNote",
+          "Spreadsheet"
+        ],
+        "keyIngredientsDraft": "Lettuce, quinoa, veggies; tahini / sesame ginger / peanut style sauces",
+        "notes": "Generic Buddha bowl only. Kimchi Bliss bowls (Tempeh) maps to Paprika separately."
+      },
+      {
+        "canonicalName": "Fried Fish Tacos",
+        "aliases": [
+          "Fish tacos",
+          "Fish taco",
+          "Fried Fish Tacos"
+        ],
+        "categories": [
+          "dinner"
+        ],
+        "sources": [
+          "OneNote",
+          "Spreadsheet"
+        ],
+        "keyIngredientsDraft": "Fried Fish (Frozen), tortillas, red cabbage or coleslaw mix, feta (or Cotija) cheese, pickled red onion, avocado, spicy mayo (make @ home)",
+        "notes": "Not Paprika Blackened Fish Tacos unless you decide to merge."
+      },
+      {
+        "canonicalName": "Grilled Chicken",
+        "aliases": [],
+        "categories": [
+          "dinner"
+        ],
+        "sources": [
+          "Spreadsheet"
+        ],
+        "keyIngredientsDraft": "",
+        "notes": "Generic; no ingredient block in training data."
+      },
+      {
+        "canonicalName": "Crunch Wrap",
+        "aliases": [
+          "Crunch wrap"
+        ],
+        "categories": [
+          "dinner"
+        ],
+        "sources": [
+          "OneNote entry-002"
+        ],
+        "keyIngredientsDraft": "Beef, taco seasoning, shredded cheese, XL tortilla, Tostada shell (small), lettuce, tomato, sour cream or greek yogurt plain",
+        "notes": ""
+      },
+      {
+        "canonicalName": "Eggs (Overeasy, scrambled)",
+        "aliases": [
+          "scrambled",
+          "overeasy",
+          "Overeasy"
+        ],
+        "categories": [
+          "breakfast"
+        ],
+        "sources": [
+          "Spreadsheet"
+        ],
+        "keyIngredientsDraft": "Eggs",
+        "notes": "Simple prep, not a Paprika recipe."
+      },
+      {
+        "canonicalName": "Oatmeal",
+        "aliases": [],
+        "categories": [
+          "breakfast"
+        ],
+        "sources": [
+          "Spreadsheet"
+        ],
+        "keyIngredientsDraft": "",
+        "notes": ""
+      },
+      {
+        "canonicalName": "Avo Toast",
+        "aliases": [
+          "Avocado toast"
+        ],
+        "categories": [
+          "breakfast"
+        ],
+        "sources": [
+          "Spreadsheet"
+        ],
+        "keyIngredientsDraft": "",
+        "notes": ""
+      },
+      {
+        "canonicalName": "Eggs & Avo",
+        "aliases": [],
+        "categories": [
+          "breakfast"
+        ],
+        "sources": [
+          "Spreadsheet"
+        ],
+        "keyIngredientsDraft": "",
+        "notes": ""
+      },
+      {
+        "canonicalName": "Eggs & Bacon",
+        "aliases": [],
+        "categories": [
+          "breakfast"
+        ],
+        "sources": [
+          "Spreadsheet"
+        ],
+        "keyIngredientsDraft": "",
+        "notes": ""
+      },
+      {
+        "canonicalName": "Eggs & Chx Sausage",
+        "aliases": [],
+        "categories": [
+          "breakfast"
+        ],
+        "sources": [
+          "Spreadsheet"
+        ],
+        "keyIngredientsDraft": "",
+        "notes": ""
+      },
+      {
+        "canonicalName": "Pre-made frozen breakfast sammies",
+        "aliases": [
+          "frozen breakfast sammies",
+          "Glutino muffin breakfast"
+        ],
+        "categories": [
+          "breakfast"
+        ],
+        "sources": [
+          "OneNote"
+        ],
+        "keyIngredientsDraft": "Glutino muffin, eggs, bacon/ham, sliced cheese",
+        "notes": ""
+      },
+      {
+        "canonicalName": "Ham/Turkey Sandies",
+        "aliases": [
+          "Sandwiches",
+          "sandies"
+        ],
+        "categories": [
+          "lunch"
+        ],
+        "sources": [
+          "Spreadsheet"
+        ],
+        "keyIngredientsDraft": "Bread, Sliced turkey or ham, mayo, dijon mustard, avocado, red onion, optional - lettuce",
+        "notes": ""
+      },
+      {
+        "canonicalName": "Tuna Sandwich or Lettuce Cup",
+        "aliases": [
+          "Tuna salad",
+          "Tuna wrap",
+          "Tuna sandwich",
+          "Tuna Salad/Wrap/Sandwich/Lettuce Wrap"
+        ],
+        "categories": [
+          "lunch"
+        ],
+        "sources": [
+          "Spreadsheet"
+        ],
+        "keyIngredientsDraft": "Bread or Butter lettuce cups, canned tuna, red or yellow onion, celery, sriracha, mayo",
+        "notes": ""
+      },
+      {
+        "canonicalName": "Lunch Salads",
+        "aliases": [],
+        "categories": [
+          "lunch"
+        ],
+        "sources": [
+          "Spreadsheet"
+        ],
+        "keyIngredientsDraft": "Salad Mix, dressing, cucumbers, red onion, tomatoes, Black Beans, beets, cottage cheese, avocado, optional: quinoa,",
+        "notes": ""
+      },
+      {
+        "canonicalName": "Lunch wrap (Chicken or Turkey)",
+        "aliases": [
+          "Lunch wrap",
+          "Chicken Wraps",
+          "Chicken Wraps (Grilled or Shredded)"
+        ],
+        "categories": [
+          "lunch"
+        ],
+        "sources": [
+          "Spreadsheet"
+        ],
+        "keyIngredientsDraft": "Tortillas, chicken breast (pre-made) or sliced ham/turkey, shredded lettuce, dressing, shredded cheese",
+        "notes": "Merged from Chicken Wraps (Grilled or Shredded) 2026-03-14."
+      },
+      {
+        "canonicalName": "Ground Turkey Pasta",
+        "aliases": [],
+        "categories": [
+          "dinner"
+        ],
+        "sources": [
+          "Spreadsheet"
+        ],
+        "keyIngredientsDraft": "Ground turkey, Pasta noodles, Pasta sauce, yellow onion",
+        "notes": ""
+      },
+      {
+        "canonicalName": "Chicken pesto pasta",
+        "aliases": [],
+        "categories": [
+          "dinner"
+        ],
+        "sources": [
+          "Spreadsheet"
+        ],
+        "keyIngredientsDraft": "Chicken breast, Asparagus, pesto sauce,",
+        "notes": ""
+      },
+      {
+        "canonicalName": "Pesto Sausage Veggie bowl",
+        "aliases": [],
+        "categories": [
+          "dinner"
+        ],
+        "sources": [
+          "Spreadsheet"
+        ],
+        "keyIngredientsDraft": "Chicken sausage, Pesto sauce, zucchini, pasta noodles",
+        "notes": ""
+      },
+      {
+        "canonicalName": "Chicken Vermicelli",
+        "aliases": [],
+        "categories": [
+          "dinner"
+        ],
+        "sources": [
+          "Spreadsheet"
+        ],
+        "keyIngredientsDraft": "Chicken breast, Oyster sauce, yellow onion, vermicelli noodles, cucumber, fish sauce (homemade), Chili paste, mint (optional)",
+        "notes": ""
+      },
+      {
+        "canonicalName": "Asparagus",
+        "aliases": [
+          "asparagus"
+        ],
+        "categories": [
+          "side"
+        ],
+        "sources": [
+          "Spreadsheet"
+        ],
+        "keyIngredientsDraft": "",
+        "notes": "Often a side component in plans."
+      },
+      {
+        "canonicalName": "Brussels sprouts",
+        "aliases": [
+          "Brusselsprouts",
+          "brussel sprouts"
+        ],
+        "categories": [
+          "side"
+        ],
+        "sources": [
+          "Spreadsheet"
+        ],
+        "keyIngredientsDraft": "",
+        "notes": ""
+      },
+      {
+        "canonicalName": "Broccoli",
+        "aliases": [],
+        "categories": [
+          "side"
+        ],
+        "sources": [
+          "Spreadsheet"
+        ],
+        "keyIngredientsDraft": "",
+        "notes": ""
+      },
+      {
+        "canonicalName": "Israeli Couscous",
+        "aliases": [],
+        "categories": [
+          "side"
+        ],
+        "sources": [
+          "Spreadsheet"
+        ],
+        "keyIngredientsDraft": "",
+        "notes": ""
+      },
+      {
+        "canonicalName": "Mediterranean Couscous",
+        "aliases": [
+          "Mediteranean Couscous",
+          "Mediterranean couscous"
+        ],
+        "categories": [
+          "side",
+          "lunch"
+        ],
+        "sources": [
+          "Spreadsheet",
+          "OneNote"
+        ],
+        "keyIngredientsDraft": "",
+        "notes": "Ignored for Paprika Mediterranean Quinoa Bowl — see ignoredForPaprikaMapping."
+      },
+      {
+        "canonicalName": "Mashed Potatoes",
+        "aliases": [],
+        "categories": [
+          "side"
+        ],
+        "sources": [
+          "Spreadsheet"
+        ],
+        "keyIngredientsDraft": "",
+        "notes": ""
+      },
+      {
+        "canonicalName": "Roasted (Sweet) Potatoes",
+        "aliases": [
+          "Roasted Sweet Potatoes",
+          "Roated potatoes"
+        ],
+        "categories": [
+          "side"
+        ],
+        "sources": [
+          "Spreadsheet"
+        ],
+        "keyIngredientsDraft": "",
+        "notes": ""
+      }
+    ]
+  },
+  "ignoredForPaprikaMapping": [
+    {
+      "label": "BBQ chicken Buddha bowl",
+      "reason": "User correction: do not map to a Paprika Buddha/burrito bowl recipe."
+    },
+    {
+      "label": "Pre-made Salad / Premade Salad",
+      "reason": "Do not map to Easy Healthy Taco Salad W/ Ground Turkey in Paprika."
+    },
+    {
+      "label": "Mediterranean Couscous",
+      "reason": "Do not map to Mediterranean Quinoa Bowl in Paprika."
+    }
+  ],
+  "queueProcessed": {
+    "description": "Items removed from RECIPES_TO_ADD.md after a decision (2026-03-14 pass).",
+    "paprikaMapped": [
+      {
+        "paprikaTitle": "Paleo Instant Pot Carnitas (Whole30, Gluten-Free) with Slow Cooker Instructions",
+        "trainingLabels": [
+          "Slow Cooker Carnitas",
+          "LO Carnitas",
+          "Carnitas Lettuce Wraps"
+        ]
+      },
+      {
+        "paprikaTitle": "Easy Lemon Butter Fish in 15 Minutes",
+        "trainingLabels": [
+          "Lemon Butter Fish",
+          "Lemon butter Tilapia"
+        ]
+      },
+      {
+        "paprikaTitle": "Kelsey's Famous Enchiladas (from LO Santa Fe Chx)",
+        "trainingLabels": [
+          "Kelsey enchiladas"
+        ]
+      },
+      {
+        "paprikaTitle": "Maryann's White People Enchiladas",
+        "trainingLabels": [
+          "Maryann's Enchiladas",
+          "Frozen Enchiladas",
+          "Enchiladas"
+        ]
+      },
+      {
+        "paprikaTitle": "Chicken Parmesan with Spaghetti Squash",
+        "trainingLabels": [
+          "Chicken Parm w/ spaghetti squash",
+          "Chicken Parm"
+        ]
+      },
+      {
+        "paprikaTitle": "Hoisin Garlic Noodles",
+        "trainingLabels": [
+          "Hoisin garlic noodles"
+        ]
+      }
+    ],
+    "merged": [
+      {
+        "canonicalName": "Lunch wrap (Chicken or Turkey)",
+        "aliasesAbsorbed": [
+          "Chicken Wraps (Grilled or Shredded)"
+        ]
+      }
+    ],
+    "skipped": [
+      "Egg Bites",
+      "Miso soup with wontons",
+      "Chili (beef)",
+      "Baked White Fish",
+      "Pre-made Salad",
+      "Lentil Shepherds pie",
+      "Sweet potato chickpea bowl",
+      "Tofukatsu noodles"
+    ]
+  }
+}

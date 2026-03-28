@@ -2,9 +2,56 @@
  * Extract meal plan data from the Excel spreadsheet into training JSON.
  * Skips: templates, blank tabs, GI Prep.
  */
-const XLSX = require('xlsx');
+const ExcelJS = require('exceljs');
 const fs = require('fs');
 const path = require('path');
+
+function cellToPrimitive(cell) {
+  if (!cell || cell.value === undefined || cell.value === null) return '';
+  const v = cell.value;
+  if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean') return v;
+  if (v instanceof Date) return v;
+  if (typeof v === 'object') {
+    if (Object.prototype.hasOwnProperty.call(v, 'text') && v.text != null) return String(v.text);
+    if (Array.isArray(v.richText)) return v.richText.map((t) => t.text).join('');
+    if (Object.prototype.hasOwnProperty.call(v, 'result') && v.result != null) return v.result;
+    if (Object.prototype.hasOwnProperty.call(v, 'formula') && v.result != null) return v.result;
+  }
+  return String(v);
+}
+
+function worksheetToAoA(worksheet) {
+  const lastRow = worksheet.actualRowCount || worksheet.rowCount || 0;
+  let maxCol = 0;
+  for (let r = 1; r <= lastRow; r++) {
+    worksheet.getRow(r).eachCell({ includeEmpty: true }, (_cell, colNumber) => {
+      maxCol = Math.max(maxCol, colNumber);
+    });
+  }
+  if (maxCol === 0) return [];
+  const data = [];
+  for (let r = 1; r <= lastRow; r++) {
+    const row = worksheet.getRow(r);
+    const arr = Array(maxCol).fill('');
+    row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+      arr[colNumber - 1] = cellToPrimitive(cell);
+    });
+    data.push(arr);
+  }
+  return data;
+}
+
+async function readWorkbook(filePath) {
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.readFile(filePath);
+  const SheetNames = [];
+  const Sheets = {};
+  for (const ws of workbook.worksheets) {
+    SheetNames.push(ws.name);
+    Sheets[ws.name] = worksheetToAoA(ws);
+  }
+  return { SheetNames, Sheets };
+}
 
 const SKIP_SHEETS = [
   'Monthly Template',
@@ -195,14 +242,14 @@ function parseCalendarSheet(sheetName, data) {
   return { sheetName, monthYear, weeks };
 }
 
-function main() {
+async function main() {
   const filePath = process.argv[2] || path.join(__dirname, '../meal-planner-resources/Meal Plan History Snapshot - 3-15-26.xlsx');
   if (!fs.existsSync(filePath)) {
     console.error('File not found:', filePath);
     process.exit(1);
   }
 
-  const workbook = XLSX.readFile(filePath);
+  const workbook = await readWorkbook(filePath);
   const result = {
     _meta: {
       source: 'Meal Plan History Snapshot - 3-15-26.xlsx',
@@ -220,8 +267,7 @@ function main() {
     if (isTemplateOrBlank(sheetName)) continue;
     if (sheetName.includes('dont copy')) continue;
 
-    const sheet = workbook.Sheets[sheetName];
-    const data = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+    const data = workbook.Sheets[sheetName] || [];
 
     if (sheetName === 'Regular Meal Ideas') {
       result.regularMealIdeas = parseRegularMealIdeas(data);
@@ -253,4 +299,7 @@ function main() {
   console.log('- Calendar plans:', result.calendarPlans?.length || 0, 'tabs');
 }
 
-main();
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

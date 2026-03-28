@@ -121,7 +121,10 @@ Costco, Asian Store, Bread/Tortillas/Bakery, Deli Meat/Cheese/Dips, Frozen Fish,
 4. **Fix typos in extraction** – "Roated" → "Roasted", "Broccolli" → "Broccoli", "Mediteranean" → "Mediterranean", "Ceasar" → "Caesar", "Shimp" → "Shrimp".
 
 ### B. Recipe Candidates (prioritized)
-**See `RECIPES_TO_ADD.md` for full consolidated queue (Regular Meal Ideas + OneNote).**
+**See `RECIPES_TO_ADD.md` for the outstanding recipe queue** (remove rows as they land in the DB or Paprika + registry).  
+**Training labels, aliases & Paprika mappings:** `recipe-training-registry.json`, `RECIPE_TRAINING_LABELS.md`.  
+**Regenerated DB audit:** `PAPRIKA_RECIPE_AUDIT.md` (`npx tsx scripts/audit-recipes-to-paprika.ts`).  
+**Manual-only recipes & extracted baselines:** `MANUAL_RECIPES_BASELINE.md`.
 
 **High frequency / clear recipes:**
 - White People Taco Night (WP Taco Night / White Taco Night)
