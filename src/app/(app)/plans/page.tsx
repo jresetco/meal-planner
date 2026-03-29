@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
+import { PlanNameField } from '@/components/plans/plan-name-field'
 import { Plus, Calendar, ArrowRight } from 'lucide-react'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
@@ -61,15 +61,19 @@ export default async function PlansPage() {
         </Card>
       ) : (
         <div className="grid gap-4">
-          {plans.map((plan) => (
+          {plans.map((plan) => {
+            const rangeLabel = `${formatDate(new Date(plan.startDate))} – ${formatDate(new Date(plan.endDate))}`
+            return (
             <Card key={plan.id}>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle>
-                      {formatDate(new Date(plan.startDate))} - {formatDate(new Date(plan.endDate))}
-                    </CardTitle>
-                    <CardDescription>
+                  <div className="flex-1 min-w-0 max-w-xl">
+                    <PlanNameField
+                      planId={plan.id}
+                      initialName={plan.name}
+                      fallbackTitle={rangeLabel}
+                    />
+                    <CardDescription className="mt-2">
                       {plan._count.plannedMeals} meals planned
                     </CardDescription>
                   </div>
@@ -83,7 +87,8 @@ export default async function PlansPage() {
                 </Button>
               </CardContent>
             </Card>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>

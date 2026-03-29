@@ -132,50 +132,56 @@ export default function NewPlanPage() {
       throw new Error('No response body received')
     }
 
-    // Read the SSE stream
+    // Read the SSE stream (buffer lines — chunks may split mid-message)
     const reader = response.body.getReader()
     const decoder = new TextDecoder()
     let planId: string | null = null
+    let sseBuffer = ''
+
+    const processSseLine = (rawLine: string) => {
+      const line = rawLine.trim()
+      if (!line.startsWith('data:')) return
+      const payload = line.slice(5).trim()
+      if (!payload) return
+      let data: { type?: string; planId?: string; summary?: { totalMeals?: number }; error?: string; stage?: string; message?: string; detail?: string; progress?: number }
+      try {
+        data = JSON.parse(payload)
+      } catch {
+        return
+      }
+      if (data.type === 'progress') {
+        onProgress({
+          stage: (data.stage as GenerationProgress['stage']) ?? 'analyzing',
+          message: data.message ?? '',
+          detail: data.detail,
+          progress: typeof data.progress === 'number' ? data.progress : 0,
+        })
+      } else if (data.type === 'complete' && data.planId) {
+        planId = data.planId
+        onProgress({
+          stage: 'finalizing',
+          message: 'Plan generated successfully!',
+          detail: data.summary?.totalMeals != null ? `${data.summary.totalMeals} meals planned` : undefined,
+          progress: 100,
+        })
+      } else if (data.type === 'error' && data.error) {
+        throw new Error(data.error)
+      }
+    }
 
     try {
       while (true) {
         const { done, value } = await reader.read()
-        if (done) break
-
-        const text = decoder.decode(value)
-        const lines = text.split('\n')
-
+        sseBuffer += decoder.decode(value, { stream: !done })
+        const lines = sseBuffer.split('\n')
+        sseBuffer = lines.pop() ?? ''
         for (const line of lines) {
-          if (line.startsWith('data: ')) {
-            try {
-              const data = JSON.parse(line.slice(6))
-              
-              if (data.type === 'progress') {
-                onProgress({
-                  stage: data.stage,
-                  message: data.message,
-                  detail: data.detail,
-                  progress: data.progress,
-                })
-              } else if (data.type === 'complete') {
-                planId = data.planId
-                onProgress({
-                  stage: 'finalizing',
-                  message: 'Plan generated successfully!',
-                  detail: `${data.summary.totalMeals} meals planned`,
-                  progress: 100,
-                })
-              } else if (data.type === 'error') {
-                throw new Error(data.error)
-              }
-            } catch (parseError) {
-              // Ignore parse errors for partial chunks
-              if (line.trim() && !line.includes('data: ')) {
-                console.warn('Failed to parse SSE data:', line)
-              }
-            }
-          }
+          processSseLine(line)
         }
+        if (done) break
+      }
+      if (sseBuffer.trim()) {
+        processSseLine(sseBuffer)
       }
     } finally {
       reader.releaseLock()

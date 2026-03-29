@@ -52,6 +52,7 @@ export function UnifiedRulesEditor({ mode }: UnifiedRulesEditorProps) {
   const [dragOverId, setDragOverId] = useState<string | null>(null)
 
   const systemRules = rules.filter((r) => r.isSystem)
+  const activeSystemRulesCount = systemRules.filter((r) => r.isActive).length
   const personalRules = rules.filter((r) => !r.isSystem)
 
   const fetchRules = useCallback(async () => {
@@ -457,7 +458,7 @@ export function UnifiedRulesEditor({ mode }: UnifiedRulesEditorProps) {
                   <ChevronRight className="h-4 w-4" />
                 )}
                 <Shield className="h-4 w-4" />
-                System Rules ({systemRules.length})
+                System Rules ({systemRulesExpanded ? systemRules.length : activeSystemRulesCount})
               </button>
               {systemRulesExpanded && (
                 <ul className="space-y-2">

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+import type { Prisma } from '@/generated/prisma/client'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
+import { isRecipeAlreadyOnDate, ymd } from '@/lib/plan-meal-slots'
 
 // GET /api/plans/[id]/meals/[mealId] - Get a specific planned meal
 export async function GET(
@@ -65,9 +67,27 @@ export async function PATCH(
   }
 
   const body = await request.json()
-  const { isLocked, recipeId } = body
+  const {
+    isLocked,
+    recipeId,
+    customName,
+    notes,
+    servings,
+    preparedServings,
+    isLeftover,
+    leftoverSourceId,
+  } = body as {
+    isLocked?: boolean
+    recipeId?: string | null
+    customName?: string | null
+    notes?: string | null
+    servings?: number
+    preparedServings?: number | null
+    isLeftover?: boolean
+    leftoverSourceId?: string | null
+  }
 
-  const updateData: { isLocked?: boolean; recipeId?: string } = {}
+  const updateData: Prisma.PlannedMealUncheckedUpdateInput = {}
   
   if (typeof isLocked === 'boolean') {
     updateData.isLocked = isLocked
@@ -87,8 +107,42 @@ export async function PATCH(
     })
   }
   
-  if (recipeId) {
+  if (recipeId !== undefined) {
+    if (typeof recipeId === 'string' && recipeId.length > 0) {
+      const sameDay = await prisma.plannedMeal.findMany({
+        where: { mealPlanId: id, date: existingMeal.date },
+        select: { id: true, date: true, recipeId: true },
+      })
+      if (isRecipeAlreadyOnDate(sameDay, ymd(existingMeal.date), recipeId, mealId)) {
+        return NextResponse.json(
+          { error: 'That recipe is already on this day.' },
+          { status: 400 }
+        )
+      }
+    }
     updateData.recipeId = recipeId
+  }
+  if (customName !== undefined) {
+    updateData.customName = customName
+  }
+  if (notes !== undefined) {
+    updateData.notes = notes === '' ? null : String(notes).slice(0, 2000)
+  }
+  if (typeof servings === 'number' && Number.isFinite(servings) && servings >= 1) {
+    updateData.servings = Math.round(servings)
+  }
+  if (preparedServings !== undefined) {
+    if (preparedServings === null) {
+      updateData.preparedServings = null
+    } else if (typeof preparedServings === 'number' && Number.isFinite(preparedServings) && preparedServings >= 1) {
+      updateData.preparedServings = Math.round(preparedServings)
+    }
+  }
+  if (typeof isLeftover === 'boolean') {
+    updateData.isLeftover = isLeftover
+  }
+  if (leftoverSourceId !== undefined) {
+    updateData.leftoverSourceId = leftoverSourceId
   }
 
   const updatedMeal = await prisma.plannedMeal.update({

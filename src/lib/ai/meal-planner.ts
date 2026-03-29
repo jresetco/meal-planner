@@ -19,8 +19,12 @@ const PlannedMealSchema = z.object({
 
 const MealPlanSchema = z.object({
   meals: z.array(PlannedMealSchema),
-  reasoning: z.string().describe('Detailed explanation of the plan choices, constraints satisfied, and trade-offs made'),
-  leftoverSummary: z.string().describe('Summary of how leftovers are scheduled and accounted for'),
+  reasoning: z.string().describe(
+    'Concise explanation of plan choices and trade-offs. Do not write lengthy audits of portion math or apologize for plan-boundary limits.'
+  ),
+  leftoverSummary: z.string().describe(
+    'Short summary of leftover usage. OK to note uneaten batch after the plan ends or before-plan leftovers when rules require it—no need for perfect math inside the date range.'
+  ),
 })
 
 export type GeneratedMealPlan = z.infer<typeof MealPlanSchema>
@@ -120,21 +124,28 @@ export async function generateMealPlanWithStreaming(
 1. Create varied meal plans using the provided recipe pool
 2. Respect ALL hard rules and constraints absolutely
 3. Follow soft preferences as much as reasonably possible
-4. Schedule leftovers intelligently - ALL leftover portions must be accounted for
+4. Schedule leftovers **when it fits** the date range and rules—approximate batch math is fine; perfection is not required
 5. Consider recipe types: STAPLE recipes can be used frequently, REGULAR recipes in normal rotation, SPECIAL recipes rarely
 6. Consider maximum frequency settings for each recipe
 7. Learn from historical patterns to match the household's style
 8. Consider prep complexity - easier meals on busy weeknights, more complex on weekends
 
+## Plan date boundary (important)
+- You may only output meals **on dates from the given start through end inclusive**. There are no slots after the last day.
+- If a cook near the end of the plan leaves extra servings that **cannot** fit as leftover rows inside the window, that is **normal**—assume they are eaten after the plan or frozen; **do not** treat it as a failure, apologize at length, or block the plan.
+- **Before-plan leftovers** (leftoverFromDate before the plan start, or narrative "made before this week") are allowed when needed to satisfy user hard rules (e.g. leftover-only days). Keep \`reasoning\` and \`leftoverSummary\` brief and practical—no long self-critique.
+
 ## Leftover Rules (CRITICAL):
-- When a recipe is made, calculate: servings_prepared - household_size = leftover_portions
-- Leftovers MUST appear AFTER the original meal date. NEVER schedule a leftover on or before the day the original meal is cooked.
-- Leftovers MUST be consumed within 1-2 days of the original meal (not 3+ days).
-- On the FIRST day of the plan, leftovers are NOT allowed unless explicitly noted that the original was made before the plan period.
-- EVERY portion must be accounted for - no food waste
-- Leftover meals should be marked with isLeftover=true and reference the original meal
-- Track servingsUsed for each meal to ensure all portions are consumed
-- Example: If making 6 servings for household of 2, that's 2 servings for dinner + 2 lunches of leftovers over the next 1-2 days
+- When a recipe is made, estimate: servings_prepared vs household_size and schedule leftover rows when there is room in the date range.
+- Leftovers MUST be chronologically AFTER the original cook (later calendar date, or the same date only at a later meal type). Never schedule a leftover at or before its source slot in time order.
+- **The same recipeId MUST NOT appear twice on the same calendar day for any reason—not as cook + leftover, not as two leftovers, not twice cooked.** Put leftover portions of a dish on **later calendar days** only (the cook day has that recipe once; leftover rows use the same recipeId on subsequent dates).
+- Prefer consuming leftovers within a couple of days after the cook when slots exist; you are NOT required to place them on the very next calendar day.
+- On the FIRST day of the plan, do not mark leftovers as coming from a cook that same day before that cook appears. Leftovers on day 1 from **before the plan period** are fine when rules require it.
+- **Servings math is a guide, not a rigid ledger**—\`servings\` / \`servingsUsed\` should be plausible; small imbalances or end-of-plan leftovers are acceptable.
+- Leftover meals should be marked with isLeftover=true and reference the original meal (leftoverFromDate + leftoverFromMealType) when they are true leftovers from within the plan.
+
+## Hard scheduling rules:
+- **Never use the same recipe twice on one calendar day** (including leftovers). Each recipeId appears at most once per date in the plan.
 
 ## Recipe Type Guidelines:
 - STAPLE: These are go-to favorites. Can appear weekly or more often.
@@ -142,9 +153,8 @@ export async function generateMealPlanWithStreaming(
 - SPECIAL: High-effort or treat meals. Use sparingly, maybe once per plan period.
 
 ## Output Quality:
-- Be specific about servings and portions
-- Provide clear reasoning for your choices
-- Note any trade-offs or compromises made
+- Be specific about servings and portions where helpful
+- Keep \`reasoning\` and \`leftoverSummary\` concise—state trade-offs in one or two sentences, not exhaustive audits
 - Ensure the plan feels cohesive and practical`
 
   const userPrompt = `Generate a meal plan with the following parameters:
@@ -217,12 +227,12 @@ ${editPatterns}
 ` : ''}
 
 ## Important Reminders:
-1. For each recipe cooked, track ALL servings and ensure leftovers are scheduled
-2. Leftover meals reference the original meal date and type
+1. Fit leftovers into the date range when you can; if the plan ends before every batch is "used up" on-paper, that is acceptable
+2. Leftover meals reference the original meal date and type when sourced from within the plan
 3. Consider the day of week for complexity (easier meals on busy days)
 4. STAPLE recipes are comfort foods - use them when appropriate
 5. SPECIAL recipes are for weekends or special occasions
-6. The leftoverSummary should clearly show how all portions are accounted for`
+6. \`leftoverSummary\`: one short paragraph on leftover strategy; optional one line if something carries past the last day`
 
   onProgress?.({
     stage: 'selecting',
@@ -268,7 +278,7 @@ ${editPatterns}
     onProgress?.({
       stage: 'balancing',
       message: 'Balancing leftovers...',
-      detail: 'Ensuring all portions are accounted for',
+      detail: 'Finalizing schedule',
       progress: 80,
     })
 
@@ -358,10 +368,10 @@ ${softRules.map(r => `- ${r.ruleText}${r.isHardRule ? ' (REQUIRED)' : ''}`).join
 
 Suggest ONE replacement meal that:
 1. Fits well with the rest of the plan
-2. Handles any leftover chain implications
-3. If this was a leftover, suggest what to do with the orphaned original portions
+2. Handles any leftover chain implications when obvious
+3. If this was a leftover, a short note on portions is enough—do not over-explain
 
-Also provide suggestedSwaps if there are other meals that should be adjusted due to leftover chains.`
+Also provide suggestedSwaps if other meals should be adjusted due to leftover chains (optional, can be null).`
 
   const SingleMealSchema = z.object({
     meal: PlannedMealSchema,
@@ -455,8 +465,10 @@ export async function getSuggestionsForSlot(params: {
 
   const prompt = `Suggest ${count} alternative recipes for the ${mealType} slot on ${date}.
 
+Hard rule: do NOT suggest any recipeId that already appears on ${date} in the plan below (cook or leftover)—each recipe at most once per calendar day.
+
 ## Current Plan
-${currentPlan.meals.map(m => `- ${m.date} ${m.mealType}: ${m.recipeName}`).join('\n')}
+${currentPlan.meals.map(m => `- ${m.date} ${m.mealType}: ${m.recipeName}${m.isLeftover ? ' (leftover)' : ''}`).join('\n')}
 
 ## Available Recipes
 ${recipes.map(r => `- [${r.id}] ${r.name} | Type: ${r.recipeType}`).join('\n')}
@@ -464,7 +476,8 @@ ${recipes.map(r => `- [${r.id}] ${r.name} | Type: ${r.recipeType}`).join('\n')}
 Provide ${count} good alternatives that would fit well in this slot, considering:
 1. What's already in the plan
 2. The day of week
-3. Recipe variety`
+3. Recipe variety
+4. Never duplicate a recipeId on ${date}`
 
   const SuggestionsSchema = z.object({
     suggestions: z.array(z.object({

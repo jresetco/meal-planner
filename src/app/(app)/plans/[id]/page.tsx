@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
 import {
   Dialog,
   DialogContent,
@@ -38,13 +40,19 @@ import {
   Search,
   Loader2,
   Check,
-  ArrowRightLeft
+  ArrowRightLeft,
+  StickyNote,
 } from 'lucide-react'
+import Link from 'next/link'
 import { cn, formatDate } from '@/lib/utils'
+import { getServingDisplay } from '@/lib/plan-servings-display'
+import { isSlotAfter, ymd } from '@/lib/plan-meal-slots'
 import type { MealPlan, PlannedMeal, Recipe, MealType } from '@/types'
 import { RecipeMealHover } from '@/components/plans/recipe-meal-hover'
 
 interface MealWithRecipe extends PlannedMeal {
+  preparedServings?: number | null
+  leftoverSourceId?: string | null
   recipe: Pick<
     Recipe,
     | 'id'
@@ -59,6 +67,7 @@ interface MealWithRecipe extends PlannedMeal {
 
 interface MealPlanWithMeals extends MealPlan {
   plannedMeals: MealWithRecipe[]
+  dayNotes?: Record<string, string> | null
 }
 
 interface SwapSuggestion {
@@ -94,6 +103,7 @@ export default function PlanDetailPage() {
   const [swapSuggestions, setSwapSuggestions] = useState<SwapSuggestion[]>([])
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
   const [swapSearch, setSwapSearch] = useState('')
+  const [manualMealName, setManualMealName] = useState('')
   const [recipes, setRecipes] = useState<Pick<Recipe, 'id' | 'name'>[]>([])
   
   // Operation states
@@ -192,6 +202,7 @@ export default function PlanDetailPage() {
     setSwapDialogOpen(true)
     setSwapSuggestions([])
     setSwapSearch('')
+    setManualMealName('')
     
     // Get AI suggestions
     setIsLoadingSuggestions(true)
@@ -212,12 +223,13 @@ export default function PlanDetailPage() {
     }
   }
   
-  const handleSwapToRecipe = async (recipeId: string) => {
-    if (!swapMeal) return
-    
-    setRegeneratingMealId(swapMeal.id)
+  const handleSwapToRecipe = async (recipeId: string, targetMeal?: MealWithRecipe | null) => {
+    const target = targetMeal ?? swapMeal
+    if (!target) return
+
+    setRegeneratingMealId(target.id)
     try {
-      const response = await fetch(`/api/plans/${planId}/meals/${swapMeal.id}/swap`, {
+      const response = await fetch(`/api/plans/${planId}/meals/${target.id}/swap`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ recipeId }),
@@ -228,6 +240,50 @@ export default function PlanDetailPage() {
       }
     } catch (error) {
       console.error('Error swapping meal:', error)
+    } finally {
+      setRegeneratingMealId(null)
+    }
+  }
+
+  const handleSwapToLeftoverFrom = async (sourceMealId: string) => {
+    if (!swapMeal) return
+    setRegeneratingMealId(swapMeal.id)
+    try {
+      const response = await fetch(`/api/plans/${planId}/meals/${swapMeal.id}/swap`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ leftoverSourceMealId: sourceMealId }),
+      })
+      if (response.ok) {
+        setSwapDialogOpen(false)
+        fetchPlan()
+      }
+    } catch (error) {
+      console.error('Error applying leftover:', error)
+    } finally {
+      setRegeneratingMealId(null)
+    }
+  }
+
+  const handleSwapToManualName = async () => {
+    if (!swapMeal) return
+    const name = manualMealName.trim()
+    if (!name) return
+
+    setRegeneratingMealId(swapMeal.id)
+    try {
+      const response = await fetch(`/api/plans/${planId}/meals/${swapMeal.id}/swap`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customName: name }),
+      })
+      if (response.ok) {
+        setSwapDialogOpen(false)
+        setManualMealName('')
+        fetchPlan()
+      }
+    } catch (error) {
+      console.error('Error setting custom meal:', error)
     } finally {
       setRegeneratingMealId(null)
     }
@@ -246,8 +302,7 @@ export default function PlanDetailPage() {
       if (response.ok) {
         const data = await response.json()
         if (data.suggestions && data.suggestions.length > 0) {
-          // Swap to the first suggestion
-          await handleSwapToRecipe(data.suggestions[0].recipeId)
+          await handleSwapToRecipe(data.suggestions[0].recipeId, meal)
         }
       }
     } catch (error) {
@@ -347,6 +402,68 @@ export default function PlanDetailPage() {
   const filteredRecipes = recipes.filter(r => 
     r.name.toLowerCase().includes(swapSearch.toLowerCase())
   )
+
+  const leftoverSourceOptions = useMemo(() => {
+    if (!plan || !swapMeal) return []
+    const tDate = ymd(new Date(swapMeal.date))
+    return plan.plannedMeals.filter((m) => {
+      if (m.isLeftover || m.id === swapMeal.id) return false
+      const sDate = ymd(new Date(m.date))
+      if (!isSlotAfter(sDate, m.mealType as MealType, tDate, swapMeal.mealType as MealType)) {
+        return false
+      }
+      if (
+        m.recipeId &&
+        plan.plannedMeals.some(
+          (o) =>
+            o.id !== swapMeal.id &&
+            o.recipeId === m.recipeId &&
+            ymd(new Date(o.date)) === tDate
+        )
+      ) {
+        return false
+      }
+      return true
+    })
+  }, [plan, swapMeal])
+
+  const servingFieldList = useMemo(() => {
+    if (!plan) return []
+    return plan.plannedMeals.map((m) => ({
+      id: m.id,
+      isLeftover: m.isLeftover,
+      leftoverSourceId: m.leftoverSourceId ?? null,
+      preparedServings: m.preparedServings ?? null,
+      servings: m.servings,
+    }))
+  }, [plan])
+
+  /** Day notes are stored on the MealPlan as a JSON map keyed by date string. */
+  const handleDayNotesBlur = async (dateStr: string, value: string) => {
+    const next = value.trim()
+    const current = ((plan?.dayNotes as Record<string, string>) ?? {})[dateStr] ?? ''
+    if (current.trim() === next) return
+    // Optimistic update
+    setPlan(prev => {
+      if (!prev) return prev
+      const notes = { ...(prev.dayNotes as Record<string, string> ?? {}) }
+      if (next.length > 0) {
+        notes[dateStr] = next
+      } else {
+        delete notes[dateStr]
+      }
+      return { ...prev, dayNotes: Object.keys(notes).length > 0 ? notes : null }
+    })
+    try {
+      await fetch(`/api/plans/${planId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dayNotes: { [dateStr]: next } }),
+      })
+    } catch (error) {
+      console.error('Error saving notes:', error)
+    }
+  }
   
   if (isLoading) {
     return (
@@ -409,9 +526,15 @@ export default function PlanDetailPage() {
             )}
             {regeneratingPlan ? 'Regenerating...' : 'Regenerate Plan'}
           </Button>
-          <Button variant="outline" onClick={() => router.push(`/plans/${planId}/grocery-list`)}>
-            <ShoppingCart className="mr-2 h-4 w-4" />
-            Grocery List
+          <Button variant="outline" asChild>
+            <Link
+              href={`/plans/${planId}/grocery-list`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <ShoppingCart className="mr-2 h-4 w-4" />
+              Grocery List
+            </Link>
           </Button>
         </div>
       </div>
@@ -442,6 +565,8 @@ export default function PlanDetailPage() {
             <div /> {/* Empty corner */}
             {weekDays.map((day) => {
               const isInRange = day >= planStartDate && day <= planEndDate
+              const dow = day.getDay()
+              const isWeekend = dow === 0 || dow === 6
               const dateStr = day.toISOString().split('T')[0]
               const isRegenerating = regeneratingDay === dateStr
               const dayMeals = plan.plannedMeals.filter(
@@ -454,7 +579,9 @@ export default function PlanDetailPage() {
                   key={day.toISOString()} 
                   className={cn(
                     "text-center py-2 rounded-lg relative",
-                    isInRange ? "bg-emerald-50 text-emerald-700" : "bg-slate-50 text-slate-400"
+                    isInRange && isWeekend && "bg-violet-50 text-violet-800 border border-violet-100",
+                    isInRange && !isWeekend && "bg-emerald-50 text-emerald-700",
+                    !isInRange && "bg-slate-50 text-slate-400"
                   )}
                 >
                   <div className="text-xs uppercase">{day.toLocaleDateString('en-US', { weekday: 'short' })}</div>
@@ -510,6 +637,16 @@ export default function PlanDetailPage() {
                 
                 const isRegenerating = regeneratingMealId === meal.id
                 const mealName = meal.recipe?.name || meal.customName || 'Unknown'
+                const servingLabel = getServingDisplay(
+                  {
+                    id: meal.id,
+                    isLeftover: meal.isLeftover,
+                    leftoverSourceId: meal.leftoverSourceId ?? null,
+                    preparedServings: meal.preparedServings ?? null,
+                    servings: meal.servings,
+                  },
+                  servingFieldList
+                )
                 
                 return (
                   <Card 
@@ -617,8 +754,15 @@ export default function PlanDetailPage() {
                             Leftover
                           </Badge>
                         )}
-                        <Badge variant="outline" className="text-[10px] px-1 py-0 h-4">
-                          {meal.servings} srv
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            'text-[10px] px-1 py-0 h-auto min-h-4 whitespace-normal text-left leading-tight',
+                            servingLabel.isUnderAllocated &&
+                              'border-red-400 text-red-700 bg-red-50'
+                          )}
+                        >
+                          {servingLabel.text}
                         </Badge>
                       </div>
                     </CardContent>
@@ -627,6 +771,39 @@ export default function PlanDetailPage() {
               })}
             </div>
           ))}
+
+          {/* Day notes: separate row; stored on MealPlan.dayNotes JSON keyed by date */}
+          <div className="grid grid-cols-[100px_repeat(7,1fr)] gap-2 mb-2">
+            <div className="flex items-start justify-end pr-4 pt-2 text-sm font-medium text-muted-foreground">
+              <StickyNote className="mr-2 h-4 w-4 shrink-0 opacity-70" aria-hidden />
+              Notes
+            </div>
+            {weekDays.map((day) => {
+              const isInRange = day >= planStartDate && day <= planEndDate
+              const dateStr = day.toISOString().split('T')[0]
+              if (!isInRange) {
+                return (
+                  <div key={day.toISOString()} className="min-h-[72px] bg-slate-50 rounded-lg" />
+                )
+              }
+              const dayNote = ((plan.dayNotes as Record<string, string>) ?? {})[dateStr] ?? ''
+              return (
+                <div
+                  key={day.toISOString()}
+                  className="rounded-lg border border-slate-200 bg-muted/30 p-2"
+                >
+                  <Textarea
+                    key={`day-notes-${dateStr}-${dayNote}`}
+                    defaultValue={dayNote}
+                    onBlur={(e) => handleDayNotesBlur(dateStr, e.target.value)}
+                    placeholder="Your notes for this day…"
+                    className="min-h-[64px] text-xs resize-y bg-background"
+                    aria-label={`Notes for ${formatDate(day)}`}
+                  />
+                </div>
+              )
+            })}
+          </div>
         </div>
       </div>
       
@@ -699,6 +876,60 @@ export default function PlanDetailPage() {
           </DialogHeader>
 
           <div className="space-y-4">
+            {leftoverSourceOptions.length > 0 && (
+              <div>
+                <h4 className="text-sm font-medium mb-2">Use leftovers from earlier</h4>
+                <ScrollArea className="max-h-[140px] rounded-md border border-slate-100">
+                  <div className="space-y-1 p-2">
+                    {leftoverSourceOptions.map((m) => {
+                      const label = m.recipe?.name || m.customName || 'Meal'
+                      const d = formatDate(new Date(m.date))
+                      return (
+                        <button
+                          key={m.id}
+                          type="button"
+                          onClick={() => handleSwapToLeftoverFrom(m.id)}
+                          disabled={regeneratingMealId !== null}
+                          className="w-full text-left rounded-md px-2 py-1.5 text-sm hover:bg-slate-50 disabled:opacity-50"
+                        >
+                          <span className="font-medium">{label}</span>
+                          <span className="text-muted-foreground text-xs block">
+                            {d} · {MEAL_TYPE_LABELS[m.mealType as MealType]}
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </ScrollArea>
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="manual-meal-name">Custom meal (no recipe)</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="manual-meal-name"
+                  value={manualMealName}
+                  onChange={(e) => setManualMealName(e.target.value)}
+                  placeholder="e.g. Pizza night, Eating out"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      void handleSwapToManualName()
+                    }
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => void handleSwapToManualName()}
+                  disabled={regeneratingMealId !== null || !manualMealName.trim()}
+                >
+                  Apply
+                </Button>
+              </div>
+            </div>
+
             {/* AI Suggestions */}
             {(isLoadingSuggestions || swapSuggestions.length > 0) && (
               <div>

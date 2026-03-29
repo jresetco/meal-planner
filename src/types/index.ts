@@ -102,6 +102,8 @@ export interface PlannedMeal {
   leftoverSourceId?: string | null
   status: MealStatus
   servings: number
+  /** Batch prepared when this row is the cook; null for leftovers */
+  preparedServings?: number | null
   isLocked: boolean
   calendarEventId?: string | null
   notes?: string | null

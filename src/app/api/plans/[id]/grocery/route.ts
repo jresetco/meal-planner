@@ -123,6 +123,42 @@ export async function GET(
   }
 }
 
+// PATCH /api/plans/[id]/grocery - Batch update grocery items (e.g. uncheck all)
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const session = await auth()
+  const { id } = await params
+
+  if (!session?.user?.householdId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const list = await prisma.groceryList.findFirst({
+    where: {
+      mealPlanId: id,
+      mealPlan: { householdId: session.user.householdId },
+    },
+  })
+
+  if (!list) {
+    return NextResponse.json({ error: 'Grocery list not found' }, { status: 404 })
+  }
+
+  const body = await request.json().catch(() => ({}))
+  const { uncheckAll } = body as { uncheckAll?: boolean }
+
+  if (uncheckAll) {
+    await prisma.groceryItem.updateMany({
+      where: { groceryListId: list.id, isChecked: true },
+      data: { isChecked: false },
+    })
+  }
+
+  return NextResponse.json({ success: true })
+}
+
 // POST /api/plans/[id]/grocery - Regenerate grocery list
 export async function POST(
   request: NextRequest,

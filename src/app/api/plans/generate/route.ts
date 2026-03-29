@@ -2,6 +2,10 @@ import { NextRequest } from 'next/server'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
 import { generateMealPlanWithStreaming, summarizeHistoricalPatterns, type RecipeForPlanning } from '@/lib/ai/meal-planner'
+import {
+  processGeneratedMealsForPersistence,
+  applyLeftoverLinksForPlan,
+} from '@/lib/plan-meal-validation'
 import type { MealType, RecipeType, MaxFrequency } from '@/types'
 
 // POST /api/plans/generate - Generate a new meal plan with streaming progress
@@ -159,23 +163,13 @@ export async function POST(request: NextRequest) {
         }
       )
 
-      // Validate leftover timing - remove any leftovers that appear before their source meal
+      const defaultPortion = servingsPerMeal || settings?.defaultServings || 2
       const planStartStr = new Date(startDate).toISOString().split('T')[0]
-      const validatedMeals = generatedPlan.meals.map(meal => {
-        if (meal.isLeftover) {
-          const sourceDate = meal.leftoverFromDate
-          const mealDate = meal.date
-          // Reject leftovers on or before the source meal date
-          if (sourceDate && mealDate <= sourceDate) {
-            return { ...meal, isLeftover: false, leftoverFromDate: null, leftoverFromMealType: null }
-          }
-          // Reject leftovers on day 1 of the plan if no explicit source before plan
-          if (mealDate === planStartStr && (!sourceDate || sourceDate >= planStartStr)) {
-            return { ...meal, isLeftover: false, leftoverFromDate: null, leftoverFromMealType: null }
-          }
-        }
-        return meal
-      })
+      const persisted = processGeneratedMealsForPersistence(
+        generatedPlan.meals,
+        defaultPortion,
+        planStartStr
+      )
 
       // Save the plan to database
       const mealPlan = await prisma.mealPlan.create({
@@ -193,13 +187,14 @@ export async function POST(request: NextRequest) {
           },
           aiReasoning: generatedPlan.reasoning,
           plannedMeals: {
-            create: validatedMeals.map((meal) => ({
-              date: new Date(meal.date),
-              mealType: meal.mealType as MealType,
+            create: persisted.map((meal) => ({
+              date: meal.date,
+              mealType: meal.mealType,
               recipeId: meal.recipeId,
-              customName: meal.recipeId ? null : meal.recipeName,
+              customName: meal.customName,
               isLeftover: meal.isLeftover,
-              leftoverSourceId: null, // Will be linked in a second pass if needed
+              leftoverSourceId: null,
+              preparedServings: meal.preparedServings,
               servings: meal.servings,
               status: 'PLANNED',
               notes: meal.notes,
@@ -217,6 +212,8 @@ export async function POST(request: NextRequest) {
           },
         },
       })
+
+      await applyLeftoverLinksForPlan(mealPlan.id, persisted)
 
       // Send completion with plan data
       await sendProgress({ 

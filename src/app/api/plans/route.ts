@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
 import { generateMealPlan, type RecipeForPlanning } from '@/lib/ai/meal-planner'
+import {
+  processGeneratedMealsForPersistence,
+  applyLeftoverLinksForPlan,
+} from '@/lib/plan-meal-validation'
 import type { RecipeType, MaxFrequency } from '@/types'
 
 type MealType = 'BREAKFAST' | 'LUNCH' | 'DINNER'
@@ -132,7 +136,14 @@ export async function POST(request: NextRequest) {
     guidelines,
   })
 
-  // Save the plan to database
+  const defaultPortion = servingsPerMeal || settings?.defaultServings || 2
+  const planStartStr = new Date(startDate).toISOString().split('T')[0]
+  const persisted = processGeneratedMealsForPersistence(
+    generatedPlan.meals,
+    defaultPortion,
+    planStartStr
+  )
+
   const mealPlan = await prisma.mealPlan.create({
     data: {
       householdId: session.user.householdId,
@@ -147,14 +158,17 @@ export async function POST(request: NextRequest) {
       },
       aiReasoning: generatedPlan.reasoning,
       plannedMeals: {
-        create: generatedPlan.meals.map((meal) => ({
-          date: new Date(meal.date),
+        create: persisted.map((meal) => ({
+          date: meal.date,
           mealType: meal.mealType as MealType,
           recipeId: meal.recipeId,
-          customName: meal.recipeId ? null : meal.recipeName,
+          customName: meal.customName,
           isLeftover: meal.isLeftover,
+          leftoverSourceId: null,
+          preparedServings: meal.preparedServings,
           servings: meal.servings,
           status: 'PLANNED',
+          notes: meal.notes,
         })),
       },
     },
@@ -169,6 +183,8 @@ export async function POST(request: NextRequest) {
       },
     },
   })
+
+  await applyLeftoverLinksForPlan(mealPlan.id, persisted)
 
   return NextResponse.json(mealPlan, { status: 201 })
 }

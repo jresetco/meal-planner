@@ -199,6 +199,9 @@ model MealPlan {
   // AI reasoning (optional, for debugging/display)
   aiReasoning String? @db.Text
 
+  // Day-level notes keyed by date string, e.g. { "2026-03-29": "Eating out tonight" }
+  dayNotes Json? // Record<string, string>
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -238,7 +241,10 @@ model PlannedMeal {
 
   // Status
   status   MealStatus @default(PLANNED)
+  /// Portions scheduled for this slot (consumed at this meal)
   servings Int        @default(2)
+  /// Batch prepared when this row is the cook (not a leftover); null for leftovers
+  preparedServings Int?
   isLocked Boolean    @default(false) // Prevent regeneration
 
   // Google Calendar integration

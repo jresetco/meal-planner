@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
 import { generateMealPlanWithStreaming, regenerateDay, summarizeHistoricalPatterns, type RecipeForPlanning } from '@/lib/ai/meal-planner'
+import {
+  mergeGeneratedPlanWithLockedSlots,
+  processGeneratedMealsForPersistence,
+  processRegeneratedDayMeals,
+  applyLeftoverLinksForPlan,
+  lockedPlannedMealToGenerated,
+} from '@/lib/plan-meal-validation'
+import { ymd } from '@/lib/plan-meal-slots'
 import type { MealType, RecipeType, MaxFrequency } from '@/types'
 
 // POST /api/plans/[id]/regenerate - Regenerate entire plan (keeping locked meals)
@@ -27,7 +35,7 @@ export async function POST(
     },
     include: {
       plannedMeals: {
-        include: { recipe: true },
+        include: { recipe: true, leftoverSource: true },
         orderBy: [{ date: 'asc' }, { mealType: 'asc' }],
       },
     },
@@ -90,8 +98,11 @@ export async function POST(
   if (date) {
     // Regenerate single day
     const dateStr = new Date(date).toISOString().split('T')[0]
-    const lockedForDay = lockedMeals
-      .filter(m => m.date.toISOString().split('T')[0] === dateStr)
+    const lockedForDayEntities = lockedMeals.filter(
+      m => m.date.toISOString().split('T')[0] === dateStr
+    )
+    const lockedForDay = lockedForDayEntities
+      .filter(m => m.recipeId)
       .map(m => ({
         mealType: m.mealType as MealType,
         recipeId: m.recipeId!,
@@ -104,9 +115,13 @@ export async function POST(
         recipeId: m.recipeId,
         recipeName: m.recipe?.name || m.customName || 'Unknown',
         isLeftover: m.isLeftover,
-        leftoverFromDate: null,
-        leftoverFromMealType: null,
-        servings: m.servings,
+        leftoverFromDate: m.leftoverSource
+          ? m.leftoverSource.date.toISOString().split('T')[0]
+          : null,
+        leftoverFromMealType: m.leftoverSource
+          ? (m.leftoverSource.mealType as 'BREAKFAST' | 'LUNCH' | 'DINNER')
+          : null,
+        servings: m.preparedServings ?? m.servings,
         servingsUsed: m.servings,
         notes: m.notes,
       })),
@@ -148,24 +163,51 @@ export async function POST(
       })
     }
 
-    // Add new meals
     const newMeals = regenerated.meals.filter(
       m => !lockedForDay.some(l => l.mealType === m.mealType)
     )
 
+    const lockedStubs = lockedForDayEntities.map(lm =>
+      lockedPlannedMealToGenerated({
+        date: lm.date,
+        mealType: lm.mealType as MealType,
+        recipeId: lm.recipeId,
+        customName: lm.customName,
+        isLeftover: lm.isLeftover,
+        servings: lm.servings,
+        preparedServings: lm.preparedServings,
+        notes: lm.notes,
+        recipe: lm.recipe,
+      })
+    )
+
+    const defaultPortion = settings?.defaultServings || 2
+    const planStartStr = plan.startDate.toISOString().split('T')[0]
+    const processedNew = processRegeneratedDayMeals(
+      dateStr,
+      lockedStubs,
+      newMeals,
+      defaultPortion,
+      planStartStr
+    )
+
     await prisma.plannedMeal.createMany({
-      data: newMeals.map(m => ({
+      data: processedNew.map(m => ({
         mealPlanId: planId,
-        date: new Date(m.date),
-        mealType: m.mealType as MealType,
+        date: m.date,
+        mealType: m.mealType,
         recipeId: m.recipeId,
-        customName: m.recipeId ? null : m.recipeName,
+        customName: m.customName,
         isLeftover: m.isLeftover,
+        leftoverSourceId: null,
+        preparedServings: m.preparedServings,
         servings: m.servings,
         status: 'PLANNED',
         notes: m.notes,
       })),
     })
+
+    await applyLeftoverLinksForPlan(planId, processedNew)
 
     // Fetch and return updated plan
     const updatedPlan = await prisma.mealPlan.findUnique({
@@ -267,25 +309,43 @@ export async function POST(
     },
   })
 
-  // Add new meals (excluding those that match locked slots)
-  const lockedSlots = new Set(lockedMeals.map(m => `${m.date.toISOString().split('T')[0]}-${m.mealType}`))
-  const newMeals = generatedPlan.meals.filter(
-    m => !lockedSlots.has(`${m.date}-${m.mealType}`)
+  const defaultPortion = settings?.defaultServings || 2
+  const merged = mergeGeneratedPlanWithLockedSlots(
+    generatedPlan.meals,
+    lockedMeals.map(lm => ({
+      date: lm.date,
+      mealType: lm.mealType as MealType,
+      recipeId: lm.recipeId,
+      customName: lm.customName,
+      isLeftover: lm.isLeftover,
+      servings: lm.servings,
+      preparedServings: lm.preparedServings,
+      notes: lm.notes,
+      recipe: lm.recipe,
+    }))
   )
+  const planStartStr = ymd(plan.startDate)
+  const persisted = processGeneratedMealsForPersistence(merged, defaultPortion, planStartStr)
+  const lockedSlots = new Set(lockedMeals.map(m => `${ymd(m.date)}-${m.mealType}`))
+  const toInsert = persisted.filter(p => !lockedSlots.has(`${ymd(p.date)}-${p.mealType}`))
 
   await prisma.plannedMeal.createMany({
-    data: newMeals.map(m => ({
+    data: toInsert.map(m => ({
       mealPlanId: planId,
-      date: new Date(m.date),
-      mealType: m.mealType as MealType,
+      date: m.date,
+      mealType: m.mealType,
       recipeId: m.recipeId,
-      customName: m.recipeId ? null : m.recipeName,
+      customName: m.customName,
       isLeftover: m.isLeftover,
+      leftoverSourceId: null,
+      preparedServings: m.preparedServings,
       servings: m.servings,
       status: 'PLANNED',
       notes: m.notes,
     })),
   })
+
+  await applyLeftoverLinksForPlan(planId, toInsert)
 
   // Update plan reasoning
   await prisma.mealPlan.update({

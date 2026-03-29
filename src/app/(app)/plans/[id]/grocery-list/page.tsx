@@ -174,8 +174,19 @@ export default function GroceryListPage() {
     }
   }
   
-  const handleClearChecked = () => {
+  const handleClearChecked = async () => {
+    const prevChecked = new Set(checkedItems)
     setCheckedItems(new Set())
+    try {
+      await fetch(`/api/plans/${planId}/grocery`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uncheckAll: true }),
+      })
+    } catch (error) {
+      console.error('Failed to clear checked items:', error)
+      setCheckedItems(prevChecked)
+    }
   }
 
   const handleRegenerate = async () => {
@@ -270,6 +281,10 @@ export default function GroceryListPage() {
             </h1>
             <p className="text-muted-foreground">
               {checkedCount} of {totalItems} items checked
+            </p>
+            <p className="text-sm text-muted-foreground mt-1 max-w-md">
+              Saved with this meal plan. Checked items sync as you go. Open all lists from{' '}
+              <span className="font-medium text-foreground">Grocery Lists</span> in the nav.
             </p>
           </div>
         </div>
