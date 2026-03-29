@@ -6,18 +6,20 @@ import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from '@/components/ui/select'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
+import { Switch } from '@/components/ui/switch'
 import { ChevronLeft, Search, X, Plus, Save } from 'lucide-react'
 import { PresetDialog } from './preset-dialog'
-import type { Recipe, BaselinePreset, SoftRule } from '@/types'
+import { UnifiedRulesEditor } from '@/components/shared/unified-rules-editor'
+import type { Recipe, BaselinePreset } from '@/types'
 
 export interface PlanningCriteriaData {
   baselinePresetId?: string
@@ -30,23 +32,22 @@ export interface PlanningCriteriaData {
 interface PlanningCriteriaProps {
   presets: BaselinePreset[]
   recipes: Pick<Recipe, 'id' | 'name' | 'categories'>[]
-  softRules: Pick<SoftRule, 'id' | 'ruleText' | 'isActive'>[]
   initialData?: PlanningCriteriaData
   onGenerate: (criteria: PlanningCriteriaData) => void
   onBack: () => void
 }
 
-export function PlanningCriteria({ 
+export function PlanningCriteria({
   presets,
   recipes,
-  softRules,
   initialData,
-  onGenerate, 
-  onBack 
+  onGenerate,
+  onBack
 }: PlanningCriteriaProps) {
   const [baselinePresetId, setBaselinePresetId] = useState(initialData?.baselinePresetId || '')
-  const [maxLeftovers, setMaxLeftovers] = useState(initialData?.maxLeftoversPerWeek || 3)
-  const [servingsPerMeal, setServingsPerMeal] = useState(initialData?.servingsPerMeal || 4)
+  const [maxLeftovers, setMaxLeftovers] = useState(initialData?.maxLeftoversPerWeek === -1 ? 3 : (initialData?.maxLeftoversPerWeek ?? 3))
+  const [unlimitedLeftovers, setUnlimitedLeftovers] = useState(initialData?.maxLeftoversPerWeek === -1 || initialData?.maxLeftoversPerWeek === undefined)
+  const [servingsPerMeal, setServingsPerMeal] = useState(initialData?.servingsPerMeal ?? 2)
   const [guaranteedMeals, setGuaranteedMeals] = useState<Pick<Recipe, 'id' | 'name'>[]>(
     initialData?.guaranteedMeals || []
   )
@@ -55,16 +56,27 @@ export function PlanningCriteria({
   const [presetDialogOpen, setPresetDialogOpen] = useState(false)
   const didApplyBaselineRef = useRef(false)
 
+  // Track preset values to know when user has changed something
+  const [presetGuidelines, setPresetGuidelines] = useState('')
+  const [presetMaxLeftovers, setPresetMaxLeftovers] = useState(-1)
+  const [presetServings, setPresetServings] = useState(2)
+  const [isSavingDefault, setIsSavingDefault] = useState(false)
+
   const applyPresetById = useCallback(
     (id: string) => {
       const preset = presets.find((p) => p.id === id)
       if (!preset) return
       setBaselinePresetId(id)
-      setMaxLeftovers(preset.maxLeftovers)
+      setUnlimitedLeftovers(preset.maxLeftovers === -1)
+      setMaxLeftovers(preset.maxLeftovers === -1 ? 3 : preset.maxLeftovers)
       setServingsPerMeal(preset.servingsPerMeal)
       setGuidelines(preset.guidelines || '')
       const meals = recipes.filter((r) => preset.guaranteedMealIds.includes(r.id))
       setGuaranteedMeals(meals.map((m) => ({ id: m.id, name: m.name })))
+      // Track preset values for "Set as Default" comparison
+      setPresetGuidelines(preset.guidelines || '')
+      setPresetMaxLeftovers(preset.maxLeftovers)
+      setPresetServings(preset.servingsPerMeal)
     },
     [presets, recipes]
   )
@@ -100,50 +112,91 @@ export function PlanningCriteria({
     didApplyBaselineRef.current = true
     applyPresetById(value)
   }
-  
+
+  const currentLeftoversValue = unlimitedLeftovers ? -1 : maxLeftovers
+  const mealSettingsChanged = currentLeftoversValue !== presetMaxLeftovers || servingsPerMeal !== presetServings
+  const guidelinesChanged = guidelines !== presetGuidelines
+
+  const handleSaveDefaultMealSettings = async () => {
+    if (!baselinePresetId) return
+    setIsSavingDefault(true)
+    try {
+      const res = await fetch(`/api/settings/presets/${baselinePresetId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          maxLeftovers: currentLeftoversValue,
+          servingsPerMeal,
+        }),
+      })
+      if (res.ok) {
+        setPresetMaxLeftovers(currentLeftoversValue)
+        setPresetServings(servingsPerMeal)
+      }
+    } catch (error) {
+      console.error('Error saving default meal settings:', error)
+    } finally {
+      setIsSavingDefault(false)
+    }
+  }
+
+  const handleSaveDefaultGuidelines = async () => {
+    if (!baselinePresetId) return
+    setIsSavingDefault(true)
+    try {
+      const res = await fetch(`/api/settings/presets/${baselinePresetId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ guidelines: guidelines || null }),
+      })
+      if (res.ok) {
+        setPresetGuidelines(guidelines)
+      }
+    } catch (error) {
+      console.error('Error saving default guidelines:', error)
+    } finally {
+      setIsSavingDefault(false)
+    }
+  }
+
   const handleAddMeal = (recipe: Pick<Recipe, 'id' | 'name'>) => {
     if (!guaranteedMeals.find(m => m.id === recipe.id)) {
       setGuaranteedMeals([...guaranteedMeals, recipe])
     }
     setSearchQuery('')
   }
-  
+
   const handleRemoveMeal = (recipeId: string) => {
     setGuaranteedMeals(guaranteedMeals.filter(m => m.id !== recipeId))
   }
-  
+
   const handleSavePreset = async (presetData: Omit<BaselinePreset, 'id' | 'householdId' | 'createdAt' | 'updatedAt'>) => {
     const response = await fetch('/api/settings/presets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(presetData),
     })
-    
+
     if (!response.ok) {
       throw new Error('Failed to save preset')
     }
-    
-    // Reload presets if parent provides a way, or just close dialog
-    // In a real app, we'd refresh the presets list here
   }
-  
+
   const handleGenerate = () => {
     onGenerate({
       baselinePresetId: baselinePresetId || undefined,
-      maxLeftoversPerWeek: maxLeftovers,
+      maxLeftoversPerWeek: unlimitedLeftovers ? -1 : maxLeftovers,
       servingsPerMeal,
       guaranteedMeals,
       guidelines: guidelines || undefined,
     })
   }
-  
+
   const filteredRecipes = recipes.filter(
     (recipe) =>
       recipe.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
       !guaranteedMeals.find(m => m.id === recipe.id)
   )
-
-  const activeRules = softRules.filter(r => r.isActive)
 
   return (
     <div className="min-h-screen bg-slate-50 p-8">
@@ -159,7 +212,7 @@ export function PlanningCriteria({
             </div>
           </div>
         </div>
-        
+
         <div className="grid gap-6">
           {/* Baseline Settings */}
           {presets.length > 0 && (
@@ -187,14 +240,14 @@ export function PlanningCriteria({
               </div>
             </Card>
           )}
-          
-          {/* Numeric Settings */}
+
+          {/* Meal Settings */}
           <Card className="p-6">
             <div className="space-y-6">
               <div>
                 <h3 className="text-lg font-semibold text-slate-900 mb-4">Meal Settings</h3>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label htmlFor="leftover">Max Leftover Meals per Week</Label>
@@ -205,12 +258,21 @@ export function PlanningCriteria({
                     max="10"
                     value={maxLeftovers}
                     onChange={(e) => setMaxLeftovers(parseInt(e.target.value) || 0)}
+                    disabled={unlimitedLeftovers}
+                    className={unlimitedLeftovers ? 'opacity-50' : ''}
                   />
-                  <p className="text-sm text-slate-600">
-                    Maximum number of leftover meals allowed per week
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="unlimited-leftovers"
+                      checked={unlimitedLeftovers}
+                      onCheckedChange={setUnlimitedLeftovers}
+                    />
+                    <Label htmlFor="unlimited-leftovers" className="text-sm text-slate-600 font-normal cursor-pointer">
+                      Do not limit leftovers
+                    </Label>
+                  </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="servings">Servings per Meal</Label>
                   <Input
@@ -226,34 +288,27 @@ export function PlanningCriteria({
                   </p>
                 </div>
               </div>
+
+              {/* Set as Default button for meal settings */}
+              {mealSettingsChanged && baselinePresetId && (
+                <div className="flex justify-end pt-2 border-t border-slate-200">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSaveDefaultMealSettings}
+                    disabled={isSavingDefault}
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    {isSavingDefault ? 'Saving...' : 'Set as Default'}
+                  </Button>
+                </div>
+              )}
             </div>
           </Card>
 
-          {/* Active Soft Rules */}
-          {activeRules.length > 0 && (
-            <Card className="p-6">
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-lg font-semibold text-slate-900">Active Planning Rules</h3>
-                  <p className="text-sm text-slate-600">
-                    These rules will be applied during plan generation
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  {activeRules.map((rule) => (
-                    <div 
-                      key={rule.id}
-                      className="flex items-center gap-2 p-3 bg-emerald-50 rounded-lg border border-emerald-200"
-                    >
-                      <div className="w-2 h-2 rounded-full bg-emerald-500" />
-                      <span className="text-sm text-slate-700">{rule.ruleText}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </Card>
-          )}
-          
+          {/* Planning Rules (unified editor) */}
+          <UnifiedRulesEditor mode="planning" />
+
           {/* Planning Guidelines */}
           <Card className="p-6">
             <div className="space-y-4">
@@ -270,6 +325,20 @@ export function PlanningCriteria({
                 rows={4}
                 className="resize-none"
               />
+              {/* Set as Default button for guidelines */}
+              {guidelinesChanged && baselinePresetId && (
+                <div className="flex justify-end">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSaveDefaultGuidelines}
+                    disabled={isSavingDefault}
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    {isSavingDefault ? 'Saving...' : 'Set as Default'}
+                  </Button>
+                </div>
+              )}
             </div>
           </Card>
 
@@ -282,7 +351,7 @@ export function PlanningCriteria({
                   Select meals that must be included in the plan
                 </p>
               </div>
-              
+
               {/* Selected meals */}
               {guaranteedMeals.length > 0 && (
                 <div className="flex flex-wrap gap-2">
@@ -299,7 +368,7 @@ export function PlanningCriteria({
                   ))}
                 </div>
               )}
-              
+
               {/* Search and add */}
               <div className="space-y-2">
                 <div className="relative">
@@ -311,7 +380,7 @@ export function PlanningCriteria({
                     className="pl-9"
                   />
                 </div>
-                
+
                 {searchQuery && (
                   <ScrollArea className="h-[200px] rounded-md border border-slate-200">
                     <div className="p-2 space-y-1">
@@ -342,10 +411,10 @@ export function PlanningCriteria({
               </div>
             </div>
           </Card>
-          
+
           {/* Generate Button */}
           <div className="flex justify-between items-center">
-            <Button 
+            <Button
               onClick={() => setPresetDialogOpen(true)}
               variant="outline"
               size="lg"
@@ -353,7 +422,7 @@ export function PlanningCriteria({
               <Save className="w-4 h-4 mr-2" />
               Save as Preset
             </Button>
-            <Button 
+            <Button
               onClick={handleGenerate}
               size="lg"
               className="bg-emerald-600 hover:bg-emerald-700 px-8"
@@ -362,12 +431,12 @@ export function PlanningCriteria({
             </Button>
           </div>
         </div>
-        
+
         <PresetDialog
           open={presetDialogOpen}
           onOpenChange={setPresetDialogOpen}
           currentValues={{
-            maxLeftoversPerWeek: maxLeftovers,
+            maxLeftoversPerWeek: unlimitedLeftovers ? -1 : maxLeftovers,
             servingsPerMeal,
             guaranteedMealIds: guaranteedMeals.map(m => m.id),
             guidelines,

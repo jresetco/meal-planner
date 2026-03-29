@@ -94,7 +94,7 @@ export async function GET(
           create: nonStapleItems.map((item) => ({
             name: item.name,
             quantity: item.mergedQuantity.amount,
-            unit: item.mergedQuantity.displayText || item.mergedQuantity.unit,
+            unit: item.mergedQuantity.unit,
             section: item.section as StoreSection,
             mealNames: item.mealNames,
             isChecked: false,

@@ -171,9 +171,13 @@ export async function POST(request: NextRequest) {
         instructions: paprikaRecipe.directions || null,
         servings: parseInt(paprikaRecipe.servings) || 2,
         rating: paprikaRecipe.rating || null,
-        prepTime: paprikaRecipe.prep_time ? parseInt(paprikaRecipe.prep_time) : null,
-        cookTime: paprikaRecipe.cook_time ? parseInt(paprikaRecipe.cook_time) : null,
-        totalTime: paprikaRecipe.total_time ? parseInt(paprikaRecipe.total_time) : null,
+        prepTime: paprikaRecipe.prep_time ? parseInt(paprikaRecipe.prep_time) || null : null,
+        cookTime: paprikaRecipe.cook_time ? parseInt(paprikaRecipe.cook_time) || null : null,
+        totalTime: paprikaRecipe.total_time
+          ? parseInt(paprikaRecipe.total_time) || null
+          : (paprikaRecipe.prep_time || paprikaRecipe.cook_time)
+            ? ((parseInt(paprikaRecipe.prep_time) || 0) + (parseInt(paprikaRecipe.cook_time) || 0)) || null
+            : null,
         imageUrl: paprikaRecipe.image_url || null,
         categories: categoryNames,
         sourceUrl: paprikaRecipe.source_url || null,

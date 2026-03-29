@@ -1,4 +1,10 @@
-# MVP Workflow Status
+# DEPRECATED — See [Plans/BACKLOG.md](../Plans/BACKLOG.md)
+
+> MVP is complete. Remaining work tracked in `Plans/BACKLOG.md` as of 2026-03-28.
+
+---
+
+# MVP Workflow Status (ARCHIVED)
 
 All user workflows from the test plan, verified for single-user local operation (auth/household deferred).
 

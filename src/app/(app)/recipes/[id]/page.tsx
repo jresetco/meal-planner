@@ -163,11 +163,24 @@ export default function RecipeViewPage({ params }: { params: Promise<{ id: strin
               <Users className="h-4 w-4" />
               <span>{recipe.servings} servings</span>
             </div>
-            {recipe.totalTime && (
+            {(recipe.totalTime || recipe.prepTime || recipe.cookTime) && (
               <div className="flex items-center gap-1 text-muted-foreground">
                 <Clock className="h-4 w-4" />
-                <span>{recipe.totalTime} min total</span>
-                {recipe.prepTime && <span>({recipe.prepTime} prep)</span>}
+                <span>
+                  {recipe.totalTime
+                    ? `${recipe.totalTime} min`
+                    : recipe.prepTime && recipe.cookTime
+                      ? `${recipe.prepTime + recipe.cookTime} min`
+                      : null}
+                </span>
+                {(recipe.prepTime || recipe.cookTime) && (
+                  <span className="text-xs">
+                    ({[
+                      recipe.prepTime && `${recipe.prepTime} prep`,
+                      recipe.cookTime && `${recipe.cookTime} cook`,
+                    ].filter(Boolean).join(', ')})
+                  </span>
+                )}
               </div>
             )}
             <Badge variant="outline">{recipe.source.replace(/_/g, ' ')}</Badge>

@@ -73,9 +73,6 @@ export default async function PlansPage() {
                       {plan._count.plannedMeals} meals planned
                     </CardDescription>
                   </div>
-                  <Badge variant={plan.status === 'ACTIVE' ? 'default' : 'secondary'}>
-                    {plan.status}
-                  </Badge>
                 </div>
               </CardHeader>
               <CardContent>

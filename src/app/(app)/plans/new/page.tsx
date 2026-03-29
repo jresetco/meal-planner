@@ -6,7 +6,7 @@ import { DateRangePicker } from '@/components/plans/date-range-picker'
 import { MealPlanGrid } from '@/components/plans/meal-plan-grid'
 import { PlanningCriteria, type PlanningCriteriaData } from '@/components/plans/planning-criteria'
 import { GeneratingScreen, type GenerationProgress } from '@/components/plans/generating-screen'
-import type { MealSlotConfig, Recipe, BaselinePreset, SoftRule, MealType } from '@/types'
+import type { MealSlotConfig, Recipe, BaselinePreset, MealType } from '@/types'
 
 type WizardScreen = 'date-picker' | 'meal-grid' | 'criteria' | 'generating'
 
@@ -23,16 +23,14 @@ export default function NewPlanPage() {
   // Data from API
   const [recipes, setRecipes] = useState<Pick<Recipe, 'id' | 'name' | 'categories'>[]>([])
   const [presets, setPresets] = useState<BaselinePreset[]>([])
-  const [softRules, setSoftRules] = useState<Pick<SoftRule, 'id' | 'ruleText' | 'isActive'>[]>([])
   const [isLoading, setIsLoading] = useState(true)
   
   // Fetch data on mount
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [recipesRes, rulesRes, presetsRes] = await Promise.all([
+        const [recipesRes, presetsRes] = await Promise.all([
           fetch('/api/recipes'),
-          fetch('/api/settings/rules'),
           fetch('/api/settings/presets'),
         ])
         
@@ -43,11 +41,6 @@ export default function NewPlanPage() {
             name: r.name, 
             categories: r.categories 
           })))
-        }
-        
-        if (rulesRes.ok) {
-          const rulesData = await rulesRes.json()
-          setSoftRules(rulesData)
         }
         
         if (presetsRes.ok) {
@@ -247,7 +240,6 @@ export default function NewPlanPage() {
       <PlanningCriteria
         presets={presets}
         recipes={recipes}
-        softRules={softRules}
         initialData={planningCriteria || undefined}
         onGenerate={handleCriteriaGenerate}
         onBack={handleBackToMealGrid}

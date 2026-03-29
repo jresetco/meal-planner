@@ -5,20 +5,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Textarea } from '@/components/ui/textarea'
-import { RulesEditor } from '@/components/settings/rules-editor'
+import { UnifiedRulesEditor } from '@/components/shared/unified-rules-editor'
 import { HistoricalUpload } from '@/components/settings/historical-upload'
-import { 
-  Settings as SettingsIcon, 
-  ChefHat, 
-  ShoppingCart, 
+import {
+  ChefHat,
+  ShoppingCart,
   Clock,
   Plus,
   X,
   Save,
   RefreshCw
 } from 'lucide-react'
-import type { SoftRule, PantryStaple, HistoricalPlan } from '@/types'
+import type { PantryStaple, HistoricalPlan } from '@/types'
 
 interface MealSettings {
   paprikaEmail: string | null
@@ -33,7 +31,6 @@ interface MealSettings {
 }
 
 export default function SettingsPage() {
-  const [rules, setRules] = useState<SoftRule[]>([])
   const [staples, setStaples] = useState<PantryStaple[]>([])
   const [historicalPlans, setHistoricalPlans] = useState<HistoricalPlan[]>([])
   const [newStaple, setNewStaple] = useState('')
@@ -64,9 +61,8 @@ export default function SettingsPage() {
 
   const fetchData = async () => {
     try {
-      const [settingsRes, rulesRes, staplesRes, historicalRes] = await Promise.all([
+      const [settingsRes, staplesRes, historicalRes] = await Promise.all([
         fetch('/api/settings/meal'),
-        fetch('/api/settings/rules'),
         fetch('/api/settings/staples'),
         fetch('/api/settings/historical'),
       ])
@@ -84,11 +80,6 @@ export default function SettingsPage() {
           lunchTime: data.lunchTime || '12:00',
           dinnerTime: data.dinnerTime || '18:00',
         })
-      }
-      
-      if (rulesRes.ok) {
-        const rulesData = await rulesRes.json()
-        setRules(rulesData)
       }
       
       if (staplesRes.ok) {
@@ -250,70 +241,6 @@ export default function SettingsPage() {
       alert('Failed to save settings')
     } finally {
       setIsSaving(false)
-    }
-  }
-
-  const handleAddRule = async (ruleText: string, isHardRule: boolean) => {
-    try {
-      const response = await fetch('/api/settings/rules', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ruleText, isHardRule }),
-      })
-      
-      if (response.ok) {
-        const newRule = await response.json()
-        setRules([...rules, newRule])
-      }
-    } catch (error) {
-      console.error('Error adding rule:', error)
-    }
-  }
-
-  const handleUpdateRule = async (ruleId: string, updates: Partial<SoftRule>) => {
-    try {
-      const response = await fetch(`/api/settings/rules/${ruleId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates),
-      })
-      
-      if (response.ok) {
-        const updatedRule = await response.json()
-        setRules(rules.map((r) => (r.id === ruleId ? updatedRule : r)))
-      }
-    } catch (error) {
-      console.error('Error updating rule:', error)
-    }
-  }
-
-  const handleDeleteRule = async (ruleId: string) => {
-    try {
-      const response = await fetch(`/api/settings/rules/${ruleId}`, {
-        method: 'DELETE',
-      })
-      
-      if (response.ok) {
-        setRules(rules.filter((r) => r.id !== ruleId))
-      }
-    } catch (error) {
-      console.error('Error deleting rule:', error)
-    }
-  }
-
-  const handleToggleRule = async (ruleId: string, isActive: boolean) => {
-    try {
-      const response = await fetch(`/api/settings/rules/${ruleId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isActive }),
-      })
-      
-      if (response.ok) {
-        setRules(rules.map((r) => (r.id === ruleId ? { ...r, isActive } : r)))
-      }
-    } catch (error) {
-      console.error('Error toggling rule:', error)
     }
   }
 
@@ -568,14 +495,8 @@ export default function SettingsPage() {
         onUpload={handleHistoricalUpload}
       />
 
-      {/* Soft Rules */}
-      <RulesEditor
-        rules={rules}
-        onAddRule={handleAddRule}
-        onUpdateRule={handleUpdateRule}
-        onDeleteRule={handleDeleteRule}
-        onToggleRule={handleToggleRule}
-      />
+      {/* Rules (System + Personal) */}
+      <UnifiedRulesEditor mode="full" />
 
       {/* Pantry Staples */}
       <Card>

@@ -1,16 +1,17 @@
 // Store sections for grocery organization
 export const STORE_SECTIONS = [
+  { value: 'BREAD_BAKERY', label: 'Bread/Tortillas/Bakery' },
+  { value: 'DELI_CHEESE', label: 'Deli Meat/Cheese/Dips' },
+  { value: 'FROZEN_FISH', label: 'Frozen Fish' },
+  { value: 'MEAT_POULTRY', label: 'Meat/Poultry' },
   { value: 'PRODUCE', label: 'Produce' },
-  { value: 'DAIRY', label: 'Dairy' },
-  { value: 'MEAT_SEAFOOD', label: 'Meat & Seafood' },
-  { value: 'BAKERY', label: 'Bakery' },
+  { value: 'EGGS_DAIRY', label: 'Eggs/Dairy/Vegan' },
   { value: 'FROZEN', label: 'Frozen' },
-  { value: 'PANTRY', label: 'Pantry' },
-  { value: 'CANNED_GOODS', label: 'Canned Goods' },
-  { value: 'CONDIMENTS', label: 'Condiments' },
+  { value: 'SPICES', label: 'Spices & Seasonings' },
+  { value: 'PANTRY', label: 'Pantry – Cereal/Snacks/Etc' },
+  { value: 'PASTA_CANNED', label: 'Pasta & Canned Goods' },
+  { value: 'ASIAN_MEXICAN', label: 'Asian/Mexican' },
   { value: 'BEVERAGES', label: 'Beverages' },
-  { value: 'SPICES', label: 'Spices' },
-  { value: 'INTERNATIONAL', label: 'International' },
   { value: 'OTHER', label: 'Other' },
 ] as const
 

@@ -18,17 +18,18 @@ const GroceryItemSchema = z.object({
     displayText: z.string().describe('Human-readable quantity text'),
   }),
   section: z.enum([
+    'BREAD_BAKERY',
+    'DELI_CHEESE',
+    'FROZEN_FISH',
+    'MEAT_POULTRY',
     'PRODUCE',
-    'DAIRY',
-    'MEAT_SEAFOOD',
-    'BAKERY',
+    'EGGS_DAIRY',
     'FROZEN',
-    'PANTRY',
-    'CANNED_GOODS',
-    'CONDIMENTS',
-    'BEVERAGES',
     'SPICES',
-    'INTERNATIONAL',
+    'PANTRY',
+    'PASTA_CANNED',
+    'ASIAN_MEXICAN',
+    'BEVERAGES',
     'OTHER',
   ]),
   mealNames: z.array(z.string()).describe('All meals that need this ingredient'),
@@ -113,19 +114,20 @@ ${pantryStaples.length > 0 ? pantryStaples.join(', ') : 'None specified'}
 - Round merged quantities to sensible numbers (e.g., 0.333 cups → 1/3 cup)
 
 ### 3. Store Section Categorization
-Assign each item to the most appropriate section:
-- PRODUCE: Fresh fruits, vegetables, herbs
-- DAIRY: Milk, cheese, yogurt, eggs, butter, cream
-- MEAT_SEAFOOD: Chicken, beef, pork, fish, shrimp, bacon, sausage
-- BAKERY: Bread, rolls, tortillas, bagels
-- FROZEN: Frozen vegetables, frozen meals, ice cream
-- PANTRY: Rice, pasta, flour, sugar, cereals, nuts, dried fruits
-- CANNED_GOODS: Canned tomatoes, beans, soups, broth
-- CONDIMENTS: Ketchup, mustard, soy sauce, hot sauce, oils, vinegars
-- BEVERAGES: Juice, soda, coffee, tea, wine for cooking
-- SPICES: Dried spices, seasonings, extracts
-- INTERNATIONAL: Specialty ethnic ingredients (miso, curry paste, etc.)
-- OTHER: Anything that doesn't fit above
+Assign each item to the most appropriate section. These match a specific grocery store layout:
+- BREAD_BAKERY: Bread, tortillas, rolls, buns, bagels, pita, baguettes, bakery items
+- DELI_CHEESE: Deli meats (ham, turkey, prosciutto), sliced/block/specialty cheese (parmesan, goat cheese, mozzarella block), dips, hummus, pickled items (pickled onions)
+- FROZEN_FISH: Frozen fish (salmon, tilapia, cod), frozen seafood (shrimp)
+- MEAT_POULTRY: Fresh chicken, beef, pork, turkey, lamb, sausage, ground meat, bacon
+- PRODUCE: Fresh fruits, vegetables, herbs, lettuce, salad mix, avocados, onions, garlic, ginger, mushrooms, fresh broccoli, peppers
+- EGGS_DAIRY: Eggs, milk, yogurt (Greek yogurt), cottage cheese, butter, cream, sour cream, tofu, tempeh, vegan substitutes
+- FROZEN: Frozen vegetables, frozen meals (pizza, gyoza), frozen potatoes/fries, edamame, ice cream, frozen breakfast items
+- SPICES: Dried spices, seasonings, extracts (cumin, paprika, oregano, thyme, cinnamon, vanilla)
+- PANTRY: Cereal, oatmeal, snacks, crackers, nuts, rice, quinoa, flour, sugar, honey, syrup, cooking oils (olive oil, sesame oil), vinegar, salad dressing, ketchup, mustard, mayo, broth/stock, peanut sauce, condiments, coffee, tea
+- PASTA_CANNED: Pasta/noodles, canned tomatoes, canned beans (chickpeas, black beans, kidney beans), canned corn, canned tuna, tomato/alfredo sauce, arborio rice
+- ASIAN_MEXICAN: Soy sauce, hoisin, oyster sauce, fish sauce, sriracha, curry paste, miso, gochujang, coconut milk, salsa, taco shells, crunchy shells, dried chili peppers, thai chilis, Indian ingredients
+- BEVERAGES: Juice, soda, wine, beer, specialty drinks
+- OTHER: Anything that doesn't fit above (household items, non-food)
 
 ### 4. Pantry Staple Detection
 Mark isStaple: true for common items that most people have:
@@ -169,9 +171,9 @@ export async function parseIngredient(ingredientText: string): Promise<{
     quantity: z.number().nullable().describe('Numeric quantity (e.g., 0.5 for "1/2")'),
     unit: z.string().nullable().describe('Unit of measurement'),
     section: z.enum([
-      'PRODUCE', 'DAIRY', 'MEAT_SEAFOOD', 'BAKERY', 'FROZEN',
-      'PANTRY', 'CANNED_GOODS', 'CONDIMENTS', 'BEVERAGES', 'SPICES',
-      'INTERNATIONAL', 'OTHER',
+      'BREAD_BAKERY', 'DELI_CHEESE', 'FROZEN_FISH', 'MEAT_POULTRY',
+      'PRODUCE', 'EGGS_DAIRY', 'FROZEN', 'SPICES', 'PANTRY',
+      'PASTA_CANNED', 'ASIAN_MEXICAN', 'BEVERAGES', 'OTHER',
     ]),
   })
 
@@ -215,9 +217,9 @@ export async function parseIngredients(ingredients: string[]): Promise<Array<{
       quantity: z.number().nullable(),
       unit: z.string().nullable(),
       section: z.enum([
-        'PRODUCE', 'DAIRY', 'MEAT_SEAFOOD', 'BAKERY', 'FROZEN',
-        'PANTRY', 'CANNED_GOODS', 'CONDIMENTS', 'BEVERAGES', 'SPICES',
-        'INTERNATIONAL', 'OTHER',
+        'BREAD_BAKERY', 'DELI_CHEESE', 'FROZEN_FISH', 'MEAT_POULTRY',
+        'PRODUCE', 'EGGS_DAIRY', 'FROZEN', 'SPICES', 'PANTRY',
+        'PASTA_CANNED', 'ASIAN_MEXICAN', 'BEVERAGES', 'OTHER',
       ]),
     })),
   })
@@ -250,61 +252,66 @@ For each ingredient, extract:
  */
 export function suggestSection(ingredientName: string): StoreSection {
   const name = ingredientName.toLowerCase()
-  
+
+  // Asian/Mexican — check before pantry so soy sauce, hoisin, etc. don't fall into condiments/pantry
+  if (/\b(soy sauce|hoisin|oyster sauce|fish sauce|sriracha|curry paste|miso|gochujang|sambal|coconut milk|salsa|taco shell|crunchy shell|thai chili|dried chili|chili pepper|tortilla chip)\b/.test(name)) {
+    return 'ASIAN_MEXICAN'
+  }
+
+  // Bread/Tortillas/Bakery
+  if (/\b(bread|roll|bun|bagel|tortilla|pita|croissant|muffin|baguette|biscuit)\b/.test(name)) {
+    return 'BREAD_BAKERY'
+  }
+
+  // Deli Meat/Cheese/Dips — specialty/deli cheeses, deli meats, dips, pickled items
+  if (/\b(prosciutto|ham|turkey deli|deli meat|sliced cheese|block cheese|goat cheese|parmesan|mozzarella|feta|brie|hummus|dip|pickled)\b/.test(name)) {
+    return 'DELI_CHEESE'
+  }
+
+  // Frozen Fish — frozen seafood specifically
+  if (/\b(frozen (fish|salmon|tilapia|cod|shrimp|seafood|mahi|tuna))\b/.test(name)) {
+    return 'FROZEN_FISH'
+  }
+
+  // Meat/Poultry — fresh meat
+  if (/\b(chicken|beef|pork|turkey|lamb|bacon|sausage|steak|ground meat|ground turkey|ground beef|meat|chx tenderloin|short rib)\b/.test(name)) {
+    return 'MEAT_POULTRY'
+  }
+
   // Produce
-  if (/\b(lettuce|tomato|onion|garlic|pepper|carrot|celery|potato|broccoli|spinach|kale|cucumber|zucchini|squash|mushroom|avocado|lemon|lime|orange|apple|banana|berry|fruit|vegetable|herb|cilantro|parsley|basil|mint)\b/.test(name)) {
+  if (/\b(lettuce|tomato|onion|garlic|pepper|carrot|celery|potato|broccoli|spinach|kale|cucumber|zucchini|squash|mushroom|avocado|lemon|lime|orange|apple|banana|berry|fruit|vegetable|herb|cilantro|parsley|basil|mint|ginger|radish|beet|cabbage|asparagus|shallot|green onion|salad mix|arugula)\b/.test(name)) {
     return 'PRODUCE'
   }
-  
-  // Dairy
-  if (/\b(milk|cheese|yogurt|egg|butter|cream|sour cream|cottage|ricotta|mozzarella|parmesan|cheddar)\b/.test(name)) {
-    return 'DAIRY'
+
+  // Eggs/Dairy/Vegan
+  if (/\b(egg|milk|yogurt|butter|cream|sour cream|cottage cheese|ricotta|tofu|tempeh|vegan)\b/.test(name)) {
+    return 'EGGS_DAIRY'
   }
-  
-  // Meat & Seafood
-  if (/\b(chicken|beef|pork|turkey|lamb|fish|salmon|tuna|shrimp|bacon|sausage|ham|steak|ground|meat|seafood|tilapia|cod)\b/.test(name)) {
-    return 'MEAT_SEAFOOD'
-  }
-  
-  // Bakery
-  if (/\b(bread|roll|bun|bagel|tortilla|pita|croissant|muffin|baguette)\b/.test(name)) {
-    return 'BAKERY'
-  }
-  
-  // Frozen
-  if (/\b(frozen|ice cream)\b/.test(name)) {
+
+  // Frozen — general frozen items
+  if (/\b(frozen|ice cream|edamame|frozen potato|frozen fries|frozen veggie|frozen pizza|gyoza)\b/.test(name)) {
     return 'FROZEN'
   }
-  
-  // Pantry
-  if (/\b(rice|pasta|flour|sugar|cereal|oat|quinoa|noodle|cracker|chip|nut|almond|peanut|dried)\b/.test(name)) {
-    return 'PANTRY'
-  }
-  
-  // Canned Goods
-  if (/\b(canned|can of|beans|tomato sauce|broth|stock|soup)\b/.test(name)) {
-    return 'CANNED_GOODS'
-  }
-  
-  // Condiments
-  if (/\b(ketchup|mustard|mayo|sauce|oil|vinegar|dressing|syrup|honey|jam|jelly)\b/.test(name)) {
-    return 'CONDIMENTS'
-  }
-  
-  // Beverages
-  if (/\b(juice|soda|coffee|tea|wine|beer|water|drink)\b/.test(name)) {
-    return 'BEVERAGES'
-  }
-  
+
   // Spices
-  if (/\b(salt|pepper|spice|seasoning|cumin|paprika|oregano|thyme|cinnamon|vanilla|extract)\b/.test(name)) {
+  if (/\b(salt|pepper|spice|seasoning|cumin|paprika|oregano|thyme|cinnamon|vanilla|extract|chili powder|garlic powder|onion powder|turmeric|nutmeg)\b/.test(name)) {
     return 'SPICES'
   }
-  
-  // International
-  if (/\b(soy sauce|miso|curry|sriracha|sambal|tahini|harissa|gochujang|fish sauce|coconut milk)\b/.test(name)) {
-    return 'INTERNATIONAL'
+
+  // Pasta & Canned Goods
+  if (/\b(pasta|noodle|spaghetti|penne|canned|can of|beans|chickpea|black bean|kidney bean|tomato sauce|alfredo|marinara|arborio|canned tuna|canned corn)\b/.test(name)) {
+    return 'PASTA_CANNED'
   }
-  
+
+  // Pantry — broad catch-all for dry goods, condiments, oils, dressings
+  if (/\b(rice|flour|sugar|cereal|oat|quinoa|cracker|chip|nut|almond|peanut|dried|oil|olive oil|sesame oil|vinegar|dressing|ketchup|mustard|mayo|honey|syrup|jam|jelly|broth|stock|coffee|tea|peanut butter|sauce)\b/.test(name)) {
+    return 'PANTRY'
+  }
+
+  // Beverages
+  if (/\b(juice|soda|wine|beer|water|drink|kombucha)\b/.test(name)) {
+    return 'BEVERAGES'
+  }
+
   return 'OTHER'
 }

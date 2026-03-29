@@ -13,6 +13,7 @@ import {
   ShoppingCart, 
   Printer,
   Download,
+  Copy,
   Check,
   Circle,
   RefreshCw
@@ -26,6 +27,7 @@ interface GroceryItem {
   unit: string
   category: string
   isChecked: boolean
+  mealNames: string[]
 }
 
 interface GroceryCategory {
@@ -34,32 +36,34 @@ interface GroceryCategory {
 }
 
 const SECTION_TO_DISPLAY: Record<string, string> = {
+  BREAD_BAKERY: 'Bread/Tortillas/Bakery',
+  DELI_CHEESE: 'Deli Meat/Cheese/Dips',
+  FROZEN_FISH: 'Frozen Fish',
+  MEAT_POULTRY: 'Meat/Poultry',
   PRODUCE: 'Produce',
-  DAIRY: 'Dairy',
-  MEAT_SEAFOOD: 'Meat & Seafood',
-  BAKERY: 'Bakery',
+  EGGS_DAIRY: 'Eggs/Dairy/Vegan',
   FROZEN: 'Frozen',
-  PANTRY: 'Pantry',
-  CANNED_GOODS: 'Canned Goods',
-  CONDIMENTS: 'Condiments & Sauces',
-  BEVERAGES: 'Beverages',
   SPICES: 'Spices & Seasonings',
-  INTERNATIONAL: 'International',
+  PANTRY: 'Pantry – Cereal/Snacks/Etc',
+  PASTA_CANNED: 'Pasta & Canned Goods',
+  ASIAN_MEXICAN: 'Asian/Mexican',
+  BEVERAGES: 'Beverages',
   OTHER: 'Other',
 }
 
 const CATEGORY_ORDER = [
+  'Bread/Tortillas/Bakery',
+  'Deli Meat/Cheese/Dips',
+  'Frozen Fish',
+  'Meat/Poultry',
   'Produce',
-  'Dairy',
-  'Meat & Seafood',
-  'Bakery',
+  'Eggs/Dairy/Vegan',
   'Frozen',
-  'Pantry',
-  'Canned Goods',
-  'Condiments & Sauces',
   'Spices & Seasonings',
+  'Pantry – Cereal/Snacks/Etc',
+  'Pasta & Canned Goods',
+  'Asian/Mexican',
   'Beverages',
-  'International',
   'Other',
 ]
 
@@ -99,6 +103,7 @@ export default function GroceryListPage() {
             unit: item.unit ?? '',
             category,
             isChecked: item.isChecked || false,
+            mealNames: item.mealNames || [],
           })
         }
         
@@ -197,17 +202,32 @@ export default function GroceryListPage() {
     window.print()
   }
   
-  const handleExport = () => {
+  const buildGroceryText = (useBullets: boolean) => {
     const lines: string[] = []
     categories.forEach(cat => {
-      lines.push(`\n## ${cat.name}`)
+      lines.push(`\n${cat.name}`)
       cat.items.forEach(item => {
-        const checked = checkedItems.has(item.id) ? '[x]' : '[ ]'
-        lines.push(`${checked} ${item.quantity} ${item.unit} ${item.name}`)
+        const qty = item.quantity > 0 ? `${item.quantity}` : ''
+        const unit = item.unit ? ` ${item.unit}` : ''
+        const meals = item.mealNames.length > 0 ? ` (${item.mealNames.join(', ')})` : ''
+        const prefix = useBullets ? '- ' : (checkedItems.has(item.id) ? '[x] ' : '[ ] ')
+        lines.push(`${prefix}${qty}${unit} ${item.name}${meals}`)
       })
     })
-    
-    const blob = new Blob([lines.join('\n')], { type: 'text/plain' })
+    return lines.join('\n').trim()
+  }
+
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = async () => {
+    // Bullet format — OneNote converts "- item" into checkable to-do items on paste
+    await navigator.clipboard.writeText(buildGroceryText(true))
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleExport = () => {
+    const blob = new Blob([buildGroceryText(false)], { type: 'text/plain' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
@@ -271,6 +291,10 @@ export default function GroceryListPage() {
             <Printer className="mr-2 h-4 w-4" />
             Print
           </Button>
+          <Button variant="outline" onClick={handleCopy}>
+            {copied ? <Check className="mr-2 h-4 w-4" /> : <Copy className="mr-2 h-4 w-4" />}
+            {copied ? 'Copied!' : 'Copy'}
+          </Button>
           <Button variant="outline" onClick={handleExport}>
             <Download className="mr-2 h-4 w-4" />
             Export
@@ -331,13 +355,22 @@ export default function GroceryListPage() {
                           {isChecked && <Check className="h-3 w-3 text-white" />}
                         </div>
                         <div className={cn(
-                          "flex-1 transition-colors",
+                          "flex-1 min-w-0 transition-colors",
                           isChecked && "text-muted-foreground line-through"
                         )}>
-                          <span className="font-medium">{item.name}</span>
-                          <span className="text-muted-foreground ml-2">
-                            {item.quantity} {item.unit}
-                          </span>
+                          <div>
+                            <span className="font-medium">{item.name}</span>
+                            {(item.quantity > 0 || item.unit) && (
+                              <span className="text-muted-foreground ml-2">
+                                {item.quantity > 0 ? item.quantity : ''}{item.unit ? ` ${item.unit}` : ''}
+                              </span>
+                            )}
+                          </div>
+                          {item.mealNames.length > 0 && (
+                            <p className="text-xs text-muted-foreground truncate">
+                              {item.mealNames.join(', ')}
+                            </p>
+                          )}
                         </div>
                       </div>
                     )

@@ -1,4 +1,10 @@
-# Development Context - Cursor Migration
+# DEPRECATED — See [Plans/BACKLOG.md](../Plans/BACKLOG.md)
+
+> Historical context preserved below. Active work tracked in `Plans/BACKLOG.md` as of 2026-03-28.
+
+---
+
+# Development Context - Cursor Migration (ARCHIVED)
 
 This document captures the development context from previous GitHub Copilot sessions for continuity in Cursor.
 

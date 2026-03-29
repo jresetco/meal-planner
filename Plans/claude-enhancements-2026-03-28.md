@@ -1,4 +1,11 @@
-# Meal Planner Enhancements - Working Document
+# DEPRECATED — See [Plans/BACKLOG.md](./BACKLOG.md)
+
+> This file has been consolidated into `Plans/BACKLOG.md` as of 2026-03-28.
+> All items below are preserved for reference but are no longer maintained here.
+
+---
+
+# Meal Planner Enhancements - Working Document (ARCHIVED)
 
 **Date:** 2026-03-28 | **Source:** First real meal plan generation session
 

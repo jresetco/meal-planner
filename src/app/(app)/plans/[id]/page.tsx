@@ -143,17 +143,47 @@ export default function PlanDetailPage() {
   }
   
   const handleToggleLock = async (meal: MealWithRecipe) => {
+    const newLocked = meal.isLocked !== true
+    // Optimistic update - immediately reflect in UI
+    setPlan(prev => {
+      if (!prev) return prev
+      return {
+        ...prev,
+        plannedMeals: prev.plannedMeals.map(m =>
+          m.id === meal.id ? { ...m, isLocked: newLocked } : m
+        ),
+      }
+    })
     try {
       const response = await fetch(`/api/plans/${planId}/meals/${meal.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ isLocked: meal.isLocked !== true }),
+        body: JSON.stringify({ isLocked: newLocked }),
       })
-      if (response.ok) {
-        fetchPlan()
+      if (!response.ok) {
+        // Revert on failure
+        setPlan(prev => {
+          if (!prev) return prev
+          return {
+            ...prev,
+            plannedMeals: prev.plannedMeals.map(m =>
+              m.id === meal.id ? { ...m, isLocked: !newLocked } : m
+            ),
+          }
+        })
       }
     } catch (error) {
       console.error('Error toggling lock:', error)
+      // Revert on error
+      setPlan(prev => {
+        if (!prev) return prev
+        return {
+          ...prev,
+          plannedMeals: prev.plannedMeals.map(m =>
+            m.id === meal.id ? { ...m, isLocked: !newLocked } : m
+          ),
+        }
+      })
     }
   }
   

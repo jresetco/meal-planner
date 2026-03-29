@@ -5,8 +5,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-npm run dev              # Dev server (webpack mode, port 3000)
-npm run dev:turbo        # Dev server (turbopack mode)
+npm run dev              # Dev server (turbopack mode, port 3000)
+npm run dev:webpack      # Dev server (webpack mode — CSS broken with Tailwind v4)
 npm run build            # Production build (webpack)
 npm run lint             # ESLint (flat config, eslint.config.mjs)
 npx tsc --noEmit         # Type check without building
@@ -57,3 +57,12 @@ Currently running in **single-user mode** with no real authentication. `src/lib/
 
 Required: `DATABASE_URL`, `ENCRYPTION_KEY` (64-char hex), `OPENAI_API_KEY`
 Optional: `ANTHROPIC_API_KEY`, `AI_PROVIDER` (`openai` | `anthropic`), `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
+
+## Enhancement Backlog
+
+**`Plans/BACKLOG.md`** is the single source of truth for all planned work, enhancements, and feature requests. When the user reports bugs, requests features, or discusses future work:
+
+- **Add items directly to `Plans/BACKLOG.md`** under the appropriate phase
+- **Do NOT create new enhancement files, working documents, or separate backlogs**
+- Mark items as completed with `[x]` and the date when done
+- Legacy docs (`Plans/claude-enhancements-*.md`, `docs/MVP_STATUS.md`, `docs/CURSOR_CONTEXT.md`) are archived — do not update them

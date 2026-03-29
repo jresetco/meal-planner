@@ -4,18 +4,19 @@
 // Enums
 export type MealType = 'BREAKFAST' | 'LUNCH' | 'DINNER'
 export type MealStatus = 'PLANNED' | 'EATING_OUT' | 'SKIPPED' | 'COMPLETED'
-export type StoreSection = 
+export type StoreSection =
+  | 'BREAD_BAKERY'
+  | 'DELI_CHEESE'
+  | 'FROZEN_FISH'
+  | 'MEAT_POULTRY'
   | 'PRODUCE'
-  | 'DAIRY'
-  | 'MEAT_SEAFOOD'
-  | 'BAKERY'
+  | 'EGGS_DAIRY'
   | 'FROZEN'
-  | 'PANTRY'
-  | 'CANNED_GOODS'
-  | 'CONDIMENTS'
-  | 'BEVERAGES'
   | 'SPICES'
-  | 'INTERNATIONAL'
+  | 'PANTRY'
+  | 'PASTA_CANNED'
+  | 'ASIAN_MEXICAN'
+  | 'BEVERAGES'
   | 'OTHER'
 export type RecipeSource = 'PAPRIKA' | 'CUSTOM' | 'AI_DISCOVERED' | 'WEB_IMPORT'
 export type PlanStatus = 'DRAFT' | 'ACTIVE' | 'ARCHIVED'
@@ -166,6 +167,7 @@ export interface SoftRule {
   ruleText: string
   isActive: boolean
   isHardRule: boolean
+  isSystem: boolean
   priority: number
   createdAt: Date
   updatedAt: Date
@@ -264,17 +266,18 @@ export interface CalendarDay {
 
 // Store section display names
 export const STORE_SECTION_LABELS: Record<StoreSection, string> = {
+  BREAD_BAKERY: 'Bread/Tortillas/Bakery',
+  DELI_CHEESE: 'Deli Meat/Cheese/Dips',
+  FROZEN_FISH: 'Frozen Fish',
+  MEAT_POULTRY: 'Meat/Poultry',
   PRODUCE: 'Produce',
-  DAIRY: 'Dairy',
-  MEAT_SEAFOOD: 'Meat & Seafood',
-  BAKERY: 'Bakery',
+  EGGS_DAIRY: 'Eggs/Dairy/Vegan',
   FROZEN: 'Frozen',
-  PANTRY: 'Pantry & Dry Goods',
-  CANNED_GOODS: 'Canned Goods',
-  CONDIMENTS: 'Condiments & Sauces',
-  BEVERAGES: 'Beverages',
   SPICES: 'Spices & Seasonings',
-  INTERNATIONAL: 'International',
+  PANTRY: 'Pantry – Cereal/Snacks/Etc',
+  PASTA_CANNED: 'Pasta & Canned Goods',
+  ASIAN_MEXICAN: 'Asian/Mexican',
+  BEVERAGES: 'Beverages',
   OTHER: 'Other',
 }
 

@@ -128,11 +128,13 @@ export async function generateMealPlanWithStreaming(
 
 ## Leftover Rules (CRITICAL):
 - When a recipe is made, calculate: servings_prepared - household_size = leftover_portions
-- Schedule leftover portions within 1-3 days of the original meal
+- Leftovers MUST appear AFTER the original meal date. NEVER schedule a leftover on or before the day the original meal is cooked.
+- Leftovers MUST be consumed within 1-2 days of the original meal (not 3+ days).
+- On the FIRST day of the plan, leftovers are NOT allowed unless explicitly noted that the original was made before the plan period.
 - EVERY portion must be accounted for - no food waste
 - Leftover meals should be marked with isLeftover=true and reference the original meal
 - Track servingsUsed for each meal to ensure all portions are consumed
-- Example: If making 6 servings for household of 2, that's 2 servings for dinner + 2 lunches of leftovers
+- Example: If making 6 servings for household of 2, that's 2 servings for dinner + 2 lunches of leftovers over the next 1-2 days
 
 ## Recipe Type Guidelines:
 - STAPLE: These are go-to favorites. Can appear weekly or more often.
@@ -180,9 +182,9 @@ ${mealOverrides.map(o => `- ${o.date}: Only ${o.meals.join(', ')}`).join('\n')}`
 
 ## Constraints
 - Maximum repeats per recipe (including as leftover): ${maxRepeats}
-- Maximum leftover meals per week: ${maxLeftoversPerWeek}
+- Maximum leftover meals per week: ${maxLeftoversPerWeek === -1 ? 'No limit (use as many leftovers as needed)' : maxLeftoversPerWeek}
 
-${guidelines ? `## HARD REQUIREMENTS - Planning Guidelines (MUST FOLLOW)
+${guidelines ? `## Soft Preferences - Planning Guidelines (follow when possible)
 ${guidelines}
 ` : ''}
 

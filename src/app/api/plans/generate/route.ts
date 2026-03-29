@@ -159,6 +159,24 @@ export async function POST(request: NextRequest) {
         }
       )
 
+      // Validate leftover timing - remove any leftovers that appear before their source meal
+      const planStartStr = new Date(startDate).toISOString().split('T')[0]
+      const validatedMeals = generatedPlan.meals.map(meal => {
+        if (meal.isLeftover) {
+          const sourceDate = meal.leftoverFromDate
+          const mealDate = meal.date
+          // Reject leftovers on or before the source meal date
+          if (sourceDate && mealDate <= sourceDate) {
+            return { ...meal, isLeftover: false, leftoverFromDate: null, leftoverFromMealType: null }
+          }
+          // Reject leftovers on day 1 of the plan if no explicit source before plan
+          if (mealDate === planStartStr && (!sourceDate || sourceDate >= planStartStr)) {
+            return { ...meal, isLeftover: false, leftoverFromDate: null, leftoverFromMealType: null }
+          }
+        }
+        return meal
+      })
+
       // Save the plan to database
       const mealPlan = await prisma.mealPlan.create({
         data: {
@@ -175,7 +193,7 @@ export async function POST(request: NextRequest) {
           },
           aiReasoning: generatedPlan.reasoning,
           plannedMeals: {
-            create: generatedPlan.meals.map((meal) => ({
+            create: validatedMeals.map((meal) => ({
               date: new Date(meal.date),
               mealType: meal.mealType as MealType,
               recipeId: meal.recipeId,

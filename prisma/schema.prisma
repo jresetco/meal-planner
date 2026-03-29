@@ -308,17 +308,18 @@ model GroceryItem {
 }
 
 enum StoreSection {
+  BREAD_BAKERY
+  DELI_CHEESE
+  FROZEN_FISH
+  MEAT_POULTRY
   PRODUCE
-  DAIRY
-  MEAT_SEAFOOD
-  BAKERY
+  EGGS_DAIRY
   FROZEN
-  PANTRY
-  CANNED_GOODS
-  CONDIMENTS
-  BEVERAGES
   SPICES
-  INTERNATIONAL
+  PANTRY
+  PASTA_CANNED
+  ASIAN_MEXICAN
+  BEVERAGES
   OTHER
 }
 
@@ -334,6 +335,7 @@ model SoftRule {
   ruleText   String
   isActive   Boolean  @default(true)
   isHardRule Boolean  @default(false) // true = must-do constraint, false = soft preference
+  isSystem   Boolean  @default(false) // true = system-managed variety/planning rules
   priority   Int      @default(0) // Higher = more important
 
   createdAt DateTime @default(now())

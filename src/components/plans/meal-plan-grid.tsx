@@ -241,9 +241,9 @@ export function MealPlanGrid({
             </div>
 
             {/* Weekday headers */}
-            <div className="grid grid-cols-7 gap-1.5">
+            <div className="grid grid-cols-7 gap-2">
               {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map((day) => (
-                <div key={day} className="text-center text-xs font-semibold text-slate-700 py-2 border-b-2 border-slate-200">
+                <div key={day} className="text-center text-sm font-semibold text-slate-700 py-2 border-b-2 border-slate-200">
                   {day}
                 </div>
               ))}
@@ -261,16 +261,16 @@ export function MealPlanGrid({
                       {format(firstDayOfWeek, 'MMMM yyyy')}
                     </div>
                   )}
-                  <div className="grid grid-cols-7 gap-1.5">
+                  <div className="grid grid-cols-7 gap-2">
                     {week.map((date) => {
                       const inRange = isDateInRange(date)
                       const isToday = isSameDay(date, today)
-                      
+
                       if (!inRange) {
                         return (
-                          <div 
-                            key={date.toISOString()} 
-                            className="bg-slate-50 border border-slate-100 rounded-lg p-2 min-h-[120px]"
+                          <div
+                            key={date.toISOString()}
+                            className="bg-slate-50 border border-slate-100 rounded-lg p-3 min-h-[180px]"
                           >
                             <div className="text-xs text-slate-300">
                               {format(date, 'd')}
@@ -278,30 +278,30 @@ export function MealPlanGrid({
                           </div>
                         )
                       }
-                      
+
                       const breakfastSlot = getSlotForDayAndMeal(date, 'BREAKFAST')
                       const lunchSlot = getSlotForDayAndMeal(date, 'LUNCH')
                       const dinnerSlot = getSlotForDayAndMeal(date, 'DINNER')
-                      
+
                       return (
                         <div
                           key={date.toISOString()}
-                          className={`bg-white border rounded-lg p-2 min-h-[120px] ${
+                          className={`bg-white border rounded-lg p-3 min-h-[180px] ${
                             isToday ? 'ring-2 ring-yellow-400 bg-yellow-50' : 'border-slate-200'
                           }`}
                         >
-                          <div className="flex items-center justify-between mb-2">
-                            <div className={`text-xs font-semibold ${isToday ? 'text-yellow-700' : 'text-slate-700'}`}>
+                          <div className="flex items-center justify-between mb-3">
+                            <div className={`text-sm font-semibold ${isToday ? 'text-yellow-700' : 'text-slate-700'}`}>
                               {format(date, 'd')}
                             </div>
                             {isToday && (
-                              <div className="text-[10px] font-medium text-yellow-700 bg-yellow-100 px-1.5 py-0.5 rounded">
+                              <div className="text-xs font-medium text-yellow-700 bg-yellow-100 px-2 py-0.5 rounded">
                                 Today
                               </div>
                             )}
                           </div>
-                          
-                          <div className="space-y-1.5">
+
+                          <div className="space-y-2">
                             {[
                               { label: 'B', slot: breakfastSlot, type: 'BREAKFAST' as MealType },
                               { label: 'L', slot: lunchSlot, type: 'LUNCH' as MealType },
@@ -309,10 +309,10 @@ export function MealPlanGrid({
                             ].map(({ label, slot, type }) => {
                               if (!slot) return null
                               const slotIndex = mealSlots.indexOf(slot)
-                              
+
                               return (
-                                <div key={type} className="flex items-center gap-1">
-                                  <div className="text-[10px] font-medium text-slate-500 w-3">
+                                <div key={type} className="flex items-center gap-1.5">
+                                  <div className="text-xs font-medium text-slate-500 w-3">
                                     {label}
                                   </div>
                                   <Select
@@ -320,7 +320,7 @@ export function MealPlanGrid({
                                     onValueChange={(value) => handleStatusChange(slotIndex, value)}
                                   >
                                     <SelectTrigger
-                                      className="h-6 text-[9px] px-1.5 py-0 border-slate-300 !bg-white shadow-sm"
+                                      className="h-8 text-xs px-2 py-0 border-slate-300 !bg-white shadow-sm"
                                       title={slot.pinnedRecipeName ?? undefined}
                                     >
                                       <SelectValue>

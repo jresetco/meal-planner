@@ -140,33 +140,33 @@ export function DateRangePicker({ onContinue, onBack, initialStart, initialEnd }
   }
 
   return (
-    <div className="bg-slate-50 p-4">
-      <div className="max-w-2xl mx-auto space-y-3">
-        <div className="flex items-center gap-3">
+    <div className="bg-slate-50 p-8">
+      <div className="max-w-4xl mx-auto space-y-6">
+        <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={onBack}>
             <ChevronLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Select Date Range</h1>
-            <p className="text-sm text-slate-600">Choose the dates for your meal plan</p>
+            <h1 className="text-3xl font-bold text-slate-900">Select Date Range</h1>
+            <p className="text-slate-600">Choose the dates for your meal plan</p>
           </div>
         </div>
         
-        <Card className="p-3">
-          <div className="space-y-2">
+        <Card className="p-6">
+          <div className="space-y-4">
             <div className="flex items-center justify-between mb-2">
-              <h2 className="text-base font-semibold flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <Calendar className="w-5 h-5" />
                 Next 4 Weeks
               </h2>
-              <p className="text-xs text-slate-500">Click or drag to select</p>
+              <p className="text-sm text-slate-500">Click or drag to select</p>
             </div>
-            
-            <div className="space-y-1" onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}>
+
+            <div className="space-y-2" onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}>
               {/* Weekday headers */}
-              <div className="grid grid-cols-7 gap-1">
+              <div className="grid grid-cols-7 gap-2">
                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                  <div key={day} className="text-center text-xs font-medium text-slate-600 py-0.5">
+                  <div key={day} className="text-center text-sm font-medium text-slate-600 py-1">
                     {day}
                   </div>
                 ))}
@@ -176,21 +176,21 @@ export function DateRangePicker({ onContinue, onBack, initialStart, initialEnd }
               {weeks.map((week, weekIndex) => {
                 const firstDayOfWeek = week[0]
                 const showMonthLabel = weekIndex === 0 || !isSameMonth(week[0], weeks[weekIndex - 1][0])
-                
+
                 return (
                   <div key={weekIndex}>
                     {showMonthLabel && (
-                      <div className="text-xs font-semibold text-slate-700 mb-0.5 mt-1">
+                      <div className="text-sm font-semibold text-slate-700 mb-1 mt-2">
                         {format(firstDayOfWeek, 'MMMM yyyy')}
                       </div>
                     )}
-                    <div className="grid grid-cols-7 gap-1">
+                    <div className="grid grid-cols-7 gap-2">
                       {week.map((date) => {
                         const selected = isDateSelected(date)
                         const isStart = isStartDate(date)
                         const isEnd = isEndDate(date)
                         const isToday = isSameDay(date, today)
-                        
+
                         return (
                           <button
                             key={date.toISOString()}
@@ -198,9 +198,9 @@ export function DateRangePicker({ onContinue, onBack, initialStart, initialEnd }
                             onMouseEnter={() => handleMouseEnter(date)}
                             onClick={() => handleDateClick(date)}
                             className={`
-                              h-7 rounded text-[11px] font-medium transition-all select-none
-                              ${selected 
-                                ? 'bg-emerald-500 text-white hover:bg-emerald-600' 
+                              h-12 rounded-lg text-sm font-medium transition-all select-none
+                              ${selected
+                                ? 'bg-emerald-500 text-white hover:bg-emerald-600'
                                 : isToday
                                 ? 'bg-yellow-100 hover:bg-yellow-200 text-slate-900 ring-1 ring-yellow-400'
                                 : 'bg-white hover:bg-slate-100 text-slate-900'
@@ -220,26 +220,24 @@ export function DateRangePicker({ onContinue, onBack, initialStart, initialEnd }
             </div>
             
             {/* Editable Date Inputs */}
-            <div className="pt-3 border-t border-slate-200">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-slate-700">Start Date</label>
+            <div className="pt-4 border-t border-slate-200">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-slate-700">Start Date</label>
                   <Input
                     type="text"
                     placeholder="MM/DD/YYYY"
                     value={startDateInput}
                     onChange={(e) => handleStartDateInputChange(e.target.value)}
-                    className="text-sm h-8"
                   />
                 </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-slate-700">End Date</label>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-slate-700">End Date</label>
                   <Input
                     type="text"
                     placeholder="MM/DD/YYYY"
                     value={endDateInput}
                     onChange={(e) => handleEndDateInputChange(e.target.value)}
-                    className="text-sm h-8"
                   />
                 </div>
               </div>
@@ -249,19 +247,20 @@ export function DateRangePicker({ onContinue, onBack, initialStart, initialEnd }
         
         {/* Summary */}
         {startDate && endDate && (
-          <Card className="p-3 bg-emerald-50 border-emerald-200">
+          <Card className="p-5 bg-emerald-50 border-emerald-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-slate-600">Selected Range</p>
-                <p className="text-base font-semibold text-slate-900">
+                <p className="text-sm text-slate-600">Selected Range</p>
+                <p className="text-lg font-semibold text-slate-900">
                   {format(startDate, 'MMM d, yyyy')} - {format(endDate, 'MMM d, yyyy')}
                 </p>
-                <p className="text-xs text-slate-600">
-                  {getDaysCount()} days • {getDaysCount() * 3} meals
+                <p className="text-sm text-slate-600">
+                  {getDaysCount()} days &bull; {getDaysCount() * 3} meals
                 </p>
               </div>
-              <Button 
+              <Button
                 onClick={handleContinue}
+                size="lg"
                 className="bg-emerald-600 hover:bg-emerald-700"
               >
                 Continue
