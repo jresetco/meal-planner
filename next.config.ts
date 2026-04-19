@@ -16,7 +16,7 @@ const nextConfig: NextConfig = {
   experimental: {
     // Large/corrupt turbo caches caused multi-minute compaction + flaky CSS/OTEL; re-enable after stable turbo dev.
     turbopackFileSystemCacheForDev: false,
-    optimizePackageImports: ["lucide-react"],
+    optimizePackageImports: ["lucide-react", "date-fns", "@radix-ui/react-dialog", "@radix-ui/react-dropdown-menu", "@radix-ui/react-hover-card", "@radix-ui/react-select", "@radix-ui/react-scroll-area"],
   },
 };
 

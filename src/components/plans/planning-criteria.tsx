@@ -24,6 +24,7 @@ import type { Recipe, BaselinePreset } from '@/types'
 export interface PlanningCriteriaData {
   baselinePresetId?: string
   maxLeftoversPerWeek: number
+  maxDynamicMealsPerWeek?: number
   servingsPerMeal: number
   guaranteedMeals: Pick<Recipe, 'id' | 'name'>[]
   guidelines?: string
@@ -32,6 +33,7 @@ export interface PlanningCriteriaData {
 interface PlanningCriteriaProps {
   presets: BaselinePreset[]
   recipes: Pick<Recipe, 'id' | 'name' | 'categories'>[]
+  hasMealComponents?: boolean
   initialData?: PlanningCriteriaData
   onGenerate: (criteria: PlanningCriteriaData) => void
   onBack: () => void
@@ -40,6 +42,7 @@ interface PlanningCriteriaProps {
 export function PlanningCriteria({
   presets,
   recipes,
+  hasMealComponents = false,
   initialData,
   onGenerate,
   onBack
@@ -48,6 +51,8 @@ export function PlanningCriteria({
   const [maxLeftovers, setMaxLeftovers] = useState(initialData?.maxLeftoversPerWeek === -1 ? 3 : (initialData?.maxLeftoversPerWeek ?? 3))
   const [unlimitedLeftovers, setUnlimitedLeftovers] = useState(initialData?.maxLeftoversPerWeek === -1 || initialData?.maxLeftoversPerWeek === undefined)
   const [servingsPerMeal, setServingsPerMeal] = useState(initialData?.servingsPerMeal ?? 2)
+  const [maxDynamic, setMaxDynamic] = useState(initialData?.maxDynamicMealsPerWeek ?? 3)
+  const [enableDynamic, setEnableDynamic] = useState((initialData?.maxDynamicMealsPerWeek ?? 0) > 0 || hasMealComponents)
   const [guaranteedMeals, setGuaranteedMeals] = useState<Pick<Recipe, 'id' | 'name'>[]>(
     initialData?.guaranteedMeals || []
   )
@@ -186,6 +191,7 @@ export function PlanningCriteria({
     onGenerate({
       baselinePresetId: baselinePresetId || undefined,
       maxLeftoversPerWeek: unlimitedLeftovers ? -1 : maxLeftovers,
+      maxDynamicMealsPerWeek: enableDynamic ? maxDynamic : undefined,
       servingsPerMeal,
       guaranteedMeals,
       guidelines: guidelines || undefined,
@@ -288,6 +294,38 @@ export function PlanningCriteria({
                   </p>
                 </div>
               </div>
+
+              {/* Dynamic Meals */}
+              {hasMealComponents && (
+                <div className="space-y-3 pt-2 border-t border-slate-200">
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="enable-dynamic"
+                      checked={enableDynamic}
+                      onCheckedChange={setEnableDynamic}
+                    />
+                    <Label htmlFor="enable-dynamic" className="cursor-pointer">
+                      Include Dynamic Meals
+                    </Label>
+                  </div>
+                  <p className="text-sm text-slate-600">
+                    Allow the AI to compose meals from your meal components (protein + veggie + starch + sauce) alongside traditional recipes
+                  </p>
+                  {enableDynamic && (
+                    <div className="space-y-2">
+                      <Label htmlFor="max-dynamic">Max Dynamic Meals per Week</Label>
+                      <Input
+                        id="max-dynamic"
+                        type="number"
+                        min="1"
+                        max="14"
+                        value={maxDynamic}
+                        onChange={(e) => setMaxDynamic(parseInt(e.target.value) || 1)}
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Set as Default button for meal settings */}
               {mealSettingsChanged && baselinePresetId && (

@@ -3,14 +3,15 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { 
-  Calendar, 
-  ChefHat, 
-  ShoppingCart, 
-  Settings, 
+import {
+  Calendar,
+  ChefHat,
+  ShoppingCart,
+  Settings,
   LogOut,
   Home,
-  Sparkles
+  Sparkles,
+  Puzzle
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
@@ -18,6 +19,7 @@ const navigation = [
   { name: 'Dashboard', href: '/', icon: Home },
   { name: 'Meal Plans', href: '/plans', icon: Calendar },
   { name: 'Recipes', href: '/recipes', icon: ChefHat },
+  { name: 'Meal Components', href: '/meal-components', icon: Puzzle },
   { name: 'Grocery Lists', href: '/grocery', icon: ShoppingCart },
   { name: 'Settings', href: '/settings', icon: Settings },
 ]

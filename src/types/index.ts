@@ -106,7 +106,31 @@ export interface PlannedMeal {
   preparedServings?: number | null
   isLocked: boolean
   calendarEventId?: string | null
+  isDynamic?: boolean
+  dynamicComponents?: DynamicComponentRef[] | null
   notes?: string | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface DynamicComponentRef {
+  componentId: string
+  componentName: string
+  category: ComponentCategory
+  prepMethod?: string
+}
+
+export type ComponentCategory = 'PROTEIN' | 'VEGGIE' | 'STARCH' | 'SAUCE'
+
+export interface MealComponent {
+  id: string
+  householdId: string
+  category: ComponentCategory
+  name: string
+  prepMethods: string[]
+  defaultCookTime?: number | null
+  typicalIngredients?: { name: string; quantity?: number; unit?: string }[] | null
+  isActive: boolean
   createdAt: Date
   updatedAt: Date
 }

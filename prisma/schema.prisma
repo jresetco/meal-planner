@@ -43,6 +43,7 @@ model Household {
   baselinePresets     BaselinePreset[]
   mealEditHistory     MealEditHistory[]
   paprikaRecipeCache  PaprikaRecipeCache[]
+  mealComponents      MealComponent[]
 }
 
 model PaprikaRecipeCache {
@@ -250,6 +251,10 @@ model PlannedMeal {
   // Google Calendar integration
   calendarEventId String?
 
+  // Dynamic meal support
+  isDynamic         Boolean @default(false)  // true = composed from MealComponents, not a recipe
+  dynamicComponents Json?                     // Array of { componentId, componentName, category, prepMethod }
+
   // Notes
   notes String?
 
@@ -272,6 +277,37 @@ enum MealStatus {
   EATING_OUT
   SKIPPED
   COMPLETED
+}
+
+// ============================================
+// Meal Components (Dynamic Meals)
+// ============================================
+
+model MealComponent {
+  id          String            @id @default(cuid())
+  householdId String
+  household   Household         @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  category           ComponentCategory
+  name               String                // e.g. "Chicken Breast", "Broccoli", "Jasmine Rice"
+  prepMethods        String[]              // e.g. ["Pan Fried", "Grilled", "Baked"]
+  defaultCookTime    Int?                  // minutes
+  typicalIngredients Json?                 // Array of { name, quantity?, unit? }
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([householdId, category, name])
+  @@index([householdId])
+  @@index([category])
+}
+
+enum ComponentCategory {
+  PROTEIN
+  VEGGIE
+  STARCH
+  SAUCE
 }
 
 // ============================================

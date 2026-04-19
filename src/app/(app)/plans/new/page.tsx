@@ -23,15 +23,17 @@ export default function NewPlanPage() {
   // Data from API
   const [recipes, setRecipes] = useState<Pick<Recipe, 'id' | 'name' | 'categories'>[]>([])
   const [presets, setPresets] = useState<BaselinePreset[]>([])
+  const [hasMealComponents, setHasMealComponents] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   
   // Fetch data on mount
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [recipesRes, presetsRes] = await Promise.all([
+        const [recipesRes, presetsRes, componentsRes] = await Promise.all([
           fetch('/api/recipes'),
           fetch('/api/settings/presets'),
+          fetch('/api/settings/meal-components'),
         ])
         
         if (recipesRes.ok) {
@@ -46,6 +48,11 @@ export default function NewPlanPage() {
         if (presetsRes.ok) {
           const presetsData = await presetsRes.json()
           setPresets(presetsData)
+        }
+
+        if (componentsRes.ok) {
+          const componentsData = await componentsRes.json()
+          setHasMealComponents(Array.isArray(componentsData) && componentsData.length > 0)
         }
       } catch (error) {
         console.error('Error fetching data:', error)
@@ -119,6 +126,7 @@ export default function NewPlanPage() {
         guaranteedMealIds: planningCriteria.guaranteedMeals.map(m => m.id),
         servingsPerMeal: planningCriteria.servingsPerMeal,
         maxLeftoversPerWeek: planningCriteria.maxLeftoversPerWeek,
+        maxDynamicMealsPerWeek: planningCriteria.maxDynamicMealsPerWeek,
         guidelines: planningCriteria.guidelines,
       }),
     })
@@ -246,6 +254,7 @@ export default function NewPlanPage() {
       <PlanningCriteria
         presets={presets}
         recipes={recipes}
+        hasMealComponents={hasMealComponents}
         initialData={planningCriteria || undefined}
         onGenerate={handleCriteriaGenerate}
         onBack={handleBackToMealGrid}

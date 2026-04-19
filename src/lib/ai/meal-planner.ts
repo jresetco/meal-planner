@@ -1,14 +1,23 @@
 import { streamObject, generateObject } from 'ai'
 import { z } from 'zod'
 import { getAIModel, getFallbackModel, STREAMING_CONFIG } from './provider'
-import type { Recipe, SoftRule, MealType, RecipeType, MaxFrequency, MealEditHistory, HistoricalPlan } from '@/types'
+import type { Recipe, SoftRule, MealType, RecipeType, MaxFrequency, MealEditHistory, HistoricalPlan, MealComponent } from '@/types'
+
+// Schema for dynamic meal component references
+const DynamicComponentSchema = z.object({
+  componentName: z.string().describe('Name of the component, e.g. "Chicken Breast"'),
+  category: z.enum(['PROTEIN', 'VEGGIE', 'STARCH', 'SAUCE']),
+  prepMethod: z.string().nullable().describe('Chosen prep method, e.g. "Grilled"'),
+})
 
 // Schema for AI-generated meal plan
 const PlannedMealSchema = z.object({
   date: z.string().describe('Date in YYYY-MM-DD format'),
   mealType: z.enum(['BREAKFAST', 'LUNCH', 'DINNER']),
-  recipeId: z.string().nullable().describe('Recipe ID if using a recipe, null for custom meals'),
+  recipeId: z.string().nullable().describe('Recipe ID if using a recipe, null for dynamic/custom meals'),
   recipeName: z.string().describe('Name of the meal'),
+  isDynamic: z.boolean().describe('true if this meal is composed from dynamic components rather than a recipe'),
+  dynamicComponents: z.array(DynamicComponentSchema).nullable().describe('Components used if isDynamic is true'),
   isLeftover: z.boolean(),
   leftoverFromDate: z.string().nullable().describe('Date of original meal if leftover, YYYY-MM-DD'),
   leftoverFromMealType: z.enum(['BREAKFAST', 'LUNCH', 'DINNER']).nullable().describe('Meal type of original if leftover'),
@@ -52,6 +61,8 @@ export interface MealPlanGenerationParams {
   editPatterns?: string // Patterns learned from user edits
   guaranteedMealIds?: string[] // Recipe IDs that must appear in the plan
   maxLeftoversPerWeek?: number
+  maxDynamicMealsPerWeek?: number
+  mealComponents?: MealComponent[]
   guidelines?: string // User-provided planning guidelines
 }
 
@@ -84,6 +95,8 @@ export async function generateMealPlanWithStreaming(
     editPatterns,
     guaranteedMealIds = [],
     maxLeftoversPerWeek = 3,
+    maxDynamicMealsPerWeek,
+    mealComponents = [],
     guidelines,
   } = params
 
@@ -152,6 +165,14 @@ export async function generateMealPlanWithStreaming(
 - REGULAR: Standard rotation. Good for variety, typically every 1-2 weeks.
 - SPECIAL: High-effort or treat meals. Use sparingly, maybe once per plan period.
 
+## Dynamic Meals (Component-Based):
+- In addition to recipes, you may compose **dynamic meals** from the provided Meal Components library.
+- A dynamic meal = 1 protein + 1 veggie + 1 starch + optional sauce, each with a chosen prep method.
+- For dynamic meals: set \`isDynamic: true\`, \`recipeId: null\`, populate \`dynamicComponents\` array, and set \`recipeName\` to a descriptive composed name (e.g. "Grilled Chicken, Steamed Broccoli, Jasmine Rice").
+- Dynamic meals CAN have leftovers, just like recipes. The AI decides servings (can batch cook).
+- For non-dynamic meals (recipes), set \`isDynamic: false\` and \`dynamicComponents: null\`.
+- Respect the maximum dynamic meals per week constraint if provided.
+
 ## Output Quality:
 - Be specific about servings and portions where helpful
 - Keep \`reasoning\` and \`leftoverSummary\` concise—state trade-offs in one or two sentences, not exhaustive audits
@@ -182,6 +203,21 @@ ${specialRecipes.length > 0
   ? specialRecipes.map(r => `- [${r.id}] ${r.name} | ${r.servings} servings | Max: ${r.maxFrequency}${r.prepTime ? ` | ${r.prepTime + (r.cookTime || 0)} min` : ''}`).join('\n')
   : 'None designated'}
 
+${mealComponents.length > 0 ? `## Meal Components Library (for Dynamic Meals)
+You may compose dynamic meals by combining these components. Pick 1 protein + 1 veggie + 1 starch + optional sauce, using one of their listed prep methods.
+
+### Proteins:
+${mealComponents.filter(c => c.category === 'PROTEIN').map(c => `- ${c.name}${c.prepMethods.length > 0 ? ` [${c.prepMethods.join(', ')}]` : ''}${c.defaultCookTime ? ` (~${c.defaultCookTime} min)` : ''}`).join('\n') || 'None'}
+
+### Veggies:
+${mealComponents.filter(c => c.category === 'VEGGIE').map(c => `- ${c.name}${c.prepMethods.length > 0 ? ` [${c.prepMethods.join(', ')}]` : ''}${c.defaultCookTime ? ` (~${c.defaultCookTime} min)` : ''}`).join('\n') || 'None'}
+
+### Starches:
+${mealComponents.filter(c => c.category === 'STARCH').map(c => `- ${c.name}${c.prepMethods.length > 0 ? ` [${c.prepMethods.join(', ')}]` : ''}${c.defaultCookTime ? ` (~${c.defaultCookTime} min)` : ''}`).join('\n') || 'None'}
+
+### Sauces:
+${mealComponents.filter(c => c.category === 'SAUCE').map(c => `- ${c.name}${c.prepMethods.length > 0 ? ` [${c.prepMethods.join(', ')}]` : ''}`).join('\n') || 'None'}
+` : ''}
 ## Enabled Meals by Default
 - Breakfast: ${enabledMeals.breakfast ? 'Yes' : 'No'}
 - Lunch: ${enabledMeals.lunch ? 'Yes' : 'No'}
@@ -193,6 +229,7 @@ ${mealOverrides.map(o => `- ${o.date}: Only ${o.meals.join(', ')}`).join('\n')}`
 ## Constraints
 - Maximum repeats per recipe (including as leftover): ${maxRepeats}
 - Maximum leftover meals per week: ${maxLeftoversPerWeek === -1 ? 'No limit (use as many leftovers as needed)' : maxLeftoversPerWeek}
+${maxDynamicMealsPerWeek !== undefined && maxDynamicMealsPerWeek >= 0 ? `- Maximum dynamic (component-based) meals per week: ${maxDynamicMealsPerWeek}` : '- Dynamic meals: use as many as makes sense'}
 
 ${guidelines ? `## Soft Preferences - Planning Guidelines (follow when possible)
 ${guidelines}

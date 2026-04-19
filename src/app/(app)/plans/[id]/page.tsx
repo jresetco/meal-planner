@@ -110,6 +110,10 @@ export default function PlanDetailPage() {
   const [regeneratingMealId, setRegeneratingMealId] = useState<string | null>(null)
   const [regeneratingDay, setRegeneratingDay] = useState<string | null>(null)
   const [regeneratingPlan, setRegeneratingPlan] = useState(false)
+
+  // Regenerate plan dialog state
+  const [regenerateDialogOpen, setRegenerateDialogOpen] = useState(false)
+  const [regenerateGuidance, setRegenerateGuidance] = useState('')
   
   useEffect(() => {
     fetchPlan()
@@ -332,14 +336,13 @@ export default function PlanDetailPage() {
   }
 
   const handleRegeneratePlan = async () => {
-    if (!confirm('This will regenerate all unlocked meals. Are you sure?')) return
-    
+    setRegenerateDialogOpen(false)
     setRegeneratingPlan(true)
     try {
       const response = await fetch(`/api/plans/${planId}/regenerate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
+        body: JSON.stringify({ guidance: regenerateGuidance.trim() || undefined }),
       })
       if (response.ok) {
         fetchPlan()
@@ -348,6 +351,7 @@ export default function PlanDetailPage() {
       console.error('Error regenerating plan:', error)
     } finally {
       setRegeneratingPlan(false)
+      setRegenerateGuidance('')
     }
   }
   
@@ -514,9 +518,9 @@ export default function PlanDetailPage() {
           </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <Button 
-            variant="outline" 
-            onClick={handleRegeneratePlan}
+          <Button
+            variant="outline"
+            onClick={() => setRegenerateDialogOpen(true)}
             disabled={regeneratingPlan}
           >
             {regeneratingPlan ? (
@@ -661,6 +665,7 @@ export default function PlanDetailPage() {
                         <RecipeMealHover
                           recipe={meal.recipe}
                           mealName={mealName}
+                          dynamicComponents={meal.isDynamic ? meal.dynamicComponents as any : undefined}
                           triggerClassName="text-sm font-medium flex-1 break-words text-pretty"
                         >
                           {meal.isLeftover && <span className="text-orange-600">LO: </span>}
@@ -749,6 +754,11 @@ export default function PlanDetailPage() {
                         </div>
                       </div>
                       <div className="mt-auto flex items-center gap-1 flex-wrap">
+                        {meal.isDynamic && (
+                          <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 bg-purple-50 text-purple-700 border-purple-200">
+                            Dynamic
+                          </Badge>
+                        )}
                         {meal.isLeftover && (
                           <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 bg-orange-50 text-orange-700 border-orange-200">
                             Leftover
@@ -838,6 +848,14 @@ export default function PlanDetailPage() {
               </div>
               <div className="text-sm text-muted-foreground">Unique Recipes</div>
             </div>
+            {plan.plannedMeals.some(m => m.isDynamic) && (
+              <div className="text-center">
+                <div className="text-2xl font-bold text-purple-600">
+                  {plan.plannedMeals.filter(m => m.isDynamic).length}
+                </div>
+                <div className="text-sm text-muted-foreground">Dynamic Meals</div>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -858,6 +876,43 @@ export default function PlanDetailPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Regenerate Plan Dialog */}
+      <Dialog open={regenerateDialogOpen} onOpenChange={setRegenerateDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Regenerate Plan</DialogTitle>
+            <DialogDescription>
+              This will regenerate all unlocked meals ({plan.plannedMeals.length - lockedCount} of {plan.plannedMeals.length}).
+              {lockedCount > 0 && ` ${lockedCount} locked meal${lockedCount > 1 ? 's' : ''} will be kept.`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <Label htmlFor="regenerate-guidance">Guidance for AI (optional)</Label>
+              <Textarea
+                id="regenerate-guidance"
+                value={regenerateGuidance}
+                onChange={(e) => setRegenerateGuidance(e.target.value)}
+                placeholder="e.g. More quick weeknight meals, try some Asian recipes, lighter lunches..."
+                className="mt-1.5 min-h-[80px]"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Give the AI specific direction for this regeneration.
+              </p>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setRegenerateDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleRegeneratePlan}>
+                <Sparkles className="mr-2 h-4 w-4" />
+                Regenerate
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Swap Dialog */}
       <Dialog open={swapDialogOpen} onOpenChange={setSwapDialogOpen}>

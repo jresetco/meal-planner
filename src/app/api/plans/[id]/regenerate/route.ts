@@ -25,7 +25,7 @@ export async function POST(
   }
 
   const body = await request.json().catch(() => ({}))
-  const { date } = body // If date is provided, regenerate only that day
+  const { date, guidance } = body // date = single-day regen, guidance = optional AI direction
 
   // Get the existing plan
   const plan = await prisma.mealPlan.findFirst({
@@ -46,7 +46,7 @@ export async function POST(
   }
 
   // Get recipes and rules
-  const [recipes, softRules, settings, historicalPlans, editHistory] = await Promise.all([
+  const [recipes, softRules, settings, historicalPlans, editHistory, mealComponents] = await Promise.all([
     prisma.recipe.findMany({
       where: {
         householdId: session.user.householdId,
@@ -84,6 +84,12 @@ export async function POST(
       orderBy: { createdAt: 'desc' },
       take: 100,
     }),
+    prisma.mealComponent.findMany({
+      where: {
+        householdId: session.user.householdId,
+        isActive: true,
+      },
+    }),
   ])
 
   const recipesForPlanning: RecipeForPlanning[] = recipes.map(r => ({
@@ -114,6 +120,8 @@ export async function POST(
         mealType: m.mealType as 'BREAKFAST' | 'LUNCH' | 'DINNER',
         recipeId: m.recipeId,
         recipeName: m.recipe?.name || m.customName || 'Unknown',
+        isDynamic: m.isDynamic,
+        dynamicComponents: m.dynamicComponents as any ?? null,
         isLeftover: m.isLeftover,
         leftoverFromDate: m.leftoverSource
           ? m.leftoverSource.date.toISOString().split('T')[0]
@@ -204,10 +212,14 @@ export async function POST(
         servings: m.servings,
         status: 'PLANNED',
         notes: m.notes,
+        isDynamic: m.isDynamic ?? false,
+        dynamicComponents: m.dynamicComponents ?? undefined,
       })),
     })
 
     await applyLeftoverLinksForPlan(planId, processedNew)
+
+    await prisma.groceryList.deleteMany({ where: { mealPlanId: planId } })
 
     // Fetch and return updated plan
     const updatedPlan = await prisma.mealPlan.findUnique({
@@ -239,6 +251,7 @@ export async function POST(
   const genParams = plan.generationParams as {
     enabledMeals?: { breakfast: boolean; lunch: boolean; dinner: boolean }
     maxRepeats?: number
+    maxDynamicMealsPerWeek?: number
     guidelines?: string
   } || {}
 
@@ -281,7 +294,9 @@ export async function POST(
     householdSize: settings?.defaultServings || 2,
     historicalContext,
     editPatterns,
-    guidelines: genParams.guidelines,
+    maxDynamicMealsPerWeek: genParams.maxDynamicMealsPerWeek,
+    mealComponents: mealComponents as any,
+    guidelines: [genParams.guidelines, guidance].filter(Boolean).join('\n\n') || undefined,
   })
 
   // Record edit history for unlocked meals
@@ -342,10 +357,14 @@ export async function POST(
       servings: m.servings,
       status: 'PLANNED',
       notes: m.notes,
+      isDynamic: m.isDynamic ?? false,
+      dynamicComponents: m.dynamicComponents ?? undefined,
     })),
   })
 
   await applyLeftoverLinksForPlan(planId, toInsert)
+
+  await prisma.groceryList.deleteMany({ where: { mealPlanId: planId } })
 
   // Update plan reasoning
   await prisma.mealPlan.update({

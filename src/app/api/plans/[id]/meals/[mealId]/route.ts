@@ -153,6 +153,11 @@ export async function PATCH(
     },
   })
 
+  // Invalidate cached grocery list when meal content changes
+  if (recipeId !== undefined || customName !== undefined || isLeftover !== undefined || leftoverSourceId !== undefined) {
+    await prisma.groceryList.deleteMany({ where: { mealPlanId: id } })
+  }
+
   return NextResponse.json(updatedMeal)
 }
 
@@ -203,6 +208,8 @@ export async function DELETE(
   await prisma.plannedMeal.delete({
     where: { id: mealId },
   })
+
+  await prisma.groceryList.deleteMany({ where: { mealPlanId: id } })
 
   return NextResponse.json({ success: true })
 }

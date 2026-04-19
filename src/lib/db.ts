@@ -15,7 +15,12 @@ function getPool() {
       throw new Error('DATABASE_URL environment variable is not set')
     }
     
-    globalForPrisma._pool = new Pool({ connectionString })
+    globalForPrisma._pool = new Pool({
+      connectionString,
+      max: 10,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 5000,
+    })
   }
   return globalForPrisma._pool
 }

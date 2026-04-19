@@ -32,6 +32,7 @@ export async function POST(request: NextRequest) {
     guaranteedMealIds = [],
     servingsPerMeal,
     maxLeftoversPerWeek,
+    maxDynamicMealsPerWeek,
     guidelines,
   } = body
 
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
   const generateAsync = async () => {
     try {
       // Get household data
-      const [settings, recipes, softRules, historicalPlans, editHistory] = await Promise.all([
+      const [settings, recipes, softRules, historicalPlans, editHistory, mealComponents] = await Promise.all([
         prisma.mealSettings.findUnique({
           where: { householdId: session.user.householdId },
         }),
@@ -86,6 +87,12 @@ export async function POST(request: NextRequest) {
           where: { householdId: session.user.householdId },
           orderBy: { createdAt: 'desc' },
           take: 100,
+        }),
+        prisma.mealComponent.findMany({
+          where: {
+            householdId: session.user.householdId,
+            isActive: true,
+          },
         }),
       ])
 
@@ -156,6 +163,8 @@ export async function POST(request: NextRequest) {
           editPatterns: editPatterns || undefined,
           guaranteedMealIds,
           maxLeftoversPerWeek,
+          maxDynamicMealsPerWeek,
+          mealComponents: mealComponents as any,
           guidelines,
         },
         async (progress) => {
@@ -183,6 +192,7 @@ export async function POST(request: NextRequest) {
             maxRepeats,
             pinnedMeals,
             skippedMeals,
+            maxDynamicMealsPerWeek,
             guidelines,
           },
           aiReasoning: generatedPlan.reasoning,
@@ -198,6 +208,8 @@ export async function POST(request: NextRequest) {
               servings: meal.servings,
               status: 'PLANNED',
               notes: meal.notes,
+              isDynamic: meal.isDynamic ?? false,
+              dynamicComponents: meal.dynamicComponents ?? undefined,
             })),
           },
         },

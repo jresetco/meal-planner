@@ -205,6 +205,8 @@ export default function RecipeViewPage({ params }: { params: Promise<{ id: strin
           <img
             src={recipe.imageUrl}
             alt={recipe.name}
+            loading="lazy"
+            decoding="async"
             className="w-full h-full object-cover"
           />
         </div>

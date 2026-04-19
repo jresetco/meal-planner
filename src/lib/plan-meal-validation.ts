@@ -16,6 +16,8 @@ export type PersistedPlanMealInput = {
   notes: string | null
   leftoverFromDate: string | null
   leftoverFromMealType: MealType | null
+  isDynamic: boolean
+  dynamicComponents: any | null
 }
 
 const sortMealsLikePrisma = (meals: GeneratedPlannedMeal[]) =>
@@ -122,6 +124,8 @@ const normalizePortions = (meals: GeneratedPlannedMeal[], defaultPortion: number
         notes: null,
         leftoverFromDate: m.leftoverFromDate,
         leftoverFromMealType: (m.leftoverFromMealType as MealType) ?? null,
+        isDynamic: m.isDynamic ?? false,
+        dynamicComponents: m.dynamicComponents ?? null,
       }
     }
 
@@ -139,6 +143,8 @@ const normalizePortions = (meals: GeneratedPlannedMeal[], defaultPortion: number
       notes: null,
       leftoverFromDate: null,
       leftoverFromMealType: null,
+      isDynamic: m.isDynamic ?? false,
+      dynamicComponents: m.dynamicComponents ?? null,
     }
   })
 }
@@ -254,6 +260,8 @@ export function lockedPlannedMealToGenerated(m: {
     mealType: m.mealType,
     recipeId: m.recipeId,
     recipeName: m.recipe?.name || m.customName || 'Locked',
+    isDynamic: false,
+    dynamicComponents: null,
     isLeftover: m.isLeftover,
     leftoverFromDate: null,
     leftoverFromMealType: null,

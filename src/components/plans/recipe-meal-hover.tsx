@@ -47,19 +47,84 @@ const parseIngredients = (raw: unknown): IngredientRow[] => {
     .filter((x) => Boolean(formatIngredientLine(x) || (x.name && String(x.name).trim())))
 }
 
+type DynamicComponent = {
+  componentName: string
+  category: string
+  prepMethod?: string | null
+}
+
 interface RecipeMealHoverProps {
   recipe: RecipeHoverFields | null
   mealName: string
+  dynamicComponents?: DynamicComponent[] | null
   triggerClassName?: string
   children: ReactNode
+}
+
+const categoryLabel: Record<string, string> = {
+  PROTEIN: 'Protein',
+  VEGGIE: 'Veggie',
+  STARCH: 'Starch',
+  SAUCE: 'Sauce',
 }
 
 export const RecipeMealHover = ({
   recipe,
   mealName,
+  dynamicComponents,
   triggerClassName,
   children,
 }: RecipeMealHoverProps) => {
+  // Dynamic meal hover (no recipe, but has components)
+  if (!recipe && dynamicComponents && dynamicComponents.length > 0) {
+    return (
+      <HoverCard openDelay={180} closeDelay={80}>
+        <HoverCardTrigger asChild>
+          <button
+            type="button"
+            className={cn(
+              'text-left rounded-sm bg-transparent border-0 p-0 h-auto min-w-0 w-full',
+              'cursor-help underline-offset-2 decoration-dotted hover:underline',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-1',
+              triggerClassName
+            )}
+            aria-label={`View components for ${mealName}`}
+          >
+            {children}
+          </button>
+        </HoverCardTrigger>
+        <HoverCardContent
+          className="shadow-xl"
+          side="top"
+          align="start"
+          collisionPadding={12}
+        >
+          <div className="p-4 space-y-3">
+            <h3 className="font-semibold text-slate-900 leading-snug">{mealName}</h3>
+            <Separator className="bg-slate-200" />
+            <div>
+              <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500 mb-2">
+                Components
+              </h4>
+              <ul className="text-xs text-slate-800 space-y-1.5">
+                {dynamicComponents.map((c, i) => (
+                  <li key={i} className="flex items-center gap-2">
+                    <span className="text-[10px] font-medium text-purple-600 uppercase w-12">
+                      {categoryLabel[c.category] || c.category}
+                    </span>
+                    <span>
+                      {c.prepMethod ? `${c.prepMethod} ` : ''}{c.componentName}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </HoverCardContent>
+      </HoverCard>
+    )
+  }
+
   if (!recipe) {
     return <span className={triggerClassName}>{children}</span>
   }

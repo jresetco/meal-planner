@@ -179,6 +179,8 @@ export default function RecipesPage() {
                   <img
                     src={recipe.imageUrl}
                     alt={recipe.name}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover"
                   />
                 </div>

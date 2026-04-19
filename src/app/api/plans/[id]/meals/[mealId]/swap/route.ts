@@ -131,6 +131,8 @@ export async function POST(
       include: { recipe: true },
     })
 
+    await prisma.groceryList.deleteMany({ where: { mealPlanId: planId } })
+
     return NextResponse.json({ success: true, meal: updatedMeal })
   }
 
@@ -163,6 +165,8 @@ export async function POST(
       },
       include: { recipe: true },
     })
+
+    await prisma.groceryList.deleteMany({ where: { mealPlanId: planId } })
 
     return NextResponse.json({ success: true, meal: updatedMeal })
   }
@@ -215,6 +219,8 @@ export async function POST(
       include: { recipe: true },
     })
 
+    await prisma.groceryList.deleteMany({ where: { mealPlanId: planId } })
+
     return NextResponse.json({
       success: true,
       meal: updatedMeal,
@@ -251,6 +257,8 @@ export async function POST(
       mealType: m.mealType as 'BREAKFAST' | 'LUNCH' | 'DINNER',
       recipeId: m.recipeId,
       recipeName: m.recipe?.name || m.customName || 'Unknown',
+      isDynamic: m.isDynamic,
+      dynamicComponents: m.dynamicComponents as any ?? null,
       isLeftover: m.isLeftover,
       leftoverFromDate: m.leftoverSource
         ? m.leftoverSource.date.toISOString().split('T')[0]

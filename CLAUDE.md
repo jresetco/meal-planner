@@ -56,13 +56,35 @@ Currently running in **single-user mode** with no real authentication. `src/lib/
 ## Environment Variables
 
 Required: `DATABASE_URL`, `ENCRYPTION_KEY` (64-char hex), `OPENAI_API_KEY`
-Optional: `ANTHROPIC_API_KEY`, `AI_PROVIDER` (`openai` | `anthropic`), `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
+Optional: `ANTHROPIC_API_KEY`, `AI_PROVIDER` (`openai` | `anthropic`), `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `ALLOWED_EMAILS` (comma-separated approved emails for auth, e.g. `user1@gmail.com,user2@gmail.com`)
 
-## Enhancement Backlog
+## Task Management — Todoist (MANDATORY)
 
-**`Plans/BACKLOG.md`** is the single source of truth for all planned work, enhancements, and feature requests. When the user reports bugs, requests features, or discusses future work:
+**Todoist project "meal-planner"** (board view, violet, ID: `6gJ3xmr63mqwxpHp`) is the **single source of truth** for ALL planned work, active work, prioritization, and tracking.
 
-- **Add items directly to `Plans/BACKLOG.md`** under the appropriate phase
-- **Do NOT create new enhancement files, working documents, or separate backlogs**
-- Mark items as completed with `[x]` and the date when done
-- Legacy docs (`Plans/claude-enhancements-*.md`, `docs/MVP_STATUS.md`, `docs/CURSOR_CONTEXT.md`) are archived — do not update them
+- **Sections**: New, Backlog, Up Next, In Progress, On Hold
+- **Epic labels**: `epic:grocery-qol`, `epic:dynamic-meals`, `epic:quick-wins`, `epic:planning-refinements`, `epic:auth-login`, `epic:google-calendar`, `epic:enhance-pantry`, `epic:someday-maybe`
+- **Priorities**: p1 (Very High), p2 (High), p3 (Medium), p4 (Low)
+
+### Workflow Rules (Zero Exceptions)
+
+1. **Start of session**: Check the Todoist board to understand current priorities and what's in progress. If the user doesn't specify what to work on, consult the board.
+2. **Before starting work**: Move the task to "In Progress" in Todoist. If the work isn't already a task, create one first.
+3. **During work**: All work must correspond to a Todoist task. If you discover sub-tasks, bugs, or new work while implementing, add them to Todoist immediately.
+4. **After completing work**: Move the task to "Done" (complete it) in Todoist.
+5. **Bugs reported by user**: Create a Todoist task with appropriate priority and epic label before starting the fix.
+6. **Feature requests / future work**: Add to Todoist in the appropriate section — do NOT create markdown files, working documents, or separate backlogs.
+7. **Prioritization decisions**: Always refer to the Todoist board. Tasks in "Up Next" are the next priority after "In Progress" items are done.
+
+### Adding New Tasks
+
+- Set **priority** based on: p1 (Very High / blocking), p2 (High / important), p3 (Medium), p4 (Low / nice-to-have)
+- Set **epic label** from the existing set, or create a new `epic:*` label if the work doesn't fit
+- Set **section** based on status: New (untriaged), Backlog (planned, not scheduled), Up Next (next to work on), In Progress (actively being worked), On Hold (deferred)
+- Include a clear **description** with context, root cause (for bugs), or acceptance criteria (for features)
+
+### Do NOT
+
+- Create enhancement files, backlog files, working documents, or TODO lists in the repo
+- Track work only in conversation — it must be reflected in Todoist
+- Start work without a corresponding Todoist task
