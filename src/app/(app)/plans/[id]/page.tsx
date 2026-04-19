@@ -563,9 +563,9 @@ export default function PlanDetailPage() {
       
       {/* Meal Grid */}
       <div className="overflow-x-auto">
-        <div className="min-w-[900px]">
+        <div className="min-w-[1400px]">
           {/* Day Headers */}
-          <div className="grid grid-cols-[100px_repeat(7,1fr)] gap-2 mb-2">
+          <div className="grid grid-cols-[80px_repeat(7,minmax(170px,1fr))] gap-2 mb-2">
             <div /> {/* Empty corner */}
             {weekDays.map((day) => {
               const isInRange = day >= planStartDate && day <= planEndDate
@@ -613,7 +613,7 @@ export default function PlanDetailPage() {
           
           {/* Meal Rows */}
           {MEAL_TYPES.map((mealType) => (
-            <div key={mealType} className="grid grid-cols-[100px_repeat(7,1fr)] gap-2 mb-2">
+            <div key={mealType} className="grid grid-cols-[80px_repeat(7,minmax(170px,1fr))] gap-2 mb-2">
               <div className="flex items-center justify-end pr-4 text-sm font-medium text-muted-foreground">
                 <span className="mr-2">{MEAL_TYPE_ICONS[mealType]}</span>
                 {MEAL_TYPE_LABELS[mealType]}
@@ -783,7 +783,7 @@ export default function PlanDetailPage() {
           ))}
 
           {/* Day notes: separate row; stored on MealPlan.dayNotes JSON keyed by date */}
-          <div className="grid grid-cols-[100px_repeat(7,1fr)] gap-2 mb-2">
+          <div className="grid grid-cols-[80px_repeat(7,minmax(170px,1fr))] gap-2 mb-2">
             <div className="flex items-start justify-end pr-4 pt-2 text-sm font-medium text-muted-foreground">
               <StickyNote className="mr-2 h-4 w-4 shrink-0 opacity-70" aria-hidden />
               Notes

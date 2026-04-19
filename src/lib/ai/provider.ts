@@ -63,6 +63,4 @@ export function getSimpleModel(provider?: AIProvider) {
 export const STREAMING_CONFIG = {
   // Maximum tokens for meal plan generation
   maxTokens: 8000,
-  // Temperature for creative but consistent outputs
-  temperature: 0.7,
 }

@@ -6,7 +6,7 @@ This app uses environment variables for sensitive configuration. Here's how to m
 
 ## 🔐 ENCRYPTION_KEY
 
-**What it is:** A 32-byte encryption key (64 hex characters) used to encrypt sensitive data like Paprika passwords in the database.
+**What it is:** A 32-byte encryption key (64 hex characters) used to encrypt sensitive data like Paprika passwords in the database. New writes use **AES-256-GCM** (authenticated). Existing rows encrypted with the legacy **AES-256-CBC** format are still decrypted on read; saving settings again re-encrypts with GCM.
 
 ### Generate the Key
 

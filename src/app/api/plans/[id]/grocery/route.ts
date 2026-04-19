@@ -16,21 +16,7 @@ export async function GET(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // Check if grocery list already exists
-  const existingList = await prisma.groceryList.findUnique({
-    where: { mealPlanId: id },
-    include: {
-      items: {
-        orderBy: [{ section: 'asc' }, { name: 'asc' }],
-      },
-    },
-  })
-
-  if (existingList) {
-    return NextResponse.json(existingList)
-  }
-
-  // Get the meal plan with recipes
+  // Get the meal plan with recipes (needed for both cache hit + regen, to compute whole meals)
   const mealPlan = await prisma.mealPlan.findFirst({
     where: {
       id,
@@ -53,6 +39,39 @@ export async function GET(
     return NextResponse.json({ error: 'Meal plan not found' }, { status: 404 })
   }
 
+  // Compute whole-meal names (meals with no recipe ingredients and not dynamic) — derived
+  // on every request from the current plan state so they're never stale
+  const wholeMeals: string[] = []
+  for (const m of mealPlan.plannedMeals) {
+    const recipeIngredients = (m.recipe?.ingredients as unknown[] | undefined) || []
+    const hasRecipeIngredients = Boolean(m.recipe) && recipeIngredients.length > 0
+    const hasDynamicComponents = Boolean(m.isDynamic && m.dynamicComponents)
+    if (!hasRecipeIngredients && !hasDynamicComponents) {
+      const name = m.recipe?.name || m.customName
+      if (name) wholeMeals.push(name)
+    }
+  }
+
+  // Check if grocery list already exists. If it's stale (plan changed since it was
+  // generated), purge it so we regenerate from the current plan state — this prevents
+  // items from swapped-out meals lingering in the list.
+  const existingList = await prisma.groceryList.findUnique({
+    where: { mealPlanId: id },
+    include: {
+      items: {
+        orderBy: [{ section: 'asc' }, { name: 'asc' }],
+      },
+    },
+  })
+
+  if (existingList && !existingList.isStale) {
+    return NextResponse.json({ ...existingList, wholeMeals })
+  }
+
+  if (existingList?.isStale) {
+    await prisma.groceryList.delete({ where: { id: existingList.id } })
+  }
+
   // Get pantry staples and meal components in parallel
   const [pantryStaples, mealComponents] = await Promise.all([
     prisma.pantryStaple.findMany({
@@ -71,23 +90,21 @@ export async function GET(
     }),
   ])
 
-  // Prepare meals data for AI — include both recipe-based and dynamic meals
+  // Prepare meals data for AI — include only meals that actually contribute ingredients
+  // (recipe-based with ingredients, or dynamic with resolved components). Meals without
+  // ingredients are already captured in `wholeMeals` above.
   const meals: { name: string; ingredients: { name: string; quantity?: number | string; unit?: string }[] }[] = []
 
-  // Recipe-based meals
   for (const meal of mealPlan.plannedMeals) {
     if (meal.recipe) {
-      meals.push({
-        name: meal.recipe.name,
-        ingredients: (meal.recipe.ingredients as { name: string; quantity?: number | string; unit?: string }[]) || [],
-      })
+      const recipeIngredients = (meal.recipe.ingredients as { name: string; quantity?: number | string; unit?: string }[] | undefined) || []
+      if (recipeIngredients.length === 0) continue
+      meals.push({ name: meal.recipe.name, ingredients: recipeIngredients })
     } else if (meal.isDynamic && meal.dynamicComponents) {
-      // Dynamic meals — gather ingredients from component typicalIngredients
       const components = meal.dynamicComponents as { componentName: string; category: string; prepMethod?: string | null }[]
       const mealName = meal.customName || components.map(c => c.componentName).join(' + ')
       const dynamicIngredients: { name: string; quantity?: number; unit?: string }[] = []
 
-      // Look up typicalIngredients for each component
       for (const comp of components) {
         const dbComponent = mealComponents.find(
           mc => mc.name.toLowerCase() === comp.componentName.toLowerCase() && mc.category === comp.category
@@ -96,16 +113,16 @@ export async function GET(
           const typicals = dbComponent.typicalIngredients as { name: string; quantity?: number; unit?: string }[]
           dynamicIngredients.push(...typicals)
         } else {
-          // Fallback: just add the component name as an ingredient
           dynamicIngredients.push({ name: comp.componentName })
         }
       }
 
+      if (dynamicIngredients.length === 0) continue
       meals.push({ name: mealName, ingredients: dynamicIngredients })
     }
   }
 
-  if (meals.length === 0) {
+  if (meals.length === 0 && wholeMeals.length === 0) {
     return NextResponse.json(
       { error: 'No recipes or dynamic meals with ingredients found in this plan' },
       { status: 400 }
@@ -113,19 +130,22 @@ export async function GET(
   }
 
   try {
-    // Generate grocery list using AI
-    const generatedList = await generateGroceryList({
-      meals,
-      pantryStaples: pantryStaples.map((s: { ingredientName: string }) => s.ingredientName),
-    })
+    // Generate grocery list using AI (skip if there are no ingredient-bearing meals)
+    const generatedList = meals.length > 0
+      ? await generateGroceryList({
+          meals,
+          pantryStaples: pantryStaples.map((s: { ingredientName: string }) => s.ingredientName),
+        })
+      : { items: [], unmergeableItems: [] }
 
     // Filter out staples that the AI identified
     const nonStapleItems = generatedList.items.filter(item => !item.isStaple)
 
-    // Save to database
+    // Save to database (fresh list, not stale)
     const groceryList = await prisma.groceryList.create({
       data: {
         mealPlanId: id,
+        isStale: false,
         items: {
           create: nonStapleItems.map((item) => ({
             name: item.name,
@@ -145,15 +165,17 @@ export async function GET(
       },
     })
 
-    // Include unmergeable items info in response for UI to handle
+    // Include whole meals + unmergeable items info in response for UI to handle
     return NextResponse.json({
       ...groceryList,
+      wholeMeals,
       unmergeableItems: generatedList.unmergeableItems,
     }, { status: 201 })
   } catch (error) {
     console.error('Grocery list generation error:', error)
+    const message = error instanceof Error ? error.message : 'Unknown error'
     return NextResponse.json(
-      { error: 'Failed to generate grocery list. Please try again.' },
+      { error: `Failed to generate grocery list: ${message}` },
       { status: 500 }
     )
   }

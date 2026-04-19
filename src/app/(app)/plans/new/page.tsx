@@ -2,11 +2,24 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
+import dynamic from 'next/dynamic'
 import { DateRangePicker } from '@/components/plans/date-range-picker'
-import { MealPlanGrid } from '@/components/plans/meal-plan-grid'
-import { PlanningCriteria, type PlanningCriteriaData } from '@/components/plans/planning-criteria'
-import { GeneratingScreen, type GenerationProgress } from '@/components/plans/generating-screen'
+import type { PlanningCriteriaData } from '@/components/plans/planning-criteria'
+import type { GenerationProgress } from '@/components/plans/generating-screen'
 import type { MealSlotConfig, Recipe, BaselinePreset, MealType } from '@/types'
+
+const MealPlanGrid = dynamic(
+  () => import('@/components/plans/meal-plan-grid').then((m) => m.MealPlanGrid),
+  { ssr: false }
+)
+const PlanningCriteria = dynamic(
+  () => import('@/components/plans/planning-criteria').then((m) => m.PlanningCriteria),
+  { ssr: false }
+)
+const GeneratingScreen = dynamic(
+  () => import('@/components/plans/generating-screen').then((m) => m.GeneratingScreen),
+  { ssr: false }
+)
 
 type WizardScreen = 'date-picker' | 'meal-grid' | 'criteria' | 'generating'
 

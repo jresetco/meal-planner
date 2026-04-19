@@ -45,7 +45,7 @@ Currently running in **single-user mode** with no real authentication. `src/lib/
 
 - **API routes**: Next.js App Router format with `export async function GET/POST/PATCH/DELETE`. Always check `session?.user?.householdId`.
 - **Path alias**: `@/*` maps to `./src/*`
-- **Encryption**: Sensitive data (Paprika passwords) encrypted with AES-256-CBC via `src/lib/crypto.ts`. Use `encrypt()`/`decrypt()`/`isEncrypted()`.
+- **Encryption**: Sensitive data (Paprika passwords) encrypted with **AES-256-GCM** via `src/lib/crypto.ts` (legacy CBC ciphertext is still decrypted). Use `encrypt()`/`decrypt()`/`isEncrypted()`.
 - **Paprika sync**: `src/lib/paprika/` — recipe sync client that requires iOS User-Agent header
 - **Recipe types**: STAPLE (frequent), REGULAR (normal rotation), SPECIAL (rare/high-effort) — used by AI for planning decisions
 

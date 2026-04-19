@@ -14,9 +14,25 @@ const nextConfig: NextConfig = {
     "ws",
   ],
   experimental: {
-    // Large/corrupt turbo caches caused multi-minute compaction + flaky CSS/OTEL; re-enable after stable turbo dev.
+    // Turbopack FS cache was corrupting under sustained macOS swap pressure
+    // (torn writes → "invalid JSON: EOF" panics in get_transpiled_packages).
+    // Re-enable once the dev environment is no longer swap-constrained.
     turbopackFileSystemCacheForDev: false,
-    optimizePackageImports: ["lucide-react", "date-fns", "@radix-ui/react-dialog", "@radix-ui/react-dropdown-menu", "@radix-ui/react-hover-card", "@radix-ui/react-select", "@radix-ui/react-scroll-area"],
+    optimizePackageImports: [
+      "lucide-react",
+      "date-fns",
+      "@radix-ui/react-dialog",
+      "@radix-ui/react-dropdown-menu",
+      "@radix-ui/react-hover-card",
+      "@radix-ui/react-select",
+      "@radix-ui/react-scroll-area",
+      "@radix-ui/react-label",
+      "@radix-ui/react-switch",
+      "@radix-ui/react-separator",
+      "@radix-ui/react-progress",
+      "@radix-ui/react-slot",
+      "@radix-ui/react-tabs",
+    ],
   },
 };
 

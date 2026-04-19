@@ -131,7 +131,7 @@ export async function POST(
       include: { recipe: true },
     })
 
-    await prisma.groceryList.deleteMany({ where: { mealPlanId: planId } })
+    await prisma.groceryList.updateMany({ where: { mealPlanId: planId }, data: { isStale: true } })
 
     return NextResponse.json({ success: true, meal: updatedMeal })
   }
@@ -166,7 +166,7 @@ export async function POST(
       include: { recipe: true },
     })
 
-    await prisma.groceryList.deleteMany({ where: { mealPlanId: planId } })
+    await prisma.groceryList.updateMany({ where: { mealPlanId: planId }, data: { isStale: true } })
 
     return NextResponse.json({ success: true, meal: updatedMeal })
   }
@@ -219,7 +219,7 @@ export async function POST(
       include: { recipe: true },
     })
 
-    await prisma.groceryList.deleteMany({ where: { mealPlanId: planId } })
+    await prisma.groceryList.updateMany({ where: { mealPlanId: planId }, data: { isStale: true } })
 
     return NextResponse.json({
       success: true,

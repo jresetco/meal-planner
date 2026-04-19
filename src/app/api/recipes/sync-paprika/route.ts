@@ -150,21 +150,27 @@ export async function POST(request: NextRequest) {
     const createdRecipes: { name: string; paprikaId: string }[] = []
     const updatedRecipes: { name: string; paprikaId: string }[] = []
 
-    for (const paprikaRecipe of filteredRecipes) {
-      // Check if recipe already exists
-      const existing = await prisma.recipe.findFirst({
+    // Preload existing recipes by paprikaId in one query (was N+1 findFirst per recipe)
+    const filteredUids = filteredRecipes.map((r) => r.uid)
+    const existingByPaprikaId = new Map<string, string>()
+    if (filteredUids.length > 0) {
+      const existing = await prisma.recipe.findMany({
         where: {
           householdId: session.user.householdId,
-          paprikaId: paprikaRecipe.uid,
+          paprikaId: { in: filteredUids },
         },
+        select: { id: true, paprikaId: true },
       })
+      for (const r of existing) {
+        if (r.paprikaId) existingByPaprikaId.set(r.paprikaId, r.id)
+      }
+    }
 
-      // Map category UUIDs to names for storage (Paprika returns UUIDs)
+    const buildRecipeData = (paprikaRecipe: (typeof filteredRecipes)[number]) => {
       const categoryNames = (paprikaRecipe.categories || [])
         .map((uid) => categoryMap[uid] ?? uid)
         .filter(Boolean)
-
-      const recipeData = {
+      return {
         name: paprikaRecipe.name,
         description: paprikaRecipe.source || null,
         ingredients: paprika.parseIngredients(paprikaRecipe.ingredients),
@@ -184,26 +190,44 @@ export async function POST(request: NextRequest) {
         source: 'PAPRIKA' as const,
         paprikaHash: paprikaRecipe.hash || null,
       }
+    }
 
-      if (existing) {
-        // Update existing recipe
-        await prisma.recipe.update({
-          where: { id: existing.id },
-          data: recipeData,
-        })
+    const toUpdate = filteredRecipes.filter((r) => existingByPaprikaId.has(r.uid))
+    const toCreate = filteredRecipes.filter((r) => !existingByPaprikaId.has(r.uid))
+
+    const WRITE_BATCH_SIZE = 25
+    for (let i = 0; i < toUpdate.length; i += WRITE_BATCH_SIZE) {
+      const batch = toUpdate.slice(i, i + WRITE_BATCH_SIZE)
+      await Promise.all(
+        batch.map((paprikaRecipe) =>
+          prisma.recipe.update({
+            where: { id: existingByPaprikaId.get(paprikaRecipe.uid)! },
+            data: buildRecipeData(paprikaRecipe),
+          })
+        )
+      )
+      for (const r of batch) {
         syncResults.updated++
-        updatedRecipes.push({ name: paprikaRecipe.name, paprikaId: paprikaRecipe.uid })
-      } else {
-        // Create new recipe
-        await prisma.recipe.create({
-          data: {
-            ...recipeData,
-            householdId: session.user.householdId,
-            paprikaId: paprikaRecipe.uid,
-          },
-        })
+        updatedRecipes.push({ name: r.name, paprikaId: r.uid })
+      }
+    }
+
+    for (let i = 0; i < toCreate.length; i += WRITE_BATCH_SIZE) {
+      const batch = toCreate.slice(i, i + WRITE_BATCH_SIZE)
+      await Promise.all(
+        batch.map((paprikaRecipe) =>
+          prisma.recipe.create({
+            data: {
+              ...buildRecipeData(paprikaRecipe),
+              householdId: session.user.householdId,
+              paprikaId: paprikaRecipe.uid,
+            },
+          })
+        )
+      )
+      for (const r of batch) {
         syncResults.created++
-        createdRecipes.push({ name: paprikaRecipe.name, paprikaId: paprikaRecipe.uid })
+        createdRecipes.push({ name: r.name, paprikaId: r.uid })
       }
     }
 

@@ -28,73 +28,72 @@ const sortMealsLikePrisma = (meals: GeneratedPlannedMeal[]) =>
 
 /**
  * Same calendar day: each recipeId may appear at most once (cook or leftover—never both, never twice).
- * Later slots lose the recipe and become a placeholder custom meal.
+ * Duplicate later slots are dropped entirely so the UI shows an empty slot the user can fill.
  */
-const enforceUniqueRecipePerCalendarDay = (meals: GeneratedPlannedMeal[]): void => {
-  const sorted = sortMealsLikePrisma(meals)
+const dropDuplicateRecipesPerCalendarDay = (meals: GeneratedPlannedMeal[]): GeneratedPlannedMeal[] => {
   const byDate = new Map<string, GeneratedPlannedMeal[]>()
-  for (const m of sorted) {
+  for (const m of meals) {
     const list = byDate.get(m.date) ?? []
     list.push(m)
     byDate.set(m.date, list)
   }
 
+  const toDrop = new Set<GeneratedPlannedMeal>()
   for (const [, dayMeals] of byDate) {
     dayMeals.sort((a, b) => MEAL_ORDER[a.mealType as MealType] - MEAL_ORDER[b.mealType as MealType])
     const seenRecipe = new Set<string>()
-
     for (const m of dayMeals) {
       if (!m.recipeId) continue
       if (seenRecipe.has(m.recipeId)) {
-        m.recipeId = null
-        m.recipeName =
-          m.recipeName && m.recipeName.length > 0
-            ? `${m.recipeName.slice(0, 60)} (already planned today—choose another)`
-            : 'Choose another recipe (already used today)'
-        m.isLeftover = false
-        m.leftoverFromDate = null
-        m.leftoverFromMealType = null
+        toDrop.add(m)
       } else {
         seenRecipe.add(m.recipeId)
       }
     }
   }
+
+  return meals.filter(m => !toDrop.has(m))
 }
 
 /**
- * Drop leftovers whose in-plan source is missing or chronologically invalid.
- * Leftovers attributed to a cook **before the plan start** are kept (no source row in this plan).
+ * Drop any leftover that cannot be sourced from a cook within the plan and strictly
+ * before its own slot. Leftovers on day 1 of the plan are always invalid (nothing has
+ * cooked yet), as are leftovers whose claimed source is before the plan start.
+ * Invalid leftover rows are removed entirely rather than converted to placeholders.
  */
-const stripInvalidLeftovers = (meals: GeneratedPlannedMeal[], planStartStr: string): void => {
+const stripInvalidLeftovers = (
+  meals: GeneratedPlannedMeal[],
+  planStartStr: string
+): GeneratedPlannedMeal[] => {
   const keys = new Set(meals.map(m => slotKey(m.date, m.mealType as MealType)))
+  const toDrop = new Set<GeneratedPlannedMeal>()
 
   for (const m of meals) {
     if (!m.isLeftover) continue
+    if (m.date <= planStartStr) {
+      toDrop.add(m)
+      continue
+    }
     const fromD = m.leftoverFromDate
     const fromT = m.leftoverFromMealType as MealType | null | undefined
     if (!fromD || !fromT) {
-      m.isLeftover = false
-      m.leftoverFromDate = null
-      m.leftoverFromMealType = null
+      toDrop.add(m)
       continue
     }
-
     if (fromD < planStartStr) {
+      toDrop.add(m)
       continue
     }
-
     if (!keys.has(slotKey(fromD, fromT))) {
-      m.isLeftover = false
-      m.leftoverFromDate = null
-      m.leftoverFromMealType = null
+      toDrop.add(m)
       continue
     }
     if (!isSlotAfter(fromD, fromT, m.date, m.mealType as MealType)) {
-      m.isLeftover = false
-      m.leftoverFromDate = null
-      m.leftoverFromMealType = null
+      toDrop.add(m)
     }
   }
+
+  return meals.filter(m => !toDrop.has(m))
 }
 
 const normalizePortions = (meals: GeneratedPlannedMeal[], defaultPortion: number): PersistedPlanMealInput[] => {
@@ -179,9 +178,9 @@ export function processGeneratedMealsForPersistence(
   defaultPortion: number,
   planStartStr: string
 ): PersistedPlanMealInput[] {
-  const working = meals.map(m => ({ ...m, mealType: m.mealType as MealType }))
-  stripInvalidLeftovers(working, planStartStr)
-  enforceUniqueRecipePerCalendarDay(working)
+  let working = meals.map(m => ({ ...m, mealType: m.mealType as MealType }))
+  working = stripInvalidLeftovers(working, planStartStr)
+  working = dropDuplicateRecipesPerCalendarDay(working)
   const sorted = sortMealsLikePrisma(working)
   return normalizePortions(sorted, defaultPortion)
 }
@@ -234,9 +233,9 @@ export function processRegeneratedDayMeals(
   defaultPortion: number,
   planStartStr: string
 ): PersistedPlanMealInput[] {
-  const combined = [...lockedStubs, ...generatedDayMeals.map(m => ({ ...m }))]
-  stripInvalidLeftovers(combined, planStartStr)
-  enforceUniqueRecipePerCalendarDay(combined)
+  let combined = [...lockedStubs, ...generatedDayMeals.map(m => ({ ...m }))]
+  combined = stripInvalidLeftovers(combined, planStartStr)
+  combined = dropDuplicateRecipesPerCalendarDay(combined)
 
   const processed = normalizePortions(sortMealsLikePrisma(combined), defaultPortion)
   const lockedTypes = new Set(lockedStubs.map(l => l.mealType as MealType))

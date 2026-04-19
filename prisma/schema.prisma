@@ -2,8 +2,7 @@
 // Supports: Users, Households, Recipes, Meal Plans, Grocery Lists
 
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -318,6 +317,8 @@ model GroceryList {
   id         String   @id @default(cuid())
   mealPlanId String   @unique
   mealPlan   MealPlan @relation(fields: [mealPlanId], references: [id], onDelete: Cascade)
+
+  isStale Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import type { Prisma } from '@/generated/prisma/client'
+import type { Prisma } from '@prisma/client'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
 import { isRecipeAlreadyOnDate, ymd } from '@/lib/plan-meal-slots'
@@ -153,9 +153,9 @@ export async function PATCH(
     },
   })
 
-  // Invalidate cached grocery list when meal content changes
+  // Mark cached grocery list stale when meal content changes (preserves list; user can regenerate when ready).
   if (recipeId !== undefined || customName !== undefined || isLeftover !== undefined || leftoverSourceId !== undefined) {
-    await prisma.groceryList.deleteMany({ where: { mealPlanId: id } })
+    await prisma.groceryList.updateMany({ where: { mealPlanId: id }, data: { isStale: true } })
   }
 
   return NextResponse.json(updatedMeal)
@@ -209,7 +209,7 @@ export async function DELETE(
     where: { id: mealId },
   })
 
-  await prisma.groceryList.deleteMany({ where: { mealPlanId: id } })
+  await prisma.groceryList.updateMany({ where: { mealPlanId: id }, data: { isStale: true } })
 
   return NextResponse.json({ success: true })
 }

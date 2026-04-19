@@ -106,8 +106,12 @@ async function parseHistoricalData(rawData: string, source: string): Promise<{
   weekCount: number
   mealCount: number
 }> {
+  const currentYear = new Date().getFullYear()
+
   const ParsedMealSchema = z.object({
-    date: z.string().describe('Date in YYYY-MM-DD format (infer year if not provided, use 2026 for recent data)'),
+    date: z.string().describe(
+      `Date in YYYY-MM-DD format (infer year if not provided; prefer ${currentYear} for undated recent data)`
+    ),
     mealType: z.enum(['BREAKFAST', 'LUNCH', 'DINNER']),
     recipeName: z.string().describe('Name of the meal/recipe'),
     isLeftover: z.boolean().describe('True if this is marked as leftover (LO, leftover, etc.)'),
@@ -130,12 +134,12 @@ ${rawData}
 2. Identify leftovers - marked with "LO", "LO:", "Leftover", etc.
 3. Note any special markers like "x2" (double portion), "SLOW" (slow cooker), etc. in the notes field
 4. Infer dates from day names (Sat, Sun, Mon, etc.) - use the pattern and context to determine actual dates
-5. If the data starts with "Sat 12/13", assume it's December 13th, 2025 or the most recent occurrence
+5. If the data starts with "Sat 12/13", assume it's December 13th of the most recent occurrence (prefer ${currentYear} when ambiguous)
 6. Handle restaurant/eating out entries by using the restaurant name as the recipe name
 7. Skip completely empty cells
 
 ## Example Interpretation
-- "Sat 12/13" with "D: Chicken & Veggies" → date: 2025-12-13, mealType: DINNER, recipeName: "Chicken & Veggies"
+- "Sat 12/13" with "D: Chicken & Veggies" → date: YYYY-12-13 with the inferred year, mealType: DINNER, recipeName: "Chicken & Veggies"
 - "LO Buddha Bowl" → isLeftover: true, recipeName: "Buddha Bowl"
 - "Hippie Bowl x2" → recipeName: "Hippie Bowl", notes: "x2 (double portion)"
 - "Make Chili (SLOW)" → recipeName: "Chili", notes: "SLOW (slow cooker)"

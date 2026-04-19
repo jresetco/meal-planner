@@ -219,7 +219,7 @@ export async function POST(
 
     await applyLeftoverLinksForPlan(planId, processedNew)
 
-    await prisma.groceryList.deleteMany({ where: { mealPlanId: planId } })
+    await prisma.groceryList.updateMany({ where: { mealPlanId: planId }, data: { isStale: true } })
 
     // Fetch and return updated plan
     const updatedPlan = await prisma.mealPlan.findUnique({
@@ -364,7 +364,7 @@ export async function POST(
 
   await applyLeftoverLinksForPlan(planId, toInsert)
 
-  await prisma.groceryList.deleteMany({ where: { mealPlanId: planId } })
+  await prisma.groceryList.updateMany({ where: { mealPlanId: planId }, data: { isStale: true } })
 
   // Update plan reasoning
   await prisma.mealPlan.update({

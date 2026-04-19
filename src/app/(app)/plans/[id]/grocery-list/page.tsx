@@ -8,15 +8,16 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Separator } from '@/components/ui/separator'
-import { 
-  ArrowLeft, 
-  ShoppingCart, 
+import {
+  ArrowLeft,
+  ShoppingCart,
   Printer,
   Download,
   Copy,
   Check,
   Circle,
-  RefreshCw
+  RefreshCw,
+  AlertCircle
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -73,62 +74,65 @@ export default function GroceryListPage() {
   const planId = params.id as string
   
   const [categories, setCategories] = useState<GroceryCategory[]>([])
+  const [wholeMeals, setWholeMeals] = useState<string[]>([])
+  const [checkedWholeMeals, setCheckedWholeMeals] = useState<Set<string>>(new Set())
   const [isLoading, setIsLoading] = useState(true)
   const [isRegenerating, setIsRegenerating] = useState(false)
+  const [isStale, setIsStale] = useState(false)
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set())
   
   useEffect(() => {
     fetchGroceryList()
   }, [planId])
   
+  function applyGroceryData(data: {
+    isStale?: boolean
+    wholeMeals?: string[]
+    items?: { id: string; name: string; section?: string; quantity?: number | null; unit?: string | null; isChecked?: boolean; mealNames?: string[] }[]
+  }) {
+    setIsStale(Boolean(data.isStale))
+    setWholeMeals(Array.isArray(data.wholeMeals) ? data.wholeMeals : [])
+    const items = data.items || []
+    const grouped: Record<string, GroceryItem[]> = {}
+
+    for (const item of items) {
+      const sectionKey = item.section || 'OTHER'
+      const category = SECTION_TO_DISPLAY[sectionKey] || sectionKey.replace(/_/g, ' ')
+      if (!grouped[category]) grouped[category] = []
+      grouped[category].push({
+        id: item.id,
+        name: item.name,
+        quantity: item.quantity ?? 0,
+        unit: item.unit ?? '',
+        category,
+        isChecked: item.isChecked || false,
+        mealNames: item.mealNames || [],
+      })
+    }
+
+    const sortedCategories = CATEGORY_ORDER
+      .filter(cat => grouped[cat])
+      .map(cat => ({ name: cat, items: grouped[cat] }))
+
+    Object.keys(grouped)
+      .filter(cat => !CATEGORY_ORDER.includes(cat))
+      .forEach(cat => sortedCategories.push({ name: cat, items: grouped[cat] }))
+
+    setCategories(sortedCategories)
+
+    const initialChecked = new Set<string>()
+    items.forEach(item => { if (item.isChecked) initialChecked.add(item.id) })
+    setCheckedItems(initialChecked)
+  }
+
   async function fetchGroceryList() {
     try {
-      const response = await fetch(`/api/plans/${planId}/grocery`)
+      const response = await fetch(`/api/plans/${planId}/grocery`, { cache: 'no-store' })
       if (response.ok) {
-        const data = await response.json()
-        const items = data.items || []
-        // Group items by section (map to display name)
-        const grouped: Record<string, GroceryItem[]> = {}
-        
-        for (const item of items) {
-          const sectionKey = item.section || 'OTHER'
-          const category = SECTION_TO_DISPLAY[sectionKey] || sectionKey.replace(/_/g, ' ')
-          if (!grouped[category]) {
-            grouped[category] = []
-          }
-          grouped[category].push({
-            id: item.id,
-            name: item.name,
-            quantity: item.quantity ?? 0,
-            unit: item.unit ?? '',
-            category,
-            isChecked: item.isChecked || false,
-            mealNames: item.mealNames || [],
-          })
-        }
-        
-        // Sort categories according to order
-        const sortedCategories = CATEGORY_ORDER
-          .filter(cat => grouped[cat])
-          .map(cat => ({ name: cat, items: grouped[cat] }))
-        
-        // Add any categories not in the order list
-        Object.keys(grouped)
-          .filter(cat => !CATEGORY_ORDER.includes(cat))
-          .forEach(cat => sortedCategories.push({ name: cat, items: grouped[cat] }))
-        
-        setCategories(sortedCategories)
-        
-        // Load checked items from state
-        const initialChecked = new Set<string>()
-        items.forEach((item: { id: string; isChecked?: boolean }) => {
-          if (item.isChecked) {
-            initialChecked.add(item.id)
-          }
-        })
-        setCheckedItems(initialChecked)
+        applyGroceryData(await response.json())
       } else {
-        console.error('Failed to fetch grocery list')
+        const body = await response.text().catch(() => '')
+        console.error(`Failed to fetch grocery list (status ${response.status}):`, body)
       }
     } catch (error) {
       console.error('Error fetching grocery list:', error)
@@ -194,11 +198,15 @@ export default function GroceryListPage() {
     try {
       const response = await fetch(`/api/plans/${planId}/grocery`, {
         method: 'POST',
+        cache: 'no-store',
       })
       if (response.ok) {
-        await fetchGroceryList()
+        // POST returns the newly generated list; use it directly instead of
+        // firing a second GET (which could race with the response)
+        applyGroceryData(await response.json())
       } else {
-        const err = await response.json()
+        const err = await response.json().catch(() => ({}))
+        console.error(`Regenerate failed (status ${response.status}):`, err)
         alert(err.error || 'Failed to regenerate list')
       }
     } catch (error) {
@@ -215,14 +223,21 @@ export default function GroceryListPage() {
   
   const buildGroceryText = (useBullets: boolean) => {
     const lines: string[] = []
+    if (wholeMeals.length > 0) {
+      lines.push('\nWhole Meals')
+      wholeMeals.forEach(meal => {
+        const prefix = useBullets ? '- ' : (checkedWholeMeals.has(meal) ? '[x] ' : '[ ] ')
+        lines.push(`${prefix}${meal}`)
+      })
+    }
     categories.forEach(cat => {
       lines.push(`\n${cat.name}`)
       cat.items.forEach(item => {
-        const qty = item.quantity > 0 ? `${item.quantity}` : ''
-        const unit = item.unit ? ` ${item.unit}` : ''
-        const meals = item.mealNames.length > 0 ? ` (${item.mealNames.join(', ')})` : ''
+        const qtyParts = [item.quantity > 0 ? String(item.quantity) : '', item.unit || ''].filter(Boolean).join(' ')
+        const qty = qtyParts ? ` (${qtyParts})` : ''
+        const meals = item.mealNames.length > 0 ? ` [${item.mealNames.join(', ')}]` : ''
         const prefix = useBullets ? '- ' : (checkedItems.has(item.id) ? '[x] ' : '[ ] ')
-        lines.push(`${prefix}${qty}${unit} ${item.name}${meals}`)
+        lines.push(`${prefix}${item.name}${qty}${meals}`)
       })
     })
     return lines.join('\n').trim()
@@ -247,8 +262,8 @@ export default function GroceryListPage() {
     URL.revokeObjectURL(url)
   }
   
-  const totalItems = categories.reduce((sum, cat) => sum + cat.items.length, 0)
-  const checkedCount = checkedItems.size
+  const totalItems = categories.reduce((sum, cat) => sum + cat.items.length, 0) + wholeMeals.length
+  const checkedCount = checkedItems.size + Array.from(checkedWholeMeals).filter(m => wholeMeals.includes(m)).length
   
   if (isLoading) {
     return (
@@ -267,7 +282,7 @@ export default function GroceryListPage() {
   }
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-w-3xl mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -317,6 +332,23 @@ export default function GroceryListPage() {
         </div>
       </div>
       
+      {/* Stale banner — meal plan changed since this list was generated */}
+      {isStale && (
+        <div className="flex items-start gap-3 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-amber-900">
+          <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="font-medium">This grocery list may be out of date</p>
+            <p className="text-sm mt-0.5">
+              Meals in this plan have changed since the list was generated. Click Regenerate to refresh it.
+            </p>
+          </div>
+          <Button size="sm" onClick={handleRegenerate} disabled={isRegenerating}>
+            <RefreshCw className={cn('mr-2 h-4 w-4', isRegenerating && 'animate-spin')} />
+            Regenerate
+          </Button>
+        </div>
+      )}
+
       {/* Progress Bar */}
       <div className="w-full bg-slate-100 rounded-full h-3">
         <div 
@@ -325,8 +357,59 @@ export default function GroceryListPage() {
         />
       </div>
       
+      {/* Whole Meals — manually added meals without ingredient lists */}
+      {wholeMeals.length > 0 && (
+        <Card className="border-emerald-200">
+          <CardHeader className="py-2 px-4">
+            <CardTitle className="text-sm font-semibold flex items-center justify-between">
+              <span className="uppercase tracking-wide text-emerald-700">Whole Meals</span>
+              <span className="text-xs font-normal text-muted-foreground">
+                {Array.from(checkedWholeMeals).filter(m => wholeMeals.includes(m)).length}/{wholeMeals.length}
+              </span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="py-1 px-2">
+            <div>
+              {wholeMeals.map((mealName, idx) => {
+                const isChecked = checkedWholeMeals.has(mealName)
+                return (
+                  <div
+                    key={`${mealName}-${idx}`}
+                    className={cn(
+                      "flex items-center gap-3 px-2 py-1 rounded transition-colors cursor-pointer hover:bg-slate-50",
+                      isChecked && "bg-slate-50"
+                    )}
+                    onClick={() => {
+                      setCheckedWholeMeals(prev => {
+                        const next = new Set(prev)
+                        if (next.has(mealName)) next.delete(mealName)
+                        else next.add(mealName)
+                        return next
+                      })
+                    }}
+                  >
+                    <div className={cn(
+                      "w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors flex-shrink-0",
+                      isChecked ? "border-emerald-500 bg-emerald-500" : "border-slate-300"
+                    )}>
+                      {isChecked && <Check className="h-2.5 w-2.5 text-white" />}
+                    </div>
+                    <div className={cn(
+                      "flex-1 min-w-0 text-sm transition-colors",
+                      isChecked && "text-muted-foreground line-through"
+                    )}>
+                      <span className="font-medium truncate">{mealName}</span>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Empty State */}
-      {categories.length === 0 ? (
+      {categories.length === 0 && wholeMeals.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16">
             <ShoppingCart className="h-12 w-12 text-muted-foreground mb-4" />
@@ -337,54 +420,52 @@ export default function GroceryListPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="space-y-3">
           {categories.map((category) => (
             <Card key={category.name}>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg flex items-center justify-between">
-                  <span>{category.name}</span>
-                  <span className="text-sm font-normal text-muted-foreground">
+              <CardHeader className="py-2 px-4">
+                <CardTitle className="text-sm font-semibold flex items-center justify-between">
+                  <span className="uppercase tracking-wide text-muted-foreground">{category.name}</span>
+                  <span className="text-xs font-normal text-muted-foreground">
                     {category.items.filter(i => checkedItems.has(i.id)).length}/{category.items.length}
                   </span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-0">
-                <div className="space-y-2">
+              <CardContent className="py-1 px-2">
+                <div>
                   {category.items.map((item) => {
                     const isChecked = checkedItems.has(item.id)
                     return (
                       <div
                         key={item.id}
                         className={cn(
-                          "flex items-center gap-3 p-2 rounded-lg transition-colors cursor-pointer hover:bg-slate-50",
+                          "flex items-center gap-3 px-2 py-1 rounded transition-colors cursor-pointer hover:bg-slate-50",
                           isChecked && "bg-slate-50"
                         )}
                         onClick={() => handleToggleItem(item.id)}
                       >
                         <div className={cn(
-                          "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors",
-                          isChecked 
-                            ? "border-emerald-500 bg-emerald-500" 
+                          "w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors flex-shrink-0",
+                          isChecked
+                            ? "border-emerald-500 bg-emerald-500"
                             : "border-slate-300"
                         )}>
-                          {isChecked && <Check className="h-3 w-3 text-white" />}
+                          {isChecked && <Check className="h-2.5 w-2.5 text-white" />}
                         </div>
                         <div className={cn(
-                          "flex-1 min-w-0 transition-colors",
+                          "flex-1 min-w-0 flex items-baseline gap-2 transition-colors text-sm",
                           isChecked && "text-muted-foreground line-through"
                         )}>
-                          <div>
-                            <span className="font-medium">{item.name}</span>
-                            {(item.quantity > 0 || item.unit) && (
-                              <span className="text-muted-foreground ml-2">
-                                {item.quantity > 0 ? item.quantity : ''}{item.unit ? ` ${item.unit}` : ''}
-                              </span>
-                            )}
-                          </div>
+                          <span className="font-medium truncate">{item.name}</span>
+                          {(item.quantity > 0 || item.unit) && (
+                            <span className="text-muted-foreground text-xs flex-shrink-0">
+                              {item.quantity > 0 ? item.quantity : ''}{item.unit ? ` ${item.unit}` : ''}
+                            </span>
+                          )}
                           {item.mealNames.length > 0 && (
-                            <p className="text-xs text-muted-foreground truncate">
+                            <span className="text-xs text-muted-foreground truncate ml-auto">
                               {item.mealNames.join(', ')}
-                            </p>
+                            </span>
                           )}
                         </div>
                       </div>

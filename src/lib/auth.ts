@@ -1,5 +1,5 @@
-// Simplified auth - no authentication required for now
-// Phase 3: Add proper authentication (Google OAuth, etc.)
+// Single-user mode: mock session when APP_SINGLE_USER is not explicitly `false`.
+// When APP_SINGLE_USER=false, session is null until real NextAuth (or similar) is wired.
 
 import { cache } from 'react'
 import prisma from '@/lib/db'
@@ -7,6 +7,11 @@ import prisma from '@/lib/db'
 // Default household ID for the single-user/household mode
 export const DEFAULT_HOUSEHOLD_ID = 'default-household'
 export const DEFAULT_USER_ID = 'default-user'
+
+/** Single-tenant dev mode; set APP_SINGLE_USER=false when deploying multi-user auth. */
+export function isSingleUserModeEnabled(): boolean {
+  return process.env.APP_SINGLE_USER !== 'false'
+}
 
 /**
  * Approved email allowlist — comma-separated in ALLOWED_EMAILS env var.
@@ -73,6 +78,10 @@ async function ensureDefaultUserAndHousehold() {
 
 // Mock session for API routes — one Prisma bootstrap per request when called from RSC tree.
 async function getSessionUncached() {
+  if (!isSingleUserModeEnabled()) {
+    return null
+  }
+
   await ensureDefaultUserAndHousehold()
 
   return {

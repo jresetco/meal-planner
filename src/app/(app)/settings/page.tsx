@@ -20,7 +20,7 @@ import type { PantryStaple, HistoricalPlan } from '@/types'
 
 interface MealSettings {
   paprikaEmail: string | null
-  paprikaPassword: string | null
+  paprikaPasswordConfigured: boolean
   paprikaCategories: string[]
   paprikaMinRating: number | null
   paprikaLastSync: string | null
@@ -41,7 +41,7 @@ export default function SettingsPage() {
   // Meal settings
   const [mealSettings, setMealSettings] = useState<MealSettings>({
     paprikaEmail: '',
-    paprikaPassword: '',
+    paprikaPasswordConfigured: false,
     paprikaCategories: [],
     paprikaMinRating: 0,
     paprikaLastSync: null,
@@ -53,6 +53,12 @@ export default function SettingsPage() {
   const [newCategory, setNewCategory] = useState('')
   const [availableCategories, setAvailableCategories] = useState<{ uid: string; name: string }[]>([])
   const [isLoadingCategories, setIsLoadingCategories] = useState(false)
+  const [paprikaPasswordDraft, setPaprikaPasswordDraft] = useState('')
+
+  const canUsePaprikaRemote = Boolean(
+    mealSettings.paprikaEmail?.trim() &&
+      (mealSettings.paprikaPasswordConfigured || paprikaPasswordDraft.trim().length > 0)
+  )
 
   // Fetch data on mount
   useEffect(() => {
@@ -71,7 +77,7 @@ export default function SettingsPage() {
         const data = await settingsRes.json()
         setMealSettings({
           paprikaEmail: data.paprikaEmail || '',
-          paprikaPassword: data.paprikaPassword || '',
+          paprikaPasswordConfigured: Boolean(data.paprikaPasswordConfigured),
           paprikaCategories: data.paprikaCategories || [],
           paprikaMinRating: data.paprikaMinRating ?? 0,
           paprikaLastSync: data.paprikaLastSync,
@@ -80,6 +86,7 @@ export default function SettingsPage() {
           lunchTime: data.lunchTime || '12:00',
           dinnerTime: data.dinnerTime || '18:00',
         })
+        setPaprikaPasswordDraft('')
       }
       
       if (staplesRes.ok) {
@@ -111,13 +118,21 @@ export default function SettingsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           paprikaEmail: mealSettings.paprikaEmail,
-          paprikaPassword: mealSettings.paprikaPassword,
+          ...(paprikaPasswordDraft.trim()
+            ? { paprikaPassword: paprikaPasswordDraft.trim() }
+            : {}),
           paprikaCategories: mealSettings.paprikaCategories,
           paprikaMinRating: mealSettings.paprikaMinRating ?? 0,
         }),
       })
       
       if (response.ok) {
+        const data = await response.json()
+        setMealSettings((prev) => ({
+          ...prev,
+          paprikaPasswordConfigured: Boolean(data.paprikaPasswordConfigured),
+        }))
+        setPaprikaPasswordDraft('')
         alert('Paprika settings saved successfully!')
       } else {
         alert('Failed to save settings')
@@ -321,11 +336,19 @@ export default function SettingsPage() {
             </div>
             <div>
               <label className="text-sm font-medium">Paprika Password</label>
+              <p className="text-xs text-muted-foreground mb-1.5">
+                Stored encrypted on the server and never sent back to the browser. Enter a new password only to set or change it.
+              </p>
               <Input
                 type="password"
-                value={mealSettings.paprikaPassword || ''}
-                onChange={(e) => setMealSettings(prev => ({ ...prev, paprikaPassword: e.target.value }))}
-                placeholder="••••••••"
+                value={paprikaPasswordDraft}
+                onChange={(e) => setPaprikaPasswordDraft(e.target.value)}
+                placeholder={
+                  mealSettings.paprikaPasswordConfigured
+                    ? 'Leave blank to keep current password'
+                    : 'Paprika Cloud Sync password'
+                }
+                autoComplete="off"
               />
             </div>
             
@@ -356,7 +379,7 @@ export default function SettingsPage() {
                   variant="outline"
                   size="sm"
                   onClick={handleFetchPaprikaCategories}
-                  disabled={isLoadingCategories || !mealSettings.paprikaEmail || !mealSettings.paprikaPassword}
+                  disabled={isLoadingCategories || !canUsePaprikaRemote}
                 >
                   {isLoadingCategories ? 'Loading...' : 'Load categories from Paprika'}
                 </Button>
@@ -423,7 +446,7 @@ export default function SettingsPage() {
               </Button>
               <Button 
                 onClick={handleSyncPaprika} 
-                disabled={isSyncing || !mealSettings.paprikaEmail || !mealSettings.paprikaPassword}
+                disabled={isSyncing || !canUsePaprikaRemote}
                 variant="outline"
               >
                 <RefreshCw className={`mr-2 h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />

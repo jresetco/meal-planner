@@ -45,6 +45,16 @@ interface PaprikaRecipeManifest {
   in_trash?: boolean
 }
 
+function redactPaprikaResult(result: unknown): unknown {
+  if (result && typeof result === 'object' && 'token' in (result as object)) {
+    return { ...(result as object), token: '[redacted]' }
+  }
+  if (typeof result === 'string' && (result as string).length > 8) {
+    return '[redacted]'
+  }
+  return result
+}
+
 export class PaprikaClient {
   private baseUrl = 'https://www.paprikaapp.com/api/v2'
   private token: string | null = null
@@ -68,7 +78,9 @@ export class PaprikaClient {
       throw new Error('Invalid email address format')
     }
     
-    console.log('Attempting Paprika login for:', cleanEmail)
+    if (process.env.NODE_ENV !== 'production') {
+      console.log('Attempting Paprika login for:', cleanEmail)
+    }
     
     // Paprika requires an iOS User-Agent for login requests
     // Using a realistic iOS User-Agent string
@@ -100,8 +112,18 @@ export class PaprikaClient {
         throw new Error(`Paprika API returned non-JSON response: ${response.status} ${text.substring(0, 200)}`)
       }
       
-      console.log('Paprika API response status:', response.status)
-      console.log('Paprika API response data:', JSON.stringify(data, null, 2))
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Paprika API response status:', response.status)
+        const redacted =
+          typeof data === 'object' && data !== null
+            ? JSON.stringify(
+                { ...data, token: data.token ? '[redacted]' : undefined, result: redactPaprikaResult(data.result) },
+                null,
+                2
+              )
+            : String(data)
+        console.log('Paprika API response data (redacted):', redacted)
+      }
       
       // Check for error response first
       if (data.error) {
@@ -140,7 +162,9 @@ export class PaprikaClient {
         throw new Error('Authentication succeeded but no token was returned')
       }
       
-      console.log('Paprika authentication successful')
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('Paprika authentication successful')
+      }
     } catch (error) {
       // Re-throw if it's already our custom error
       if (error instanceof Error) {

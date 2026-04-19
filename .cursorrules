@@ -25,7 +25,7 @@ src/
 ├── lib/                   # Utilities and clients
 │   ├── auth.ts           # NextAuth configuration
 │   ├── db.ts             # Prisma client
-│   ├── crypto.ts         # AES-256-CBC encryption for secrets
+│   ├── crypto.ts         # AES-256-GCM encryption for secrets (legacy CBC decrypt)
 │   └── paprika/          # Paprika recipe sync client
 └── types/                # TypeScript type definitions
 
@@ -121,7 +121,8 @@ NEXTAUTH_URL=           # App URL (http://localhost:3000 for dev)
 NEXTAUTH_SECRET=        # NextAuth session secret
 GOOGLE_CLIENT_ID=       # Google OAuth client ID
 GOOGLE_CLIENT_SECRET=   # Google OAuth client secret
-ENCRYPTION_KEY=         # 64-char hex key for AES-256-CBC encryption
+ENCRYPTION_KEY=         # 64-char hex key for AES-256-GCM (legacy CBC decrypt supported)
+APP_SINGLE_USER=        # true = mock single-household session; false requires real auth
 OPENAI_API_KEY=         # OpenAI API key for GPT-5.2 meal planning
 ```
 

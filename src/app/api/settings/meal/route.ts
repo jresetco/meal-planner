@@ -1,12 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
-import { encrypt, decrypt, isEncrypted } from '@/lib/crypto'
+import { encrypt } from '@/lib/crypto'
+import type { MealSettings } from '@prisma/client'
 
-// GET /api/settings/meal - Get meal settings
-export async function GET(request: NextRequest) {
+function sanitizeMealSettingsResponse(settings: MealSettings) {
+  const { paprikaPassword: _removed, ...rest } = settings
+  return {
+    ...rest,
+    paprikaPasswordConfigured: Boolean(settings.paprikaPassword?.length),
+  }
+}
+
+// GET /api/settings/meal - Get meal settings (never returns Paprika password plaintext)
+export async function GET(_request: NextRequest) {
   const session = await auth()
-  
+
   if (!session?.user?.householdId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
@@ -15,7 +24,6 @@ export async function GET(request: NextRequest) {
     where: { householdId: session.user.householdId },
   })
 
-  // Create default settings if they don't exist
   if (!settings) {
     settings = await prisma.mealSettings.create({
       data: {
@@ -24,27 +32,19 @@ export async function GET(request: NextRequest) {
     })
   }
 
-  // Decrypt password if it exists and is encrypted
-  if (settings.paprikaPassword && isEncrypted(settings.paprikaPassword)) {
-    return NextResponse.json({
-      ...settings,
-      paprikaPassword: decrypt(settings.paprikaPassword),
-    })
-  }
-
-  return NextResponse.json(settings)
+  return NextResponse.json(sanitizeMealSettingsResponse(settings))
 }
 
 // PATCH /api/settings/meal - Update meal settings
 export async function PATCH(request: NextRequest) {
   const session = await auth()
-  
+
   if (!session?.user?.householdId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   const body = await request.json()
-  
+
   const {
     breakfastTime,
     lunchTime,
@@ -57,17 +57,32 @@ export async function PATCH(request: NextRequest) {
     maxLeftoversPerWeek,
     paprikaEmail,
     paprikaPassword,
+    paprikaClearPassword,
     paprikaCategories,
     paprikaMinRating,
-  } = body
+  } = body as {
+    breakfastTime?: string
+    lunchTime?: string
+    dinnerTime?: string
+    breakfastEnabled?: boolean
+    lunchEnabled?: boolean
+    dinnerEnabled?: boolean
+    defaultServings?: number
+    defaultMaxRepeats?: number
+    maxLeftoversPerWeek?: number
+    paprikaEmail?: string | null
+    paprikaPassword?: string
+    paprikaClearPassword?: boolean
+    paprikaCategories?: string[]
+    paprikaMinRating?: number | null
+  }
 
-  // Check if settings exist
   const existingSettings = await prisma.mealSettings.findUnique({
     where: { householdId: session.user.householdId },
   })
 
-  const updateData: any = {}
-  
+  const updateData: Record<string, unknown> = {}
+
   if (breakfastTime !== undefined) updateData.breakfastTime = breakfastTime
   if (lunchTime !== undefined) updateData.lunchTime = lunchTime
   if (dinnerTime !== undefined) updateData.dinnerTime = dinnerTime
@@ -78,11 +93,20 @@ export async function PATCH(request: NextRequest) {
   if (defaultMaxRepeats !== undefined) updateData.defaultMaxRepeats = defaultMaxRepeats
   if (maxLeftoversPerWeek !== undefined) updateData.maxLeftoversPerWeek = maxLeftoversPerWeek
   if (paprikaEmail !== undefined) updateData.paprikaEmail = paprikaEmail
-  if (paprikaPassword !== undefined) updateData.paprikaPassword = encrypt(paprikaPassword)
+
+  if (paprikaClearPassword === true) {
+    updateData.paprikaPassword = null
+  } else if (paprikaPassword !== undefined) {
+    const trimmed = typeof paprikaPassword === 'string' ? paprikaPassword.trim() : ''
+    if (trimmed.length > 0) {
+      updateData.paprikaPassword = encrypt(trimmed)
+    }
+  }
+
   if (paprikaCategories !== undefined) updateData.paprikaCategories = paprikaCategories
   if (paprikaMinRating !== undefined) updateData.paprikaMinRating = paprikaMinRating
 
-  let settings
+  let settings: MealSettings
   if (existingSettings) {
     settings = await prisma.mealSettings.update({
       where: { householdId: session.user.householdId },
@@ -97,5 +121,5 @@ export async function PATCH(request: NextRequest) {
     })
   }
 
-  return NextResponse.json(settings)
+  return NextResponse.json(sanitizeMealSettingsResponse(settings))
 }

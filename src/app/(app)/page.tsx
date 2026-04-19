@@ -9,7 +9,8 @@ import {
   Sparkles,
   ArrowRight,
   Clock,
-  TrendingUp
+  TrendingUp,
+  Star,
 } from 'lucide-react'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
@@ -94,7 +95,7 @@ async function QuickStats({ householdId }: { householdId: string }) {
 }
 
 async function GettingStartedSection({ householdId }: { householdId: string }) {
-  const [activePlan, rulesCount, hasSettings] = await Promise.all([
+  const [activePlan, rulesCount, mealCreds] = await Promise.all([
     prisma.mealPlan.findFirst({
       where: { householdId },
       orderBy: { startDate: 'desc' },
@@ -105,13 +106,13 @@ async function GettingStartedSection({ householdId }: { householdId: string }) {
     }),
     prisma.mealSettings.findUnique({
       where: { householdId },
-      select: { paprikaEmail: true },
+      select: { paprikaEmail: true, paprikaPassword: true },
     }),
   ])
 
   return (
     <GettingStarted
-      hasPaprika={!!hasSettings?.paprikaEmail}
+      hasPaprika={Boolean(mealCreds?.paprikaEmail?.trim() && mealCreds?.paprikaPassword)}
       hasRules={rulesCount > 0}
       hasPlans={!!activePlan}
     />
@@ -119,7 +120,7 @@ async function GettingStartedSection({ householdId }: { householdId: string }) {
 }
 
 async function RecentActivity({ householdId }: { householdId: string }) {
-  const [recentPlans, topRecipes] = await Promise.all([
+  const [recentPlans, mostPlannedGroups, highestRatedRecipes] = await Promise.all([
     prisma.mealPlan.findMany({
       where: { householdId },
       orderBy: { startDate: 'desc' },
@@ -131,16 +132,52 @@ async function RecentActivity({ householdId }: { householdId: string }) {
         },
       },
     }),
-    prisma.recipe.findMany({
-      where: { householdId, isActive: true },
-      orderBy: { createdAt: 'desc' },
+    prisma.plannedMeal.groupBy({
+      by: ['recipeId'],
+      where: {
+        mealPlan: { householdId },
+        recipeId: { not: null },
+        isLeftover: false,
+        status: 'PLANNED',
+      },
+      _count: { recipeId: true },
+      orderBy: { _count: { recipeId: 'desc' } },
       take: 5,
-      select: { id: true, name: true },
+    }),
+    prisma.recipe.findMany({
+      where: { householdId, isActive: true, rating: { not: null } },
+      orderBy: [{ rating: 'desc' }, { name: 'asc' }],
+      take: 5,
+      select: { id: true, name: true, rating: true },
     }),
   ])
 
+  const recipeIds = mostPlannedGroups
+    .map((g) => g.recipeId)
+    .filter((id): id is string => Boolean(id))
+
+  const recipesForCounts =
+    recipeIds.length > 0
+      ? await prisma.recipe.findMany({
+          where: { id: { in: recipeIds }, householdId },
+          select: { id: true, name: true },
+        })
+      : []
+
+  const recipeById = new Map(recipesForCounts.map((r) => [r.id, r]))
+
+  const mostPlanned = mostPlannedGroups
+    .map((g) => {
+      const id = g.recipeId
+      if (!id) return null
+      const r = recipeById.get(id)
+      if (!r) return null
+      return { id: r.id, name: r.name, count: g._count.recipeId }
+    })
+    .filter((row): row is { id: string; name: string; count: number } => row !== null)
+
   return (
-    <div className="grid gap-4 md:grid-cols-2">
+    <div className="grid gap-4 lg:grid-cols-3">
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Recent Plans</CardTitle>
@@ -175,21 +212,66 @@ async function RecentActivity({ householdId }: { householdId: string }) {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Top Recipes</CardTitle>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-muted-foreground" />
+            Most planned
+          </CardTitle>
+          <p className="text-sm text-muted-foreground font-normal">
+            Recipes that show up most often across your saved plans (planned slots only, not leftovers).
+          </p>
         </CardHeader>
         <CardContent>
-          {topRecipes.length === 0 ? (
+          {mostPlanned.length === 0 ? (
             <div className="flex items-center justify-center h-32 text-muted-foreground">
               <div className="text-center">
                 <TrendingUp className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Add recipes to see your favorites</p>
+                <p className="text-sm">Generate a few plans to see which recipes you repeat</p>
               </div>
             </div>
           ) : (
             <div className="space-y-2">
-              {topRecipes.map((recipe) => (
-                <Button key={recipe.id} variant="ghost" className="w-full justify-start" asChild>
-                  <Link href={`/recipes/${recipe.id}`}>{recipe.name}</Link>
+              {mostPlanned.map((recipe) => (
+                <Button key={recipe.id} variant="ghost" className="w-full justify-between" asChild>
+                  <Link href={`/recipes/${recipe.id}`}>
+                    <span className="truncate text-left">{recipe.name}</span>
+                    <span className="text-xs text-muted-foreground shrink-0">{recipe.count}×</span>
+                  </Link>
+                </Button>
+              ))}
+              <Button variant="outline" className="w-full mt-2" asChild>
+                <Link href="/recipes">View all recipes</Link>
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Star className="h-5 w-5 text-muted-foreground" />
+            Highest rated
+          </CardTitle>
+          <p className="text-sm text-muted-foreground font-normal">
+            Starred recipes in your library, highest rating first; ties sorted A–Z by name.
+          </p>
+        </CardHeader>
+        <CardContent>
+          {highestRatedRecipes.length === 0 ? (
+            <div className="flex items-center justify-center h-32 text-muted-foreground">
+              <div className="text-center">
+                <Star className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">Rate recipes in your library to see this list</p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {highestRatedRecipes.map((recipe) => (
+                <Button key={recipe.id} variant="ghost" className="w-full justify-between" asChild>
+                  <Link href={`/recipes/${recipe.id}`}>
+                    <span className="truncate text-left">{recipe.name}</span>
+                    <span className="text-xs text-muted-foreground shrink-0">{recipe.rating}★</span>
+                  </Link>
                 </Button>
               ))}
               <Button variant="outline" className="w-full mt-2" asChild>
@@ -245,7 +327,8 @@ export default async function DashboardPage() {
 
           {/* Recent Activity — streams independently */}
           <Suspense fallback={
-            <div className="grid gap-4 md:grid-cols-2">
+            <div className="grid gap-4 lg:grid-cols-3">
+              <ActivityCardSkeleton />
               <ActivityCardSkeleton />
               <ActivityCardSkeleton />
             </div>

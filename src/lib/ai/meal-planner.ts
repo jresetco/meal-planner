@@ -1,6 +1,7 @@
 import { streamObject, generateObject } from 'ai'
 import { z } from 'zod'
-import { getAIModel, getFallbackModel, STREAMING_CONFIG } from './provider'
+import { getAIModel, getFallbackModel, getSimpleModel, STREAMING_CONFIG } from './provider'
+import { logMealPlanIntelligence } from './meal-plan-intelligence-log'
 import type { Recipe, SoftRule, MealType, RecipeType, MaxFrequency, MealEditHistory, HistoricalPlan, MealComponent } from '@/types'
 
 // Schema for dynamic meal component references
@@ -32,7 +33,7 @@ const MealPlanSchema = z.object({
     'Concise explanation of plan choices and trade-offs. Do not write lengthy audits of portion math or apologize for plan-boundary limits.'
   ),
   leftoverSummary: z.string().describe(
-    'Short summary of leftover usage. OK to note uneaten batch after the plan ends or before-plan leftovers when rules require it—no need for perfect math inside the date range.'
+    'Short summary of leftover usage within the plan. Every leftover must reference an in-plan cook from an earlier slot; do not reference before-plan cooks. OK to note uneaten batch after the plan ends.'
   ),
 })
 
@@ -146,14 +147,14 @@ export async function generateMealPlanWithStreaming(
 ## Plan date boundary (important)
 - You may only output meals **on dates from the given start through end inclusive**. There are no slots after the last day.
 - If a cook near the end of the plan leaves extra servings that **cannot** fit as leftover rows inside the window, that is **normal**—assume they are eaten after the plan or frozen; **do not** treat it as a failure, apologize at length, or block the plan.
-- **Before-plan leftovers** (leftoverFromDate before the plan start, or narrative "made before this week") are allowed when needed to satisfy user hard rules (e.g. leftover-only days). Keep \`reasoning\` and \`leftoverSummary\` brief and practical—no long self-critique.
+- **Before-plan leftovers are NOT allowed.** Every leftover must reference a cook that happens **within this plan** at a slot strictly earlier than the leftover slot. Do not reference cooks that happened before the plan start, and do not invent "made last week" narrative leftovers. The validator will delete any leftover that cannot be traced to an in-plan cook.
 
 ## Leftover Rules (CRITICAL):
 - When a recipe is made, estimate: servings_prepared vs household_size and schedule leftover rows when there is room in the date range.
 - Leftovers MUST be chronologically AFTER the original cook (later calendar date, or the same date only at a later meal type). Never schedule a leftover at or before its source slot in time order.
 - **The same recipeId MUST NOT appear twice on the same calendar day for any reason—not as cook + leftover, not as two leftovers, not twice cooked.** Put leftover portions of a dish on **later calendar days** only (the cook day has that recipe once; leftover rows use the same recipeId on subsequent dates).
 - Prefer consuming leftovers within a couple of days after the cook when slots exist; you are NOT required to place them on the very next calendar day.
-- On the FIRST day of the plan, do not mark leftovers as coming from a cook that same day before that cook appears. Leftovers on day 1 from **before the plan period** are fine when rules require it.
+- **The FIRST day of the plan cannot contain any leftovers.** Nothing has been cooked yet. Every slot on day 1 must be a cook (recipe or dynamic meal), never a leftover.
 - **Servings math is a guide, not a rigid ledger**—\`servings\` / \`servingsUsed\` should be plausible; small imbalances or end-of-plan leftovers are acceptable.
 - Leftover meals should be marked with isLeftover=true and reference the original meal (leftoverFromDate + leftoverFromMealType) when they are true leftovers from within the plan.
 
@@ -287,7 +288,7 @@ ${editPatterns}
       schema: MealPlanSchema,
       system: systemPrompt,
       prompt: userPrompt,
-      temperature: STREAMING_CONFIG.temperature,
+      maxOutputTokens: STREAMING_CONFIG.maxTokens,
     })
 
     // Track progress through the stream
@@ -345,6 +346,7 @@ ${editPatterns}
       schema: MealPlanSchema,
       system: systemPrompt,
       prompt: userPrompt,
+      maxOutputTokens: STREAMING_CONFIG.maxTokens,
     })
 
     return result.object
@@ -416,7 +418,7 @@ Also provide suggestedSwaps if other meals should be adjusted due to leftover ch
     suggestedSwaps: z.array(z.string()).nullable().describe('Other meals that may need adjustment due to leftover chains'),
   })
 
-  const model = getAIModel()
+  const model = getSimpleModel()
   
   const result = await generateObject({
     model,
@@ -477,7 +479,7 @@ Consider leftover opportunities from previous days or for following days.`
     reasoning: z.string(),
   })
 
-  const model = getAIModel()
+  const model = getSimpleModel()
   
   const result = await generateObject({
     model,
@@ -524,7 +526,7 @@ Provide ${count} good alternatives that would fit well in this slot, considering
     })),
   })
 
-  const model = getAIModel()
+  const model = getSimpleModel()
   
   const result = await generateObject({
     model,
@@ -535,56 +537,159 @@ Provide ${count} good alternatives that would fit well in this slot, considering
   return result.object
 }
 
+const MAX_HIST_CONTEXT_CHARS = 2200
+const MAX_EDIT_CONTEXT_CHARS = 1200
+
+function normalizeMealLabel(name: string): string {
+  return name.replace(/\s+/g, ' ').trim()
+}
+
+function topCounts(map: Map<string, number>, n: number, minCount = 1): [string, number][] {
+  return [...map.entries()]
+    .filter(([, c]) => c >= minCount)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, n)
+}
+
 /**
- * Analyze historical data to extract patterns for the AI
+ * Derive compact, high-signal context from imported historical plans and edit telemetry.
+ * Improves over time as more history and edits accumulate.
  */
 export function summarizeHistoricalPatterns(
   historicalPlans: HistoricalPlan[],
   editHistory: MealEditHistory[]
 ): { historicalContext: string; editPatterns: string } {
-  // Analyze historical plans
-  let historicalContext = ''
-  
-  if (historicalPlans.length > 0) {
-    const patterns: string[] = []
-    
-    // Extract common patterns from historical data
-    // This is a simplified version - in production you'd want more sophisticated analysis
-    patterns.push(`Based on ${historicalPlans.length} historical meal plans:`)
-    
-    // Look for day-of-week patterns
-    const dayPatterns = new Map<string, string[]>()
-    for (const plan of historicalPlans) {
-      const data = plan.data as { meals?: Array<{ date: string; mealType: string; recipeName: string }> }
-      if (data.meals) {
-        for (const meal of data.meals) {
-          const dayOfWeek = new Date(meal.date).toLocaleDateString('en-US', { weekday: 'long' })
-          if (!dayPatterns.has(dayOfWeek)) {
-            dayPatterns.set(dayOfWeek, [])
-          }
-          dayPatterns.get(dayOfWeek)!.push(meal.recipeName)
-        }
-      }
-    }
-    
-    historicalContext = patterns.join('\n')
+  if (historicalPlans.length === 0) {
+    logMealPlanIntelligence(
+      'HIST_NONE',
+      'No HistoricalPlan rows; import history in Settings to strengthen planning context.'
+    )
   }
 
-  // Analyze edit history
-  let editPatterns = ''
-  
-  if (editHistory.length > 0) {
-    const swaps = editHistory.filter(e => e.editType === 'SWAP')
-    const locks = editHistory.filter(e => e.editType === 'LOCK')
-    
-    if (swaps.length > 0) {
-      editPatterns += `User has swapped ${swaps.length} AI-generated meals.\n`
-      // Could analyze what recipes were swapped out vs in
+  const recipeTotals = new Map<string, number>()
+  const byWeekday = new Map<string, Map<string, number>>()
+  let mealRows = 0
+  let leftoverRows = 0
+
+  for (const plan of historicalPlans) {
+    const data = plan.data as {
+      meals?: Array<{
+        date: string
+        mealType: string
+        recipeName: string
+        isLeftover?: boolean
+      }>
     }
-    
-    if (locks.length > 0) {
-      editPatterns += `User has locked ${locks.length} meals, indicating satisfaction.\n`
+    if (!data?.meals?.length) {
+      continue
     }
+    for (const meal of data.meals) {
+      const label = normalizeMealLabel(meal.recipeName || '')
+      if (!label) continue
+      mealRows++
+      if (meal.isLeftover) leftoverRows++
+      recipeTotals.set(label, (recipeTotals.get(label) ?? 0) + 1)
+      let dow = 'Unknown'
+      try {
+        dow = new Date(meal.date + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long' })
+      } catch {
+        /* keep Unknown */
+      }
+      if (!byWeekday.has(dow)) byWeekday.set(dow, new Map())
+      const m = byWeekday.get(dow)!
+      m.set(label, (m.get(label) ?? 0) + 1)
+    }
+  }
+
+  if (historicalPlans.length > 0 && mealRows === 0) {
+    logMealPlanIntelligence(
+      'HIST_NO_MEALS_IN_JSON',
+      `${historicalPlans.length} historical import(s) had no usable meals[] in JSON.`
+    )
+  }
+
+  const lines: string[] = []
+  if (mealRows > 0) {
+    lines.push(
+      `Historical imports (${historicalPlans.length} file(s), ${mealRows} meal rows, ~${Math.round((leftoverRows / Math.max(mealRows, 1)) * 100)}% marked leftover):`
+    )
+    const overallTop = topCounts(recipeTotals, 12, 2)
+    if (overallTop.length) {
+      lines.push(
+        `- Often repeated dishes: ${overallTop.map(([n, c]) => `"${n}" (${c}×)`).join('; ')}.`
+      )
+    }
+    const weekdayBits: string[] = []
+    for (const day of ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']) {
+      const m = byWeekday.get(day)
+      if (!m) continue
+      const top = topCounts(m, 3, 2)
+      if (top.length) {
+        weekdayBits.push(`${day}: ${top.map(([n]) => n).join(', ')}`)
+      }
+    }
+    if (weekdayBits.length) {
+      lines.push(`- Weekday tendencies: ${weekdayBits.join(' | ')}.`)
+    }
+    lines.push(
+      '- Prefer aligning new plans with these frequencies and weekday habits when rules allow.'
+    )
+  }
+
+  let historicalContext = lines.join('\n')
+  if (historicalContext.length > MAX_HIST_CONTEXT_CHARS) {
+    historicalContext = historicalContext.slice(0, MAX_HIST_CONTEXT_CHARS - 3) + '...'
+    logMealPlanIntelligence('HIST_TRUNCATED_SUMMARY', `Trimmed historicalContext to ${MAX_HIST_CONTEXT_CHARS} chars for token budget.`)
+  }
+
+  if (editHistory.length === 0) {
+    logMealPlanIntelligence('EDIT_NONE', 'No MealEditHistory yet; swaps/locks will enrich this block over time.')
+  }
+
+  const swaps = editHistory.filter(e => e.editType === 'SWAP')
+  const locks = editHistory.filter(e => e.editType === 'LOCK')
+  const regenerates = editHistory.filter(e => e.editType === 'REGENERATE')
+
+  const swappedOut = new Map<string, number>()
+  const swappedIn = new Map<string, number>()
+  for (const e of swaps) {
+    const outName = normalizeMealLabel(e.originalRecipeName || '')
+    const inName = normalizeMealLabel(e.newRecipeName || '')
+    if (outName) swappedOut.set(outName, (swappedOut.get(outName) ?? 0) + 1)
+    if (inName) swappedIn.set(inName, (swappedIn.get(inName) ?? 0) + 1)
+  }
+  if (swaps.length > 0 && swappedOut.size === 0 && swappedIn.size === 0) {
+    logMealPlanIntelligence(
+      'EDIT_SWAP_DETAIL_MISSING',
+      `${swaps.length} SWAP edits lack original/new recipe names; backfill or log names on swap.`
+    )
+  }
+
+  const editLines: string[] = []
+  editLines.push(
+    `Recent edits (telemetry, last ${editHistory.length} events): ${swaps.length} swap(s), ${locks.length} lock(s), ${regenerates.length} regenerate(s).`
+  )
+  const outTop = topCounts(swappedOut, 8, 1)
+  const inTop = topCounts(swappedIn, 8, 1)
+  if (outTop.length) {
+    editLines.push(
+      `- Frequently replaced (consider deprioritizing or varying): ${outTop.map(([n, c]) => `"${n}" (${c}×)`).join('; ')}.`
+    )
+  }
+  if (inTop.length) {
+    editLines.push(
+      `- Frequently chosen replacements (user preference signal): ${inTop.map(([n, c]) => `"${n}" (${c}×)`).join('; ')}.`
+    )
+  }
+  if (locks.length > 0) {
+    editLines.push(
+      `- ${locks.length} locked meal(s) indicate slots the user wants kept—respect locks and similar dishes when regenerating nearby days.`
+    )
+  }
+
+  let editPatterns = editLines.join('\n')
+  if (editPatterns.length > MAX_EDIT_CONTEXT_CHARS) {
+    editPatterns = editPatterns.slice(0, MAX_EDIT_CONTEXT_CHARS - 3) + '...'
   }
 
   return { historicalContext, editPatterns }
