@@ -30,7 +30,6 @@
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.2",
     "@ai-sdk/openai": "^3.0.2",
-    "@auth/prisma-adapter": "^2.11.1",
     "@neondatabase/serverless": "^1.0.2",
     "@opentelemetry/api": "1.9.0",
     "@prisma/adapter-neon": "7.6.0",
@@ -55,7 +54,6 @@
     "dotenv": "^17.2.3",
     "lucide-react": "^0.562.0",
     "next": "^16.2.4",
-    "next-auth": "^4.24.13",
     "openai": "^6.15.0",
     "pg": "^8.16.3",
     "pg-types": "^4.1.0",
