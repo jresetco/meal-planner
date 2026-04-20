@@ -1,7 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
 import type { ComponentCategory } from '@/types'
+
+const CreateMealComponentSchema = z.object({
+  category: z.enum(['PROTEIN', 'VEGGIE', 'STARCH', 'SAUCE']),
+  name: z.string().min(1).max(500),
+  prepMethods: z.array(z.string().max(500)).optional(),
+  defaultCookTime: z.number().int().nullish(),
+  typicalIngredients: z.array(z.any()).nullish(),
+})
 
 // GET /api/settings/meal-components - Get all meal components
 export async function GET(request: NextRequest) {
@@ -33,17 +42,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const body = await request.json()
-  const { category, name, prepMethods, defaultCookTime, typicalIngredients } = body
-
-  if (!category || !name) {
-    return NextResponse.json({ error: 'category and name are required' }, { status: 400 })
+  const parsed = CreateMealComponentSchema.safeParse(await request.json())
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
   }
-
-  const validCategories: ComponentCategory[] = ['PROTEIN', 'VEGGIE', 'STARCH', 'SAUCE']
-  if (!validCategories.includes(category)) {
-    return NextResponse.json({ error: 'Invalid category' }, { status: 400 })
-  }
+  const { category, name, prepMethods, defaultCookTime, typicalIngredients } = parsed.data
 
   const component = await prisma.mealComponent.create({
     data: {
@@ -52,7 +55,9 @@ export async function POST(request: NextRequest) {
       name: name.trim(),
       prepMethods: prepMethods || [],
       defaultCookTime: defaultCookTime || null,
-      typicalIngredients: typicalIngredients || null,
+      ...(typicalIngredients !== undefined && typicalIngredients !== null
+        ? { typicalIngredients }
+        : {}),
     },
   })
 

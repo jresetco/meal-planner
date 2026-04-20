@@ -1,44 +1,49 @@
-// Single-user mode: mock session when APP_SINGLE_USER is not explicitly `false`.
-// When APP_SINGLE_USER=false, session is null until real NextAuth (or similar) is wired.
+// Single-user auth: magic-link session cookie gates access, and all authenticated
+// requests resolve to the one default household. The middleware enforces the gate
+// at the edge; this module is the defense-in-depth check inside API/RSC code.
 
 import { cache } from 'react'
+import { cookies } from 'next/headers'
 import prisma from '@/lib/db'
+import { verifySessionToken, AUTH_COOKIE_NAME } from '@/lib/session-token'
 
-// Default household ID for the single-user/household mode
 export const DEFAULT_HOUSEHOLD_ID = 'default-household'
 export const DEFAULT_USER_ID = 'default-user'
 
-/** Single-tenant dev mode; set APP_SINGLE_USER=false when deploying multi-user auth. */
+/** When APP_AUTH_SECRET is unset we are in legacy mock mode (local dev only). */
+function isMockAuthMode(): boolean {
+  return !process.env.APP_AUTH_SECRET
+}
+
+/** Whether single-tenant behavior is active (every authorized request gets the default household). */
 export function isSingleUserModeEnabled(): boolean {
   return process.env.APP_SINGLE_USER !== 'false'
 }
 
 /**
- * Approved email allowlist — comma-separated in ALLOWED_EMAILS env var.
- * When real auth (NextAuth) is added, check this before creating sessions.
- * Returns true if the allowlist is not configured (open access) or if the email is on the list.
+ * Approved email allowlist. Prefers APP_AUTH_EMAIL (single email, matches job-hunter pattern),
+ * falls back to ALLOWED_EMAILS (comma-separated, legacy meal-planner pattern).
+ * Returns true when no allowlist is configured (open access).
  */
 export function isEmailAllowed(email: string): boolean {
-  const allowlist = process.env.ALLOWED_EMAILS
-  if (!allowlist) return true
-  const allowed = allowlist.split(',').map(e => e.trim().toLowerCase())
+  const single = process.env.APP_AUTH_EMAIL
+  if (single) return email.trim().toLowerCase() === single.trim().toLowerCase()
+  const multi = process.env.ALLOWED_EMAILS
+  if (!multi) return true
+  const allowed = multi.split(',').map((e) => e.trim().toLowerCase())
   return allowed.includes(email.trim().toLowerCase())
 }
 
-// Track whether default user/household have been verified this process lifetime
 let defaultsVerified = false
 
-// Ensure default user and household exist (skips DB check after first successful verification)
 async function ensureDefaultUserAndHousehold() {
   if (defaultsVerified) return
 
-  // Check if default household exists
   let household = await prisma.household.findUnique({
-    where: { id: DEFAULT_HOUSEHOLD_ID }
+    where: { id: DEFAULT_HOUSEHOLD_ID },
   })
 
   if (!household) {
-    // Create default household with meal settings
     household = await prisma.household.create({
       data: {
         id: DEFAULT_HOUSEHOLD_ID,
@@ -50,36 +55,54 @@ async function ensureDefaultUserAndHousehold() {
             dinnerEnabled: true,
             defaultServings: 2,
             defaultMaxRepeats: 2,
-          }
-        }
-      }
+          },
+        },
+      },
     })
   }
 
-  // Check if default user exists
-  let user = await prisma.user.findUnique({
-    where: { id: DEFAULT_USER_ID }
+  const user = await prisma.user.findUnique({
+    where: { id: DEFAULT_USER_ID },
   })
 
   if (!user) {
-    user = await prisma.user.create({
+    await prisma.user.create({
       data: {
         id: DEFAULT_USER_ID,
         email: 'user@mealplanner.local',
         name: 'Default User',
         householdId: DEFAULT_HOUSEHOLD_ID,
-      }
+      },
     })
   }
 
   defaultsVerified = true
-  return { user, household }
 }
 
-// Mock session for API routes — one Prisma bootstrap per request when called from RSC tree.
-async function getSessionUncached() {
+export interface Session {
+  user: {
+    id: string
+    householdId: string
+    email: string
+    name: string
+  }
+}
+
+async function getSessionUncached(): Promise<Session | null> {
   if (!isSingleUserModeEnabled()) {
     return null
+  }
+
+  let email = 'user@mealplanner.local'
+
+  if (isMockAuthMode()) {
+    // Local dev without APP_AUTH_SECRET — keep the old mock so `npm run dev` just works.
+  } else {
+    const store = await cookies()
+    const token = store.get(AUTH_COOKIE_NAME)?.value
+    const payload = await verifySessionToken(token)
+    if (!payload) return null
+    email = payload.sub
   }
 
   await ensureDefaultUserAndHousehold()
@@ -88,13 +111,11 @@ async function getSessionUncached() {
     user: {
       id: DEFAULT_USER_ID,
       householdId: DEFAULT_HOUSEHOLD_ID,
-      email: 'user@mealplanner.local',
+      email,
       name: 'Default User',
     },
   }
 }
 
 export const getSession = cache(getSessionUncached)
-
-// Alias for compatibility
 export const auth = getSession

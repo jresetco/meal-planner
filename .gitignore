@@ -50,3 +50,12 @@ next-env.d.ts
 
 # specstory
 .specstory/
+
+# IDE artifacts
+.cursor/
+.vscode/
+.idea/
+
+# Office lock files and spreadsheets
+*.xlsx
+~$*

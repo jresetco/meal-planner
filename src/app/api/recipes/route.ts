@@ -1,6 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
+
+const CreateRecipeSchema = z.object({
+  name: z.string().min(1).max(500),
+  description: z.string().max(10000).nullish(),
+  ingredients: z.array(z.any()).optional(),
+  instructions: z.string().max(10000).nullish(),
+  servings: z.number().int().positive().optional(),
+  rating: z.number().nullish(),
+  prepTime: z.number().int().nullish(),
+  cookTime: z.number().int().nullish(),
+  imageUrl: z.string().max(2000).nullish(),
+  icon: z.string().max(500).nullish(),
+  categories: z.array(z.string().max(200)).optional(),
+  notes: z.string().max(10000).nullish(),
+  recipeType: z.enum(['STAPLE', 'REGULAR', 'SPECIAL']).optional(),
+  maxFrequency: z.enum(['DAILY', 'WEEKLY', 'BIWEEKLY', 'MONTHLY']).optional(),
+})
 
 // GET /api/recipes - List all recipes for household
 export async function GET(request: NextRequest) {
@@ -54,8 +72,12 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const body = await request.json()
-  
+  const parsed = CreateRecipeSchema.safeParse(await request.json())
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
+  }
+  const body = parsed.data
+
   const recipe = await prisma.recipe.create({
     data: {
       householdId: session.user.householdId,

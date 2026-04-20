@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
 import { getSuggestionsForSlot, type RecipeForPlanning } from '@/lib/ai/meal-planner'
 import { isRecipeAlreadyOnDate, isSlotAfter, ymd } from '@/lib/plan-meal-slots'
 import type { MealType, RecipeType, MaxFrequency } from '@/types'
+
+export const maxDuration = 120
+
+const SwapMealSchema = z.object({
+  recipeId: z.string().max(200).optional(),
+  customName: z.string().max(500).optional(),
+  leftoverSourceMealId: z.string().max(200).optional(),
+})
 
 // POST /api/plans/[id]/meals/[mealId]/swap - Get AI suggestions or apply swap / leftover / custom meal
 export async function POST(
@@ -44,12 +53,11 @@ export async function POST(
     return NextResponse.json({ error: 'Meal not found' }, { status: 404 })
   }
 
-  const body = await request.json().catch(() => ({}))
-  const { recipeId, customName, leftoverSourceMealId } = body as {
-    recipeId?: string
-    customName?: string
-    leftoverSourceMealId?: string
+  const parsed = SwapMealSchema.safeParse(await request.json().catch(() => ({})))
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
   }
+  const { recipeId, customName, leftoverSourceMealId } = parsed.data
 
   const settings = await prisma.mealSettings.findUnique({
     where: { householdId: session.user.householdId },

@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
+
+const ReorderRulesSchema = z.object({
+  ruleIds: z.array(z.string().max(200)).min(1),
+})
 
 // PATCH /api/settings/rules/reorder - Batch update rule priorities
 export async function PATCH(request: NextRequest) {
@@ -10,12 +15,11 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const body = await request.json()
-  const { ruleIds } = body as { ruleIds: string[] }
-
-  if (!Array.isArray(ruleIds) || ruleIds.length === 0) {
-    return NextResponse.json({ error: 'ruleIds array is required' }, { status: 400 })
+  const parsed = ReorderRulesSchema.safeParse(await request.json())
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
   }
+  const { ruleIds } = parsed.data
 
   // Verify all rules belong to this household
   const rules = await prisma.softRule.findMany({

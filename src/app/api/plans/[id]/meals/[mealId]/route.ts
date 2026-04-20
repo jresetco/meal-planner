@@ -1,8 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import type { Prisma } from '@prisma/client'
+import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
 import { isRecipeAlreadyOnDate, ymd } from '@/lib/plan-meal-slots'
+
+const UpdatePlannedMealSchema = z.object({
+  isLocked: z.boolean().optional(),
+  recipeId: z.string().max(200).nullish(),
+  customName: z.string().max(500).nullish(),
+  notes: z.string().max(10000).nullish(),
+  servings: z.number().optional(),
+  preparedServings: z.number().nullish(),
+  isLeftover: z.boolean().optional(),
+  leftoverSourceId: z.string().max(200).nullish(),
+})
 
 // GET /api/plans/[id]/meals/[mealId] - Get a specific planned meal
 export async function GET(
@@ -66,7 +78,10 @@ export async function PATCH(
     return NextResponse.json({ error: 'Meal not found' }, { status: 404 })
   }
 
-  const body = await request.json()
+  const parsed = UpdatePlannedMealSchema.safeParse(await request.json())
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
+  }
   const {
     isLocked,
     recipeId,
@@ -76,16 +91,7 @@ export async function PATCH(
     preparedServings,
     isLeftover,
     leftoverSourceId,
-  } = body as {
-    isLocked?: boolean
-    recipeId?: string | null
-    customName?: string | null
-    notes?: string | null
-    servings?: number
-    preparedServings?: number | null
-    isLeftover?: boolean
-    leftoverSourceId?: string | null
-  }
+  } = parsed.data
 
   const updateData: Prisma.PlannedMealUncheckedUpdateInput = {}
   

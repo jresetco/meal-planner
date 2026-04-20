@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
+
+const UpdateGroceryItemSchema = z.object({
+  isChecked: z.boolean().optional(),
+})
 
 // PATCH /api/plans/[id]/grocery/[itemId] - Update a grocery item
 export async function PATCH(
@@ -31,8 +36,11 @@ export async function PATCH(
     return NextResponse.json({ error: 'Item not found' }, { status: 404 })
   }
 
-  const body = await request.json()
-  const { isChecked } = body
+  const parsed = UpdateGroceryItemSchema.safeParse(await request.json())
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
+  }
+  const { isChecked } = parsed.data
 
   const updatedItem = await prisma.groceryItem.update({
     where: { id: itemId },

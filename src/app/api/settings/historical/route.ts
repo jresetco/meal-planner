@@ -5,6 +5,14 @@ import { generateObject } from 'ai'
 import { z } from 'zod'
 import { getSimpleModel } from '@/lib/ai/provider'
 
+export const maxDuration = 300
+
+const ImportHistoricalSchema = z.object({
+  rawData: z.string().min(1).max(100000),
+  source: z.string().max(500).optional(),
+  description: z.string().max(10000).optional(),
+})
+
 // GET /api/settings/historical - List all historical plans
 export async function GET() {
   const session = await auth()
@@ -29,12 +37,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const body = await request.json()
-  const { rawData, source = 'table', description } = body
-
-  if (!rawData || typeof rawData !== 'string') {
-    return NextResponse.json({ error: 'Raw data is required' }, { status: 400 })
+  const parsed = ImportHistoricalSchema.safeParse(await request.json())
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
   }
+  const { rawData, source = 'table', description } = parsed.data
 
   try {
     // Use AI to parse the raw data into structured format

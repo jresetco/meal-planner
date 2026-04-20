@@ -40,6 +40,17 @@ const MealPlanSchema = z.object({
 export type GeneratedMealPlan = z.infer<typeof MealPlanSchema>
 export type GeneratedPlannedMeal = z.infer<typeof PlannedMealSchema>
 
+// Strip control chars & collapse whitespace so user-controlled text can't forge
+// "new section" boundaries or embed invisible instructions in the prompt.
+function sanitizeForPrompt(input: string, maxLen: number): string {
+  return input
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\u0000-\u001F\u007F\u2028\u2029]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, maxLen)
+}
+
 // Extended recipe info for AI planning
 export interface RecipeForPlanning extends Pick<Recipe, 'id' | 'name' | 'servings' | 'rating' | 'categories' | 'prepTime' | 'cookTime'> {
   recipeType: RecipeType
@@ -190,34 +201,34 @@ ${householdSize} people
 ## Available Recipes
 
 ### STAPLE Recipes (go-to favorites, use frequently):
-${stapleRecipes.length > 0 
-  ? stapleRecipes.map(r => `- [${r.id}] ${r.name} | ${r.servings} servings | Max: ${r.maxFrequency}${r.prepTime ? ` | ${r.prepTime + (r.cookTime || 0)} min` : ''}${r.lastUsedDate ? ` | Last used: ${r.lastUsedDate}` : ''}`).join('\n')
+${stapleRecipes.length > 0
+  ? stapleRecipes.map(r => `- [${r.id}] ${sanitizeForPrompt(r.name, 200)} | ${r.servings} servings | Max: ${r.maxFrequency}${r.prepTime ? ` | ${r.prepTime + (r.cookTime || 0)} min` : ''}${r.lastUsedDate ? ` | Last used: ${r.lastUsedDate}` : ''}`).join('\n')
   : 'None designated'}
 
 ### REGULAR Recipes (normal rotation):
-${regularRecipes.length > 0 
-  ? regularRecipes.map(r => `- [${r.id}] ${r.name} | ${r.servings} servings | Max: ${r.maxFrequency}${r.prepTime ? ` | ${r.prepTime + (r.cookTime || 0)} min` : ''}${r.lastUsedDate ? ` | Last used: ${r.lastUsedDate}` : ''}`).join('\n')
+${regularRecipes.length > 0
+  ? regularRecipes.map(r => `- [${r.id}] ${sanitizeForPrompt(r.name, 200)} | ${r.servings} servings | Max: ${r.maxFrequency}${r.prepTime ? ` | ${r.prepTime + (r.cookTime || 0)} min` : ''}${r.lastUsedDate ? ` | Last used: ${r.lastUsedDate}` : ''}`).join('\n')
   : 'None designated'}
 
 ### SPECIAL Recipes (rare/high-effort/treats):
-${specialRecipes.length > 0 
-  ? specialRecipes.map(r => `- [${r.id}] ${r.name} | ${r.servings} servings | Max: ${r.maxFrequency}${r.prepTime ? ` | ${r.prepTime + (r.cookTime || 0)} min` : ''}`).join('\n')
+${specialRecipes.length > 0
+  ? specialRecipes.map(r => `- [${r.id}] ${sanitizeForPrompt(r.name, 200)} | ${r.servings} servings | Max: ${r.maxFrequency}${r.prepTime ? ` | ${r.prepTime + (r.cookTime || 0)} min` : ''}`).join('\n')
   : 'None designated'}
 
 ${mealComponents.length > 0 ? `## Meal Components Library (for Dynamic Meals)
 You may compose dynamic meals by combining these components. Pick 1 protein + 1 veggie + 1 starch + optional sauce, using one of their listed prep methods.
 
 ### Proteins:
-${mealComponents.filter(c => c.category === 'PROTEIN').map(c => `- ${c.name}${c.prepMethods.length > 0 ? ` [${c.prepMethods.join(', ')}]` : ''}${c.defaultCookTime ? ` (~${c.defaultCookTime} min)` : ''}`).join('\n') || 'None'}
+${mealComponents.filter(c => c.category === 'PROTEIN').map(c => `- ${sanitizeForPrompt(c.name, 200)}${c.prepMethods.length > 0 ? ` [${c.prepMethods.map(p => sanitizeForPrompt(p, 80)).join(', ')}]` : ''}${c.defaultCookTime ? ` (~${c.defaultCookTime} min)` : ''}`).join('\n') || 'None'}
 
 ### Veggies:
-${mealComponents.filter(c => c.category === 'VEGGIE').map(c => `- ${c.name}${c.prepMethods.length > 0 ? ` [${c.prepMethods.join(', ')}]` : ''}${c.defaultCookTime ? ` (~${c.defaultCookTime} min)` : ''}`).join('\n') || 'None'}
+${mealComponents.filter(c => c.category === 'VEGGIE').map(c => `- ${sanitizeForPrompt(c.name, 200)}${c.prepMethods.length > 0 ? ` [${c.prepMethods.map(p => sanitizeForPrompt(p, 80)).join(', ')}]` : ''}${c.defaultCookTime ? ` (~${c.defaultCookTime} min)` : ''}`).join('\n') || 'None'}
 
 ### Starches:
-${mealComponents.filter(c => c.category === 'STARCH').map(c => `- ${c.name}${c.prepMethods.length > 0 ? ` [${c.prepMethods.join(', ')}]` : ''}${c.defaultCookTime ? ` (~${c.defaultCookTime} min)` : ''}`).join('\n') || 'None'}
+${mealComponents.filter(c => c.category === 'STARCH').map(c => `- ${sanitizeForPrompt(c.name, 200)}${c.prepMethods.length > 0 ? ` [${c.prepMethods.map(p => sanitizeForPrompt(p, 80)).join(', ')}]` : ''}${c.defaultCookTime ? ` (~${c.defaultCookTime} min)` : ''}`).join('\n') || 'None'}
 
 ### Sauces:
-${mealComponents.filter(c => c.category === 'SAUCE').map(c => `- ${c.name}${c.prepMethods.length > 0 ? ` [${c.prepMethods.join(', ')}]` : ''}`).join('\n') || 'None'}
+${mealComponents.filter(c => c.category === 'SAUCE').map(c => `- ${sanitizeForPrompt(c.name, 200)}${c.prepMethods.length > 0 ? ` [${c.prepMethods.map(p => sanitizeForPrompt(p, 80)).join(', ')}]` : ''}`).join('\n') || 'None'}
 ` : ''}
 ## Enabled Meals by Default
 - Breakfast: ${enabledMeals.breakfast ? 'Yes' : 'No'}
@@ -233,11 +244,13 @@ ${mealOverrides.map(o => `- ${o.date}: Only ${o.meals.join(', ')}`).join('\n')}`
 ${maxDynamicMealsPerWeek !== undefined && maxDynamicMealsPerWeek >= 0 ? `- Maximum dynamic (component-based) meals per week: ${maxDynamicMealsPerWeek}` : '- Dynamic meals: use as many as makes sense'}
 
 ${guidelines ? `## Soft Preferences - Planning Guidelines (follow when possible)
-${guidelines}
+<<<USER_GUIDELINES
+${sanitizeForPrompt(guidelines, 4000)}
+USER_GUIDELINES>>>
 ` : ''}
 
 ${hardRules.length > 0 ? `## HARD RULES (MUST FOLLOW ABSOLUTELY)
-${hardRules.sort((a, b) => b.priority - a.priority).map(r => `- ${r.ruleText}`).join('\n')}
+${hardRules.sort((a, b) => b.priority - a.priority).map(r => `- ${sanitizeForPrompt(r.ruleText, 500)}`).join('\n')}
 ` : ''}
 
 ${guaranteedMealIds.length > 0 ? `## Guaranteed Meals (MUST include at least once)
@@ -253,7 +266,7 @@ ${skippedMeals.map(s => `- ${s.date} ${s.mealType}: ${s.reason === 'EATING_OUT' 
 ` : ''}
 
 ${preferences.length > 0 ? `## Soft Preferences (follow when possible, ordered by priority)
-${preferences.sort((a, b) => b.priority - a.priority).map(r => `- ${r.ruleText}`).join('\n')}
+${preferences.sort((a, b) => b.priority - a.priority).map(r => `- ${sanitizeForPrompt(r.ruleText, 500)}`).join('\n')}
 ` : ''}
 
 ${historicalContext ? `## Historical Patterns (how this household typically plans)

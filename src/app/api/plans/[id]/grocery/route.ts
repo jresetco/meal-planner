@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
 import { generateGroceryList } from '@/lib/ai/grocery-generator'
 import type { StoreSection } from '@/types'
+
+export const maxDuration = 300
+
+const UpdateGroceryListSchema = z.object({
+  uncheckAll: z.boolean().optional(),
+})
 
 // GET /api/plans/[id]/grocery - Generate grocery list for a plan
 export async function GET(
@@ -204,8 +211,11 @@ export async function PATCH(
     return NextResponse.json({ error: 'Grocery list not found' }, { status: 404 })
   }
 
-  const body = await request.json().catch(() => ({}))
-  const { uncheckAll } = body as { uncheckAll?: boolean }
+  const parsed = UpdateGroceryListSchema.safeParse(await request.json().catch(() => ({})))
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
+  }
+  const { uncheckAll } = parsed.data
 
   if (uncheckAll) {
     await prisma.groceryItem.updateMany({

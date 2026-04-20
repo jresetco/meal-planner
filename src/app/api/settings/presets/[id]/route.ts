@@ -1,6 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
+
+const UpdatePresetSchema = z.object({
+  name: z.string().min(1).max(500).optional(),
+  maxLeftovers: z.number().int().nonnegative().optional(),
+  servingsPerMeal: z.number().int().positive().optional(),
+  guaranteedMealIds: z.array(z.string().max(200)).optional(),
+  guidelines: z.string().max(10000).nullish(),
+  isDefault: z.boolean().optional(),
+})
 
 // GET /api/settings/presets/[id] - Get a specific preset
 export async function GET(
@@ -51,8 +61,11 @@ export async function PATCH(
     return NextResponse.json({ error: 'Preset not found' }, { status: 404 })
   }
 
-  const body = await request.json()
-  const { name, maxLeftovers, servingsPerMeal, guaranteedMealIds, guidelines, isDefault } = body
+  const parsed = UpdatePresetSchema.safeParse(await request.json())
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
+  }
+  const { name, maxLeftovers, servingsPerMeal, guaranteedMealIds, guidelines, isDefault } = parsed.data
 
   // If setting as default, unset all other defaults
   if (isDefault && !existingPreset.isDefault) {

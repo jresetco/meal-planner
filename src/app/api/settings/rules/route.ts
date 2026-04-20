@@ -1,7 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
 import { DEFAULT_SYSTEM_RULES } from '@/lib/system-rules'
+
+const CreateRuleSchema = z.object({
+  ruleText: z.string().min(1).max(10000),
+  isActive: z.boolean().optional(),
+  isHardRule: z.boolean().optional(),
+  isSystem: z.boolean().optional(),
+  priority: z.number().int().optional(),
+})
 
 // GET /api/settings/rules - Get all soft rules
 export async function GET() {
@@ -44,7 +53,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const body = await request.json()
+  const parsed = CreateRuleSchema.safeParse(await request.json())
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
+  }
+  const body = parsed.data
 
   const rule = await prisma.softRule.create({
     data: {

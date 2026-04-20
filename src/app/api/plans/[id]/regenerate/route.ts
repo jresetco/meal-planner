@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
 import { generateMealPlanWithStreaming, regenerateDay, summarizeHistoricalPatterns, type RecipeForPlanning } from '@/lib/ai/meal-planner'
@@ -12,6 +13,13 @@ import {
 import { ymd } from '@/lib/plan-meal-slots'
 import type { MealType, RecipeType, MaxFrequency } from '@/types'
 
+export const maxDuration = 300
+
+const RegeneratePlanSchema = z.object({
+  date: z.string().max(100).optional(),
+  guidance: z.string().max(10000).optional(),
+})
+
 // POST /api/plans/[id]/regenerate - Regenerate entire plan (keeping locked meals)
 export async function POST(
   request: NextRequest,
@@ -24,8 +32,11 @@ export async function POST(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const body = await request.json().catch(() => ({}))
-  const { date, guidance } = body // date = single-day regen, guidance = optional AI direction
+  const parsed = RegeneratePlanSchema.safeParse(await request.json().catch(() => ({})))
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
+  }
+  const { date, guidance } = parsed.data // date = single-day regen, guidance = optional AI direction
 
   // Get the existing plan
   const plan = await prisma.mealPlan.findFirst({

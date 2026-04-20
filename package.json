@@ -1,7 +1,18 @@
 {
   "name": "meal-planner",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
+  "description": "AI-powered weekly meal planner with Paprika recipe sync and grocery lists organized by store section.",
+  "author": "James Resetco <james.resetco@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jresetco/meal-planner.git"
+  },
+  "homepage": "https://github.com/jresetco/meal-planner#readme",
+  "bugs": {
+    "url": "https://github.com/jresetco/meal-planner/issues"
+  },
   "engines": {
     "node": ">=20.9.0"
   },
@@ -43,13 +54,14 @@
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.3",
     "lucide-react": "^0.562.0",
-    "next": "16.2.1",
+    "next": "^16.2.4",
     "next-auth": "^4.24.13",
     "openai": "^6.15.0",
     "pg": "^8.16.3",
     "pg-types": "^4.1.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "resend": "^6.12.0",
     "tailwind-merge": "^3.4.0",
     "ws": "^8.18.3",
     "zod": "^4.3.6"
@@ -60,7 +72,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.2.1",
+    "eslint-config-next": "^16.2.4",
     "exceljs": "^4.4.0",
     "jiti": "^2.6.1",
     "postcss": "8.5.8",

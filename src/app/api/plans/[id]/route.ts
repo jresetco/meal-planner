@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
+
+const UpdatePlanSchema = z.object({
+  name: z.string().max(500).nullish(),
+  dayNotes: z.record(z.string(), z.string().max(10000)).optional(),
+})
 
 // GET /api/plans/[id] - Get a single meal plan with planned meals
 export async function GET(
@@ -66,11 +72,11 @@ export async function PATCH(
     return NextResponse.json({ error: 'Plan not found' }, { status: 404 })
   }
 
-  const body = await request.json().catch(() => ({}))
-  const { name, dayNotes } = body as {
-    name?: string | null
-    dayNotes?: Record<string, string>
+  const parsed = UpdatePlanSchema.safeParse(await request.json().catch(() => ({})))
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
   }
+  const { name, dayNotes } = parsed.data
 
   if (name === undefined && dayNotes === undefined) {
     return NextResponse.json({ error: 'No updates provided' }, { status: 400 })

@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
+
+const CreateStapleSchema = z.object({
+  ingredientName: z.string().min(1).max(500),
+})
 
 // GET /api/settings/staples - Get all pantry staples
 export async function GET() {
@@ -26,7 +31,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const body = await request.json()
+  const parsed = CreateStapleSchema.safeParse(await request.json())
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
+  }
+  const body = parsed.data
 
   const staple = await prisma.pantryStaple.upsert({
     where: {

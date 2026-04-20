@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import {
   Calendar,
@@ -26,6 +26,16 @@ const navigation = [
 
 export function Sidebar() {
   const pathname = usePathname()
+  const router = useRouter()
+
+  const handleSignOut = async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' })
+    } finally {
+      router.replace('/auth/login')
+      router.refresh()
+    }
+  }
 
   return (
     <div className="flex h-full w-64 flex-col bg-gray-900 text-white">
@@ -63,6 +73,7 @@ export function Sidebar() {
       <div className="border-t border-gray-800 p-4">
         <Button
           variant="ghost"
+          onClick={handleSignOut}
           className="w-full justify-start gap-3 text-gray-400 hover:text-white"
         >
           <LogOut className="h-5 w-5" />

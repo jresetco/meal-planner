@@ -1,6 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
+
+const UpdateMealComponentSchema = z.object({
+  name: z.string().min(1).max(500).optional(),
+  prepMethods: z.array(z.string().max(500)).optional(),
+  defaultCookTime: z.number().int().nullish(),
+  typicalIngredients: z.array(z.any()).optional(),
+  isActive: z.boolean().optional(),
+})
 
 // PATCH /api/settings/meal-components/[id] - Update a meal component
 export async function PATCH(
@@ -22,8 +31,11 @@ export async function PATCH(
     return NextResponse.json({ error: 'Component not found' }, { status: 404 })
   }
 
-  const body = await request.json()
-  const { name, prepMethods, defaultCookTime, typicalIngredients, isActive } = body
+  const parsed = UpdateMealComponentSchema.safeParse(await request.json())
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
+  }
+  const { name, prepMethods, defaultCookTime, typicalIngredients, isActive } = parsed.data
 
   const component = await prisma.mealComponent.update({
     where: { id },

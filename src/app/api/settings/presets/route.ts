@@ -1,6 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
+
+const CreatePresetSchema = z.object({
+  name: z.string().min(1).max(500),
+  maxLeftovers: z.number().int().nonnegative().optional(),
+  servingsPerMeal: z.number().int().positive().optional(),
+  guaranteedMealIds: z.array(z.string().max(200)).optional(),
+  guidelines: z.string().max(10000).nullish(),
+  isDefault: z.boolean().optional(),
+})
 
 // GET /api/settings/presets - Get all baseline presets for household
 export async function GET(request: NextRequest) {
@@ -31,12 +41,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const body = await request.json()
-  const { name, maxLeftovers, servingsPerMeal, guaranteedMealIds, guidelines, isDefault } = body
-
-  if (!name) {
-    return NextResponse.json({ error: 'Name is required' }, { status: 400 })
+  const parsed = CreatePresetSchema.safeParse(await request.json())
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
   }
+  const { name, maxLeftovers, servingsPerMeal, guaranteedMealIds, guidelines, isDefault } = parsed.data
 
   // If setting as default, unset all other defaults
   if (isDefault) {

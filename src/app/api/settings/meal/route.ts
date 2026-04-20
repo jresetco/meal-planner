@@ -1,8 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
 import { encrypt } from '@/lib/crypto'
 import type { MealSettings } from '@prisma/client'
+
+const UpdateMealSettingsSchema = z.object({
+  breakfastTime: z.string().max(50).optional(),
+  lunchTime: z.string().max(50).optional(),
+  dinnerTime: z.string().max(50).optional(),
+  breakfastEnabled: z.boolean().optional(),
+  lunchEnabled: z.boolean().optional(),
+  dinnerEnabled: z.boolean().optional(),
+  defaultServings: z.number().int().positive().optional(),
+  defaultMaxRepeats: z.number().int().nonnegative().optional(),
+  maxLeftoversPerWeek: z.number().int().nonnegative().optional(),
+  paprikaEmail: z.string().max(500).nullish(),
+  paprikaPassword: z.string().max(500).optional(),
+  paprikaClearPassword: z.boolean().optional(),
+  paprikaCategories: z.array(z.string().max(500)).optional(),
+  paprikaMinRating: z.number().nullish(),
+})
 
 function sanitizeMealSettingsResponse(settings: MealSettings) {
   const { paprikaPassword: _removed, ...rest } = settings
@@ -43,7 +61,10 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const body = await request.json()
+  const parsed = UpdateMealSettingsSchema.safeParse(await request.json())
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
+  }
 
   const {
     breakfastTime,
@@ -60,22 +81,7 @@ export async function PATCH(request: NextRequest) {
     paprikaClearPassword,
     paprikaCategories,
     paprikaMinRating,
-  } = body as {
-    breakfastTime?: string
-    lunchTime?: string
-    dinnerTime?: string
-    breakfastEnabled?: boolean
-    lunchEnabled?: boolean
-    dinnerEnabled?: boolean
-    defaultServings?: number
-    defaultMaxRepeats?: number
-    maxLeftoversPerWeek?: number
-    paprikaEmail?: string | null
-    paprikaPassword?: string
-    paprikaClearPassword?: boolean
-    paprikaCategories?: string[]
-    paprikaMinRating?: number | null
-  }
+  } = parsed.data
 
   const existingSettings = await prisma.mealSettings.findUnique({
     where: { householdId: session.user.householdId },

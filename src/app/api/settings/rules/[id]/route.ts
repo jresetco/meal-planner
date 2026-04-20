@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
+
+const UpdateRuleSchema = z.object({
+  ruleText: z.string().min(1).max(10000).optional(),
+  isActive: z.boolean().optional(),
+  isHardRule: z.boolean().optional(),
+  priority: z.number().int().optional(),
+})
 
 // PATCH /api/settings/rules/:id - Update a soft rule
 export async function PATCH(
@@ -14,7 +22,11 @@ export async function PATCH(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const body = await request.json()
+  const parsed = UpdateRuleSchema.safeParse(await request.json())
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
+  }
+  const body = parsed.data
 
   // Verify rule belongs to user's household
   const existing = await prisma.softRule.findFirst({

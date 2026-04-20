@@ -12,6 +12,14 @@ const SuggestedIngredientsSchema = z.object({
   })),
 })
 
+export const maxDuration = 120
+
+const SuggestIngredientsRequestSchema = z.object({
+  name: z.string().min(1).max(500),
+  category: z.enum(['PROTEIN', 'VEGGIE', 'STARCH', 'SAUCE']),
+  prepMethods: z.array(z.string().max(500)).optional(),
+})
+
 // POST /api/settings/meal-components/suggest-ingredients
 // Suggest typical ingredients for a meal component based on its name, category, and prep methods
 export async function POST(request: NextRequest) {
@@ -21,16 +29,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const body = await request.json()
-  const { name, category, prepMethods } = body
-
-  if (!name || !category) {
-    return NextResponse.json({ error: 'name and category are required' }, { status: 400 })
+  const parsed = SuggestIngredientsRequestSchema.safeParse(await request.json())
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
   }
+  const { name, category, prepMethods } = parsed.data
 
   const prompt = `Suggest the typical grocery ingredients needed to prepare "${name}" (category: ${category}) for a household of 2 people.
 
-${prepMethods?.length > 0 ? `Common prep methods: ${prepMethods.join(', ')}` : ''}
+${prepMethods && prepMethods.length > 0 ? `Common prep methods: ${prepMethods.join(', ')}` : ''}
 
 Return the essential ingredients someone would need to buy at the grocery store. Include:
 - The main ingredient itself (e.g. the protein, vegetable, or starch)

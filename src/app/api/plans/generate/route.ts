@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server'
+import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
 import { generateMealPlanWithStreaming, summarizeHistoricalPatterns, type RecipeForPlanning } from '@/lib/ai/meal-planner'
@@ -7,6 +8,50 @@ import {
   applyLeftoverLinksForPlan,
 } from '@/lib/plan-meal-validation'
 import type { MealType, RecipeType, MaxFrequency } from '@/types'
+
+// AI meal-plan generation routinely runs 2-5 minutes against the primary model.
+// Railway's default route timeout is 60s, so we extend to 5m for this endpoint.
+export const maxDuration = 300
+
+const MealTypeEnum = z.enum(['BREAKFAST', 'LUNCH', 'DINNER'])
+
+const GeneratePlanSchema = z.object({
+  startDate: z.string().min(1).max(100),
+  endDate: z.string().min(1).max(100),
+  enabledMeals: z
+    .object({
+      breakfast: z.boolean(),
+      lunch: z.boolean(),
+      dinner: z.boolean(),
+    })
+    .optional(),
+  mealOverrides: z.array(z.any()).optional(),
+  maxRepeats: z.number().int().nonnegative().optional(),
+  pinnedMeals: z
+    .array(
+      z.object({
+        date: z.string().max(100),
+        mealType: MealTypeEnum,
+        recipeId: z.string().max(200),
+        recipeName: z.string().max(500),
+      })
+    )
+    .optional(),
+  skippedMeals: z
+    .array(
+      z.object({
+        date: z.string().max(100),
+        mealType: MealTypeEnum,
+        reason: z.enum(['EATING_OUT', 'SKIPPED']),
+      })
+    )
+    .optional(),
+  guaranteedMealIds: z.array(z.string().max(200)).optional(),
+  servingsPerMeal: z.number().int().positive().optional(),
+  maxLeftoversPerWeek: z.number().int().nonnegative().optional(),
+  maxDynamicMealsPerWeek: z.number().int().nonnegative().optional(),
+  guidelines: z.string().max(10000).optional(),
+})
 
 // POST /api/plans/generate - Generate a new meal plan with streaming progress
 export async function POST(request: NextRequest) {
@@ -19,8 +64,14 @@ export async function POST(request: NextRequest) {
     })
   }
 
-  const body = await request.json()
-  
+  const parsed = GeneratePlanSchema.safeParse(await request.json())
+  if (!parsed.success) {
+    return new Response(JSON.stringify({ error: 'Invalid input' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' }
+    })
+  }
+
   const {
     startDate,
     endDate,
@@ -34,7 +85,7 @@ export async function POST(request: NextRequest) {
     maxLeftoversPerWeek,
     maxDynamicMealsPerWeek,
     guidelines,
-  } = body
+  } = parsed.data
 
   // Create a readable stream for progress updates
   const encoder = new TextEncoder()
@@ -242,9 +293,9 @@ export async function POST(request: NextRequest) {
 
     } catch (error) {
       console.error('Plan generation error:', error)
-      await sendProgress({ 
-        type: 'error', 
-        error: error instanceof Error ? error.message : 'Failed to generate plan' 
+      await sendProgress({
+        type: 'error',
+        error: 'Failed to generate plan',
       })
     } finally {
       await writer.close()
