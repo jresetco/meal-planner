@@ -24,12 +24,18 @@ RUN npm ci
 # Copy the rest of the source.
 COPY . .
 
-# Generate the Prisma client. prisma.config.ts reads DATABASE_URL via dotenv,
-# but `.env` is dockerignored — provide a dummy URL so config validation passes.
-# `prisma generate` does not connect to the database, so a fake URL is safe.
-RUN DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" npx prisma generate
+# `prisma generate` and `next build` both load config files that touch env vars.
+# We supply placeholder values so the BUILD succeeds without needing real secrets
+# in the image. These are NEVER baked into runtime — Next.js reads env at request
+# time for server components, and Railway will inject the real values then.
+ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy" \
+    ENCRYPTION_KEY="0000000000000000000000000000000000000000000000000000000000000000" \
+    APP_AUTH_SECRET="build-only-placeholder-not-used-at-runtime" \
+    OPENAI_API_KEY="build-only-placeholder" \
+    NEXT_TELEMETRY_DISABLED=1
 
-# Produce the Next.js production build.
+RUN npx prisma generate
+
 RUN npm run build
 
 # -------- Stage 2: runtime --------
