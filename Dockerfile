@@ -64,4 +64,6 @@ COPY --from=builder /app/next.config.ts ./
 EXPOSE 3000
 
 # Shell form so $PORT (injected by Railway) is expanded at runtime.
-CMD node ./node_modules/next/dist/bin/next start -p ${PORT:-3000}
+# `-H 0.0.0.0` is required: Next.js 15+ defaults to binding `localhost`, which
+# is unreachable by Railway's healthcheck proxy from outside the container.
+CMD node ./node_modules/next/dist/bin/next start -H 0.0.0.0 -p ${PORT:-3000}
