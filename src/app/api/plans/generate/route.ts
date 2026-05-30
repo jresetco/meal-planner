@@ -48,7 +48,9 @@ const GeneratePlanSchema = z.object({
     .optional(),
   guaranteedMealIds: z.array(z.string().max(200)).optional(),
   servingsPerMeal: z.number().int().positive().optional(),
-  maxLeftoversPerWeek: z.number().int().nonnegative().optional(),
+  // -1 is the "unlimited" sentinel sent by the planning form (and understood by the
+  // meal-planner). Allow it explicitly alongside non-negative limits.
+  maxLeftoversPerWeek: z.number().int().min(-1).optional(),
   maxDynamicMealsPerWeek: z.number().int().nonnegative().optional(),
   guidelines: z.string().max(10000).optional(),
 })
@@ -64,8 +66,32 @@ export async function POST(request: NextRequest) {
     })
   }
 
-  const parsed = GeneratePlanSchema.safeParse(await request.json())
+  let rawBody: unknown
+  try {
+    rawBody = await request.json()
+  } catch (err) {
+    console.error('[plans/generate] Failed to parse request body as JSON', err)
+    return new Response(JSON.stringify({ error: 'Invalid input' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' }
+    })
+  }
+
+  const parsed = GeneratePlanSchema.safeParse(rawBody)
   if (!parsed.success) {
+    // Log the specific field-level validation issues so failures are visible in
+    // Railway logs (previously this returned a bare 400 with no trace).
+    console.error(
+      '[plans/generate] Input validation failed',
+      JSON.stringify({
+        householdId: session.user.householdId,
+        issues: parsed.error.issues.map((i) => ({
+          path: i.path.join('.'),
+          code: i.code,
+          message: i.message,
+        })),
+      })
+    )
     return new Response(JSON.stringify({ error: 'Invalid input' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json' }
@@ -97,8 +123,25 @@ export async function POST(request: NextRequest) {
     await writer.write(encoder.encode(`data: ${JSON.stringify(data)}\n\n`))
   }
 
+  const householdId = session.user.householdId
+  console.log(
+    '[plans/generate] Starting generation',
+    JSON.stringify({
+      householdId,
+      startDate: parsed.data.startDate,
+      endDate: parsed.data.endDate,
+      maxLeftoversPerWeek,
+      maxDynamicMealsPerWeek,
+      servingsPerMeal,
+      pinnedCount: pinnedMeals.length,
+      skippedCount: skippedMeals.length,
+      guaranteedCount: guaranteedMealIds.length,
+    })
+  )
+
   // Start the generation process
   const generateAsync = async () => {
+    const startedAt = Date.now()
     try {
       // Get household data
       const [settings, recipes, softRules, historicalPlans, editHistory, mealComponents] = await Promise.all([
@@ -147,10 +190,24 @@ export async function POST(request: NextRequest) {
         }),
       ])
 
+      console.log(
+        '[plans/generate] Household data loaded',
+        JSON.stringify({
+          householdId,
+          recipes: recipes.length,
+          softRules: softRules.length,
+          historicalPlans: historicalPlans.length,
+          editHistory: editHistory.length,
+          mealComponents: mealComponents.length,
+          hasSettings: !!settings,
+        })
+      )
+
       if (recipes.length === 0) {
-        await sendProgress({ 
-          type: 'error', 
-          error: 'No recipes found. Please add some recipes first.' 
+        console.warn('[plans/generate] No active recipes for household', householdId)
+        await sendProgress({
+          type: 'error',
+          error: 'No recipes found. Please add some recipes first.'
         })
         await writer.close()
         return
@@ -199,6 +256,10 @@ export async function POST(request: NextRequest) {
       )
 
       // Generate the meal plan with streaming progress
+      console.log(
+        '[plans/generate] Invoking AI meal planner',
+        JSON.stringify({ householdId, recipePool: recipesForPlanning.length })
+      )
       const generatedPlan = await generateMealPlanWithStreaming(
         {
           recipes: recipesForPlanning,
@@ -225,6 +286,10 @@ export async function POST(request: NextRequest) {
 
       const defaultPortion = servingsPerMeal || settings?.defaultServings || 2
       const planStartStr = new Date(startDate).toISOString().split('T')[0]
+      console.log(
+        '[plans/generate] AI planner returned',
+        JSON.stringify({ householdId, generatedMeals: generatedPlan.meals?.length ?? 0 })
+      )
       const persisted = processGeneratedMealsForPersistence(
         generatedPlan.meals,
         defaultPortion,
@@ -278,8 +343,18 @@ export async function POST(request: NextRequest) {
 
       await applyLeftoverLinksForPlan(mealPlan.id, persisted)
 
+      console.log(
+        '[plans/generate] Generation complete',
+        JSON.stringify({
+          householdId,
+          planId: mealPlan.id,
+          totalMeals: mealPlan.plannedMeals.length,
+          durationMs: Date.now() - startedAt,
+        })
+      )
+
       // Send completion with plan data
-      await sendProgress({ 
+      await sendProgress({
         type: 'complete', 
         planId: mealPlan.id,
         summary: {
@@ -292,7 +367,16 @@ export async function POST(request: NextRequest) {
       })
 
     } catch (error) {
-      console.error('Plan generation error:', error)
+      console.error(
+        '[plans/generate] Generation failed',
+        JSON.stringify({
+          householdId,
+          durationMs: Date.now() - startedAt,
+          name: error instanceof Error ? error.name : typeof error,
+          message: error instanceof Error ? error.message : String(error),
+        }),
+        error instanceof Error ? error.stack : undefined
+      )
       await sendProgress({
         type: 'error',
         error: 'Failed to generate plan',
