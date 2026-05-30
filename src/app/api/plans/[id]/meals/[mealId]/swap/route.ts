@@ -4,6 +4,7 @@ import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
 import { getSuggestionsForSlot, type RecipeForPlanning } from '@/lib/ai/meal-planner'
 import { isRecipeAlreadyOnDate, isSlotAfter, ymd } from '@/lib/plan-meal-slots'
+import { logValidationFailure } from '@/lib/logger'
 import type { MealType, RecipeType, MaxFrequency } from '@/types'
 
 export const maxDuration = 120
@@ -55,6 +56,7 @@ export async function POST(
 
   const parsed = SwapMealSchema.safeParse(await request.json().catch(() => ({})))
   if (!parsed.success) {
+    logValidationFailure('/api/plans/[id]/meals/[mealId]/swap', parsed.error)
     return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
   }
   const { recipeId, customName, leftoverSourceMealId } = parsed.data

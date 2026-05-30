@@ -11,6 +11,7 @@ import {
   lockedPlannedMealToGenerated,
 } from '@/lib/plan-meal-validation'
 import { ymd } from '@/lib/plan-meal-slots'
+import { logValidationFailure } from '@/lib/logger'
 import type { MealType, RecipeType, MaxFrequency } from '@/types'
 
 export const maxDuration = 300
@@ -34,6 +35,7 @@ export async function POST(
 
   const parsed = RegeneratePlanSchema.safeParse(await request.json().catch(() => ({})))
   if (!parsed.success) {
+    logValidationFailure('/api/plans/[id]/regenerate', parsed.error)
     return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
   }
   const { date, guidance } = parsed.data // date = single-day regen, guidance = optional AI direction

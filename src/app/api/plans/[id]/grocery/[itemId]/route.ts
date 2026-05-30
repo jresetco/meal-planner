@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
+import { logValidationFailure } from '@/lib/logger'
 
 const UpdateGroceryItemSchema = z.object({
   isChecked: z.boolean().optional(),
@@ -38,6 +39,7 @@ export async function PATCH(
 
   const parsed = UpdateGroceryItemSchema.safeParse(await request.json())
   if (!parsed.success) {
+    logValidationFailure('/api/plans/[id]/grocery/[itemId]', parsed.error)
     return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
   }
   const { isChecked } = parsed.data

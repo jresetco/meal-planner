@@ -4,6 +4,7 @@ import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
 import { encrypt } from '@/lib/crypto'
 import type { MealSettings } from '@prisma/client'
+import { logValidationFailure } from '@/lib/logger'
 
 const UpdateMealSettingsSchema = z.object({
   breakfastTime: z.string().max(50).optional(),
@@ -63,6 +64,7 @@ export async function PATCH(request: NextRequest) {
 
   const parsed = UpdateMealSettingsSchema.safeParse(await request.json())
   if (!parsed.success) {
+    logValidationFailure('/api/settings/meal', parsed.error)
     return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
   }
 

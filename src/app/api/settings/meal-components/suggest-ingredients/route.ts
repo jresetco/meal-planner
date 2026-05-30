@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth'
 import { generateObject } from 'ai'
 import { z } from 'zod'
 import { getSimpleModel } from '@/lib/ai/provider'
+import { logValidationFailure } from '@/lib/logger'
 
 const SuggestedIngredientsSchema = z.object({
   ingredients: z.array(z.object({
@@ -31,6 +32,7 @@ export async function POST(request: NextRequest) {
 
   const parsed = SuggestIngredientsRequestSchema.safeParse(await request.json())
   if (!parsed.success) {
+    logValidationFailure('/api/settings/meal-components/suggest-ingredients', parsed.error)
     return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
   }
   const { name, category, prepMethods } = parsed.data

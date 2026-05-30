@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
 import { DEFAULT_SYSTEM_RULES } from '@/lib/system-rules'
+import { logValidationFailure } from '@/lib/logger'
 
 const CreateRuleSchema = z.object({
   ruleText: z.string().min(1).max(10000),
@@ -55,6 +56,7 @@ export async function POST(request: NextRequest) {
 
   const parsed = CreateRuleSchema.safeParse(await request.json())
   if (!parsed.success) {
+    logValidationFailure('/api/settings/rules', parsed.error)
     return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
   }
   const body = parsed.data

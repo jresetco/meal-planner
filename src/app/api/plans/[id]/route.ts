@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
+import { logValidationFailure } from '@/lib/logger'
 
 const UpdatePlanSchema = z.object({
   name: z.string().max(500).nullish(),
@@ -74,6 +75,7 @@ export async function PATCH(
 
   const parsed = UpdatePlanSchema.safeParse(await request.json().catch(() => ({})))
   if (!parsed.success) {
+    logValidationFailure('/api/plans/[id]', parsed.error)
     return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
   }
   const { name, dayNotes } = parsed.data

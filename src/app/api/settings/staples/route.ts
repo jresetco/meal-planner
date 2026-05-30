@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
+import { logValidationFailure } from '@/lib/logger'
 
 const CreateStapleSchema = z.object({
   ingredientName: z.string().min(1).max(500),
@@ -33,6 +34,7 @@ export async function POST(request: NextRequest) {
 
   const parsed = CreateStapleSchema.safeParse(await request.json())
   if (!parsed.success) {
+    logValidationFailure('/api/settings/staples', parsed.error)
     return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
   }
   const body = parsed.data

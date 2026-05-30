@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
 import { isRecipeAlreadyOnDate, ymd } from '@/lib/plan-meal-slots'
+import { logValidationFailure } from '@/lib/logger'
 
 const UpdatePlannedMealSchema = z.object({
   isLocked: z.boolean().optional(),
@@ -80,6 +81,7 @@ export async function PATCH(
 
   const parsed = UpdatePlannedMealSchema.safeParse(await request.json())
   if (!parsed.success) {
+    logValidationFailure('/api/plans/[id]/meals/[mealId]', parsed.error)
     return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
   }
   const {

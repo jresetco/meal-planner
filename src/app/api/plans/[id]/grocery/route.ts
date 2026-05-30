@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
 import { generateGroceryList } from '@/lib/ai/grocery-generator'
+import { logValidationFailure } from '@/lib/logger'
 import type { StoreSection } from '@/types'
 
 export const maxDuration = 300
@@ -213,6 +214,7 @@ export async function PATCH(
 
   const parsed = UpdateGroceryListSchema.safeParse(await request.json().catch(() => ({})))
   if (!parsed.success) {
+    logValidationFailure('/api/plans/[id]/grocery', parsed.error)
     return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
   }
   const { uncheckAll } = parsed.data

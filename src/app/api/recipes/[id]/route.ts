@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
+import { logValidationFailure } from '@/lib/logger'
 
 const UpdateRecipeSchema = z.object({
   name: z.string().min(1).max(500).optional(),
@@ -60,6 +61,7 @@ export async function PUT(
 
   const parsed = UpdateRecipeSchema.safeParse(await request.json())
   if (!parsed.success) {
+    logValidationFailure('/api/recipes/[id]', parsed.error)
     return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
   }
   const body = parsed.data

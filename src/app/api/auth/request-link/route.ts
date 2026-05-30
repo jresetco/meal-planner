@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { z } from 'zod'
 import { createMagicLinkToken } from '@/lib/magic-link'
+import { logValidationFailure } from '@/lib/logger'
 
 const RequestLinkSchema = z.object({
   email: z.string().email().max(320),
@@ -31,6 +32,7 @@ export async function POST(request: NextRequest) {
   try {
     const parsed = RequestLinkSchema.safeParse(await request.json().catch(() => ({})))
     if (!parsed.success) {
+      logValidationFailure('/api/auth/request-link', parsed.error)
       return NextResponse.json(
         { success: false, error: 'Invalid input' },
         { status: 400 },

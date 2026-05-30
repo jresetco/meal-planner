@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
+import { logValidationFailure } from '@/lib/logger'
 
 const ReorderRulesSchema = z.object({
   ruleIds: z.array(z.string().max(200)).min(1),
@@ -17,6 +18,7 @@ export async function PATCH(request: NextRequest) {
 
   const parsed = ReorderRulesSchema.safeParse(await request.json())
   if (!parsed.success) {
+    logValidationFailure('/api/settings/rules/reorder', parsed.error)
     return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
   }
   const { ruleIds } = parsed.data

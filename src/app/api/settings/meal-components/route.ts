@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
 import type { ComponentCategory } from '@/types'
+import { logValidationFailure } from '@/lib/logger'
 
 const CreateMealComponentSchema = z.object({
   category: z.enum(['PROTEIN', 'VEGGIE', 'STARCH', 'SAUCE']),
@@ -44,6 +45,7 @@ export async function POST(request: NextRequest) {
 
   const parsed = CreateMealComponentSchema.safeParse(await request.json())
   if (!parsed.success) {
+    logValidationFailure('/api/settings/meal-components', parsed.error)
     return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
   }
   const { category, name, prepMethods, defaultCookTime, typicalIngredients } = parsed.data

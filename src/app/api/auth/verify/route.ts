@@ -6,6 +6,7 @@ import {
   SESSION_COOKIE_MAX_AGE,
   AUTH_COOKIE_NAME,
 } from '@/lib/session-token'
+import { logValidationFailure } from '@/lib/logger'
 
 const VerifySchema = z.object({
   token: z.string().min(1).max(4096),
@@ -27,6 +28,7 @@ export async function POST(request: NextRequest) {
   try {
     const parsed = VerifySchema.safeParse(await request.json().catch(() => ({})))
     if (!parsed.success) {
+      logValidationFailure('/api/auth/verify', parsed.error)
       return NextResponse.json(
         { success: false, error: 'Invalid input' },
         { status: 400 },

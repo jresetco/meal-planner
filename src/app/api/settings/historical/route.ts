@@ -4,6 +4,7 @@ import prisma from '@/lib/db'
 import { generateObject } from 'ai'
 import { z } from 'zod'
 import { getSimpleModel } from '@/lib/ai/provider'
+import { logValidationFailure } from '@/lib/logger'
 
 export const maxDuration = 300
 
@@ -39,6 +40,7 @@ export async function POST(request: NextRequest) {
 
   const parsed = ImportHistoricalSchema.safeParse(await request.json())
   if (!parsed.success) {
+    logValidationFailure('/api/settings/historical', parsed.error)
     return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
   }
   const { rawData, source = 'table', description } = parsed.data

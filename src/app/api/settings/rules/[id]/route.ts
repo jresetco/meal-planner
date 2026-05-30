@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
+import { logValidationFailure } from '@/lib/logger'
 
 const UpdateRuleSchema = z.object({
   ruleText: z.string().min(1).max(10000).optional(),
@@ -24,6 +25,7 @@ export async function PATCH(
 
   const parsed = UpdateRuleSchema.safeParse(await request.json())
   if (!parsed.success) {
+    logValidationFailure('/api/settings/rules/[id]', parsed.error)
     return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
   }
   const body = parsed.data

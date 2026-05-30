@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
+import { logValidationFailure } from '@/lib/logger'
 
 const CreatePresetSchema = z.object({
   name: z.string().min(1).max(500),
@@ -43,6 +44,7 @@ export async function POST(request: NextRequest) {
 
   const parsed = CreatePresetSchema.safeParse(await request.json())
   if (!parsed.success) {
+    logValidationFailure('/api/settings/presets', parsed.error)
     return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
   }
   const { name, maxLeftovers, servingsPerMeal, guaranteedMealIds, guidelines, isDefault } = parsed.data
