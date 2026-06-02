@@ -32,6 +32,7 @@ interface GroceryItem {
   unit: string
   category: string
   isChecked: boolean
+  isStaple: boolean
   mealNames: string[]
 }
 
@@ -39,6 +40,8 @@ interface GroceryCategory {
   name: string
   items: GroceryItem[]
 }
+
+type GroceryView = 'active' | 'excluded'
 
 const SECTION_TO_DISPLAY: Record<string, string> = {
   BREAD_BAKERY: 'Bread/Tortillas/Bakery',
@@ -78,6 +81,7 @@ export default function GroceryListPage() {
   const planId = params.id as string
   
   const [categories, setCategories] = useState<GroceryCategory[]>([])
+  const [excludedCategories, setExcludedCategories] = useState<GroceryCategory[]>([])
   const [wholeMeals, setWholeMeals] = useState<string[]>([])
   const [checkedWholeMeals, setCheckedWholeMeals] = useState<Set<string>>(new Set())
   const [isLoading, setIsLoading] = useState(true)
@@ -86,6 +90,7 @@ export default function GroceryListPage() {
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set())
   const [hideTarget, setHideTarget] = useState<GroceryItem | null>(null)
   const [addOpen, setAddOpen] = useState(false)
+  const [view, setView] = useState<GroceryView>('active')
   
   useEffect(() => {
     fetchGroceryList()
@@ -94,40 +99,44 @@ export default function GroceryListPage() {
   function applyGroceryData(data: {
     isStale?: boolean
     wholeMeals?: string[]
-    items?: { id: string; name: string; section?: string; quantity?: number | null; unit?: string | null; isChecked?: boolean; mealNames?: string[] }[]
+    items?: { id: string; name: string; section?: string; quantity?: number | null; unit?: string | null; isChecked?: boolean; isStaple?: boolean; mealNames?: string[] }[]
   }) {
     setIsStale(Boolean(data.isStale))
     setWholeMeals(Array.isArray(data.wholeMeals) ? data.wholeMeals : [])
     const items = data.items || []
     const grouped: Record<string, GroceryItem[]> = {}
+    const excludedGrouped: Record<string, GroceryItem[]> = {}
 
     for (const item of items) {
       const sectionKey = item.section || 'OTHER'
       const category = SECTION_TO_DISPLAY[sectionKey] || sectionKey.replace(/_/g, ' ')
-      if (!grouped[category]) grouped[category] = []
-      grouped[category].push({
+      const target = item.isStaple ? excludedGrouped : grouped
+      if (!target[category]) target[category] = []
+      target[category].push({
         id: item.id,
         name: item.name,
         quantity: item.quantity ?? 0,
         unit: item.unit ?? '',
         category,
         isChecked: item.isChecked || false,
+        isStaple: Boolean(item.isStaple),
         mealNames: item.mealNames || [],
       })
     }
 
-    const sortedCategories = CATEGORY_ORDER
-      .filter(cat => grouped[cat])
-      .map(cat => ({ name: cat, items: grouped[cat] }))
+    const orderGroup = (g: Record<string, GroceryItem[]>): GroceryCategory[] => {
+      const sorted = CATEGORY_ORDER.filter(cat => g[cat]).map(cat => ({ name: cat, items: g[cat] }))
+      Object.keys(g)
+        .filter(cat => !CATEGORY_ORDER.includes(cat))
+        .forEach(cat => sorted.push({ name: cat, items: g[cat] }))
+      return sorted
+    }
 
-    Object.keys(grouped)
-      .filter(cat => !CATEGORY_ORDER.includes(cat))
-      .forEach(cat => sortedCategories.push({ name: cat, items: grouped[cat] }))
-
-    setCategories(sortedCategories)
+    setCategories(orderGroup(grouped))
+    setExcludedCategories(orderGroup(excludedGrouped))
 
     const initialChecked = new Set<string>()
-    items.forEach(item => { if (item.isChecked) initialChecked.add(item.id) })
+    items.forEach(item => { if (item.isChecked && !item.isStaple) initialChecked.add(item.id) })
     setCheckedItems(initialChecked)
   }
 
@@ -418,12 +427,38 @@ export default function GroceryListPage() {
 
       {/* Progress Bar */}
       <div className="w-full bg-slate-100 rounded-full h-3">
-        <div 
+        <div
           className="bg-emerald-500 h-3 rounded-full transition-all duration-300"
           style={{ width: totalItems > 0 ? `${(checkedCount / totalItems) * 100}%` : '0%' }}
         />
       </div>
-      
+
+      {/* View tabs — Active / Excluded by pantry */}
+      {(excludedCategories.length > 0 || view === 'excluded') && (
+        <div className="inline-flex rounded-md border bg-muted/30 p-1 gap-1">
+          <button
+            className={cn(
+              'px-3 py-1.5 text-sm rounded transition-colors',
+              view === 'active' ? 'bg-background shadow-sm font-medium' : 'text-muted-foreground hover:text-foreground'
+            )}
+            onClick={() => setView('active')}
+          >
+            Active ({totalItems})
+          </button>
+          <button
+            className={cn(
+              'px-3 py-1.5 text-sm rounded transition-colors',
+              view === 'excluded' ? 'bg-background shadow-sm font-medium' : 'text-muted-foreground hover:text-foreground'
+            )}
+            onClick={() => setView('excluded')}
+          >
+            Excluded by pantry ({excludedCategories.reduce((s, c) => s + c.items.length, 0)})
+          </button>
+        </div>
+      )}
+
+      {view === 'active' && <>
+
       {/* Whole Meals — manually added meals without ingredient lists */}
       {wholeMeals.length > 0 && (
         <Card className="border-emerald-200">
@@ -556,7 +591,60 @@ export default function GroceryListPage() {
           ))}
         </div>
       )}
-      
+
+      </>}
+
+      {view === 'excluded' && (
+        <div className="space-y-3">
+          <div className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-amber-900">
+            <p className="font-medium">Excluded from this list</p>
+            <p className="text-sm mt-0.5">
+              These ingredients were left off because they match your{' '}
+              <a href="/settings" className="underline font-medium">pantry staples</a>.
+              Remove an item from pantry staples (or regenerate this list) to bring it back.
+            </p>
+          </div>
+          {excludedCategories.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <ShoppingCart className="h-10 w-10 text-muted-foreground mb-3" />
+                <p className="text-muted-foreground text-center max-w-sm">
+                  Nothing was excluded from this list. Items you mark as pantry staples will appear here next time.
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            excludedCategories.map((category) => (
+              <Card key={`excluded-${category.name}`}>
+                <CardHeader className="py-2 px-4">
+                  <CardTitle className="text-sm font-semibold flex items-center justify-between">
+                    <span className="uppercase tracking-wide text-muted-foreground">{category.name}</span>
+                    <span className="text-xs font-normal text-muted-foreground">{category.items.length}</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="py-1 px-2">
+                  <ul className="divide-y">
+                    {category.items.map((item) => (
+                      <li key={item.id} className="flex items-baseline gap-2 px-2 py-1.5 text-sm text-muted-foreground">
+                        <span className="font-medium truncate">{item.name}</span>
+                        {(item.quantity > 0 || item.unit) && (
+                          <span className="text-xs">
+                            {item.quantity > 0 ? item.quantity : ''}{item.unit ? ` ${item.unit}` : ''}
+                          </span>
+                        )}
+                        {item.mealNames.length > 0 && (
+                          <span className="text-xs truncate ml-auto">{item.mealNames.join(', ')}</span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
+      )}
+
       {/* All Checked Message */}
       {checkedCount === totalItems && totalItems > 0 && (
         <Card className="bg-emerald-50 border-emerald-200">
