@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      # Using `npm install` (not `npm ci`) because the lockfile is generated
+      # on macOS and `npm ci` rejects Linux-only optional dep gaps
+      # (@emnapi/runtime@1.10.0 from @rolldown/binding-wasm32-wasi).
+      # Trade: slight reproducibility loss; gain: cross-platform unblock.
+      - run: npm install --no-audit --no-fund --no-progress
+
+      - name: Generate Prisma client
+        run: npx prisma generate
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      # Lint is informational while pre-existing errors are cleaned up.
+      # See Todoist task: "Clean up pre-existing lint errors and warnings"
+      # in epic:engineering-hardening. Flip this to a required step once main
+      # is green.
+      - name: Lint
+        run: npm run lint
+        continue-on-error: true
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        env:
+          # Build-time placeholders so Next.js compiles without real secrets.
+          # Runtime requires the real values to be set in the deploy environment.
+          DATABASE_URL: postgres://placeholder:placeholder@localhost:5432/placeholder
+          ENCRYPTION_KEY: '0000000000000000000000000000000000000000000000000000000000000000'
+          OPENAI_API_KEY: sk-placeholder
+        run: npm run build
