@@ -80,8 +80,8 @@ export async function GET(
     await prisma.groceryList.delete({ where: { id: existingList.id } })
   }
 
-  // Get pantry staples and meal components in parallel
-  const [pantryStaples, mealComponents] = await Promise.all([
+  // Get pantry staples, meal components, and recurring items in parallel
+  const [pantryStaples, mealComponents, recurringItems] = await Promise.all([
     prisma.pantryStaple.findMany({
       where: {
         householdId: session.user.householdId,
@@ -95,6 +95,13 @@ export async function GET(
         isActive: true,
       },
       select: { name: true, category: true, typicalIngredients: true },
+    }),
+    prisma.recurringGroceryItem.findMany({
+      where: {
+        householdId: session.user.householdId,
+        isActive: true,
+      },
+      select: { name: true, quantity: true, unit: true, section: true },
     }),
   ])
 
@@ -149,21 +156,40 @@ export async function GET(
     // Filter out staples that the AI identified
     const nonStapleItems = generatedList.items.filter(item => !item.isStaple)
 
+    // Merge in active recurring grocery items. Skip any recurring item whose
+    // name already matches a generated item so we don't double-buy when an
+    // ingredient appears in both a recipe and the recurring list.
+    const existingNames = new Set(nonStapleItems.map(i => i.name.toLowerCase().trim()))
+    const recurringEntries = recurringItems
+      .filter(r => !existingNames.has(r.name.toLowerCase().trim()))
+      .map(r => ({
+        name: r.name,
+        quantity: r.quantity,
+        unit: r.unit,
+        section: r.section,
+        mealNames: ['Recurring'],
+        isChecked: false,
+        isStaple: false,
+      }))
+
     // Save to database (fresh list, not stale)
     const groceryList = await prisma.groceryList.create({
       data: {
         mealPlanId: id,
         isStale: false,
         items: {
-          create: nonStapleItems.map((item) => ({
-            name: item.name,
-            quantity: item.mergedQuantity.amount,
-            unit: item.mergedQuantity.unit,
-            section: item.section as StoreSection,
-            mealNames: item.mealNames,
-            isChecked: false,
-            isStaple: false,
-          })),
+          create: [
+            ...nonStapleItems.map((item) => ({
+              name: item.name,
+              quantity: item.mergedQuantity.amount,
+              unit: item.mergedQuantity.unit,
+              section: item.section as StoreSection,
+              mealNames: item.mealNames,
+              isChecked: false,
+              isStaple: false,
+            })),
+            ...recurringEntries,
+          ],
         },
       },
       include: {

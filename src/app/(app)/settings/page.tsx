@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,7 +15,9 @@ import {
   Plus,
   X,
   Save,
-  RefreshCw
+  RefreshCw,
+  Repeat,
+  ChevronRight,
 } from 'lucide-react'
 import type { PantryStaple, HistoricalPlan } from '@/types'
 
@@ -592,6 +595,24 @@ export default function SettingsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Recurring Grocery Items */}
+      <Link href="/settings/recurring-grocery" className="block group">
+        <Card className="hover:border-emerald-300 transition-colors">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <Repeat className="h-5 w-5" />
+                Recurring Grocery Items
+              </span>
+              <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-emerald-600 transition-colors" />
+            </CardTitle>
+            <CardDescription>
+              Items that are automatically added to every new grocery list (milk, eggs, weekly favorites)
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </Link>
     </div>
   )
 }
