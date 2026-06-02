@@ -131,9 +131,19 @@ ${hintsBlock}
 ## Instructions
 
 ### 1. Standardize Ingredient Names
-- Normalize variations: "yellow onion", "onion", "white onion" → "onions"
+- Normalize color/variety variations: "yellow onion", "onion", "white onion" → "onions"
 - Use plural forms for countable items: "carrot" → "carrots"
 - Keep brand-specific items separate if mentioned
+- Keep produce VARIETIES with distinct uses separate: "red onion" stays separate from "green onion"; "lettuce" stays separate from "romaine lettuce"; "rice" stays separate from "arborio rice"
+- **Prep modifiers — collapse to ONE item with parens**: when two ingredients
+  share a base name but differ in PREPARATION (cut/state), produce a single
+  item with the base name followed by the modifiers in parens. Examples:
+  - "shredded lettuce" + "whole lettuce" → "Lettuce (shredded, whole)"
+  - "diced tomatoes" + "whole tomatoes" → "Tomatoes (diced, whole)"
+  - "ground beef" + "beef chunks" → "Beef (ground, chunks)"
+  Prep modifiers to recognize: shredded, whole, diced, chopped, sliced, minced,
+  cubed, halved, crushed, ground, julienned, grated, peeled. Keep the parens
+  text short and lowercase, comma-separated, in the order encountered.
 
 ### 2. Smart Quantity Merging
 - MERGE same units: 2 cups + 1 cup = 3 cups

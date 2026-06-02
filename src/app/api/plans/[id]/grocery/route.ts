@@ -10,6 +10,7 @@ export const maxDuration = 300
 
 const UpdateGroceryListSchema = z.object({
   uncheckAll: z.boolean().optional(),
+  checkedWholeMeals: z.array(z.string().min(1).max(500)).max(200).optional(),
 })
 
 // GET /api/plans/[id]/grocery - Generate grocery list for a plan
@@ -255,12 +256,23 @@ export async function PATCH(
     logValidationFailure('/api/plans/[id]/grocery', parsed.error)
     return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
   }
-  const { uncheckAll } = parsed.data
+  const { uncheckAll, checkedWholeMeals } = parsed.data
 
   if (uncheckAll) {
     await prisma.groceryItem.updateMany({
       where: { groceryListId: list.id, isChecked: true },
       data: { isChecked: false },
+    })
+    await prisma.groceryList.update({
+      where: { id: list.id },
+      data: { checkedWholeMeals: [] },
+    })
+  }
+
+  if (checkedWholeMeals !== undefined) {
+    await prisma.groceryList.update({
+      where: { id: list.id },
+      data: { checkedWholeMeals },
     })
   }
 
