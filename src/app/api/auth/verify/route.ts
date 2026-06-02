@@ -6,23 +6,15 @@ import {
   SESSION_COOKIE_MAX_AGE,
   AUTH_COOKIE_NAME,
 } from '@/lib/session-token'
+import {
+  checkAuthSecretConfigured,
+  checkEmailAllowed,
+} from '@/lib/auth'
 import { logValidationFailure } from '@/lib/logger'
 
 const VerifySchema = z.object({
   token: z.string().min(1).max(4096),
 })
-
-function isEmailAllowed(email: string): boolean {
-  const single = process.env.APP_AUTH_EMAIL || ''
-  const multi = process.env.ALLOWED_EMAILS || ''
-  const normalized = email.toLowerCase().trim()
-  if (single) return normalized === single.toLowerCase().trim()
-  if (multi) {
-    const list = multi.split(',').map((e) => e.trim().toLowerCase())
-    return list.includes(normalized)
-  }
-  return true
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,6 +27,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // APP_AUTH_SECRET is required to issue session cookies. Check first so the
+    // server log makes the misconfiguration obvious before any token work.
+    const secretCheck = checkAuthSecretConfigured()
+    if (!secretCheck.ok) {
+      console.error(secretCheck.logMessage)
+      return NextResponse.json(
+        { success: false, error: secretCheck.userMessage, code: secretCheck.code },
+        { status: 500 },
+      )
+    }
+
     const payload = verifyMagicLinkToken(parsed.data.token)
     if (!payload) {
       return NextResponse.json(
@@ -43,18 +46,24 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!isEmailAllowed(payload.email)) {
+    const allowlistCheck = checkEmailAllowed(payload.email)
+    if (!allowlistCheck.allowed) {
+      // Defense-in-depth: even though request-link checks the allowlist before
+      // sending, re-check here in case the allowlist changed between
+      // link-issue and link-redeem.
+      if (allowlistCheck.code === 'AUTH_NO_ALLOWLIST') {
+        console.error(allowlistCheck.logMessage)
+      } else {
+        console.info(allowlistCheck.logMessage)
+      }
+      const status = allowlistCheck.code === 'AUTH_NO_ALLOWLIST' ? 500 : 403
       return NextResponse.json(
-        { success: false, error: 'Email not allowed' },
-        { status: 403 },
-      )
-    }
-
-    if (!process.env.APP_AUTH_SECRET) {
-      console.error('auth-verify: APP_AUTH_SECRET not configured')
-      return NextResponse.json(
-        { success: false, error: 'Auth not configured' },
-        { status: 500 },
+        {
+          success: false,
+          error: allowlistCheck.userMessage,
+          code: allowlistCheck.code,
+        },
+        { status },
       )
     }
 

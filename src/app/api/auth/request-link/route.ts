@@ -2,31 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { z } from 'zod'
 import { createMagicLinkToken } from '@/lib/magic-link'
+import {
+  checkAuthSecretConfigured,
+  checkEmailAllowed,
+} from '@/lib/auth'
 import { logValidationFailure } from '@/lib/logger'
 
 const RequestLinkSchema = z.object({
   email: z.string().email().max(320),
   from: z.string().max(500).optional(),
 })
-
-function isEmailAllowed(email: string): boolean {
-  const single = process.env.APP_AUTH_EMAIL || ''
-  const multi = process.env.ALLOWED_EMAILS || ''
-  const normalized = email.toLowerCase().trim()
-
-  if (single) {
-    return normalized === single.toLowerCase().trim()
-  }
-  if (multi) {
-    const list = multi.split(',').map((e) => e.trim().toLowerCase())
-    return list.includes(normalized)
-  }
-  return true
-}
-
-function hasSigningSecret(): boolean {
-  return Boolean(process.env.APP_AUTH_LINK_SECRET || process.env.APP_AUTH_SECRET)
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -41,18 +26,34 @@ export async function POST(request: NextRequest) {
 
     const { email, from } = parsed.data
 
-    if (!isEmailAllowed(email)) {
+    // Check signing secret BEFORE the allowlist so misconfigured deployments
+    // surface that error first instead of silently swallowing every login.
+    const secretCheck = checkAuthSecretConfigured()
+    if (!secretCheck.ok) {
+      console.error(secretCheck.logMessage)
       return NextResponse.json(
-        { success: false, error: 'Email not allowed' },
-        { status: 403 },
+        { success: false, error: secretCheck.userMessage, code: secretCheck.code },
+        { status: 500 },
       )
     }
 
-    if (!hasSigningSecret()) {
-      console.error('auth-request-link: APP_AUTH_SECRET not configured')
+    const allowlistCheck = checkEmailAllowed(email)
+    if (!allowlistCheck.allowed) {
+      // NO_ALLOWLIST is a deployment error (Railway), EMAIL_NOT_ALLOWED is a normal user event.
+      // Log both, but at different levels so log triage stays useful.
+      if (allowlistCheck.code === 'AUTH_NO_ALLOWLIST') {
+        console.error(allowlistCheck.logMessage)
+      } else {
+        console.info(allowlistCheck.logMessage)
+      }
+      const status = allowlistCheck.code === 'AUTH_NO_ALLOWLIST' ? 500 : 403
       return NextResponse.json(
-        { success: false, error: 'Sign-in is not fully configured' },
-        { status: 500 },
+        {
+          success: false,
+          error: allowlistCheck.userMessage,
+          code: allowlistCheck.code,
+        },
+        { status },
       )
     }
 
