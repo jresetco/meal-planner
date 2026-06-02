@@ -19,7 +19,11 @@ jobs:
           node-version-file: '.nvmrc'
           cache: 'npm'
 
-      - run: npm ci
+      # Using `npm install` (not `npm ci`) because the lockfile is generated
+      # on macOS and `npm ci` rejects Linux-only optional dep gaps
+      # (@emnapi/runtime@1.10.0 from @rolldown/binding-wasm32-wasi).
+      # Trade: slight reproducibility loss; gain: cross-platform unblock.
+      - run: npm install --no-audit --no-fund --no-progress
 
       - name: Generate Prisma client
         run: npx prisma generate
