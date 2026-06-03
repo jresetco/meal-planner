@@ -19,7 +19,15 @@ COPY package.json package-lock.json prisma.config.ts ./
 COPY prisma ./prisma
 
 # Install ALL dependencies (including dev) — needed for `next build` and `tsc`.
-RUN npm ci
+#
+# Using `npm install` (not `npm ci`) because package-lock.json is generated on
+# macOS and `npm ci` fails on Linux when the lockfile is missing Linux-only
+# optional deps (e.g. @emnapi/runtime pulled in by @rolldown/binding-wasm32-wasi).
+# This matches the CI workflow in .github/workflows/ci.yml — keep the two in sync.
+# To eliminate the gap entirely, regenerate the lockfile inside Linux:
+#   docker run --rm -v "$PWD":/app -w /app node:22-bookworm-slim npm install
+# then commit the updated package-lock.json and `npm ci` works everywhere.
+RUN npm install --no-audit --no-fund --no-progress
 
 # Copy the rest of the source.
 COPY . .
