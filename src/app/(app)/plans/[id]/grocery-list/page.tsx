@@ -17,9 +17,13 @@ import {
   Check,
   Circle,
   RefreshCw,
-  AlertCircle
+  AlertCircle,
+  EyeOff,
+  Plus,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { HideItemDialog } from '@/components/grocery/hide-item-dialog'
+import { AddItemDialog, type AddItemValues } from '@/components/grocery/add-item-dialog'
 
 interface GroceryItem {
   id: string
@@ -80,6 +84,8 @@ export default function GroceryListPage() {
   const [isRegenerating, setIsRegenerating] = useState(false)
   const [isStale, setIsStale] = useState(false)
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set())
+  const [hideTarget, setHideTarget] = useState<GroceryItem | null>(null)
+  const [addOpen, setAddOpen] = useState(false)
   
   useEffect(() => {
     fetchGroceryList()
@@ -217,6 +223,63 @@ export default function GroceryListPage() {
     }
   }
   
+  const removeItemFromState = (itemId: string) => {
+    setCategories(prev =>
+      prev
+        .map(cat => ({ ...cat, items: cat.items.filter(i => i.id !== itemId) }))
+        .filter(cat => cat.items.length > 0)
+    )
+    setCheckedItems(prev => {
+      if (!prev.has(itemId)) return prev
+      const next = new Set(prev)
+      next.delete(itemId)
+      return next
+    })
+  }
+
+  const handleHideConfirm = async () => {
+    if (!hideTarget) return
+    const target = hideTarget
+    try {
+      const stapleRes = await fetch('/api/settings/staples', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ingredientName: target.name }),
+      })
+      if (!stapleRes.ok) throw new Error('Failed to add pantry staple')
+
+      const deleteRes = await fetch(`/api/plans/${planId}/grocery/${target.id}`, {
+        method: 'DELETE',
+      })
+      if (!deleteRes.ok) throw new Error('Failed to remove item from list')
+
+      removeItemFromState(target.id)
+      setHideTarget(null)
+    } catch (err) {
+      console.error('Hide permanently failed:', err)
+      alert(err instanceof Error ? err.message : 'Failed to hide item')
+    }
+  }
+
+  const handleAddSubmit = async (values: AddItemValues) => {
+    const res = await fetch(`/api/plans/${planId}/grocery/items`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: values.name,
+        quantity: values.quantity ?? null,
+        unit: values.unit ?? null,
+        section: values.section,
+      }),
+    })
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      throw new Error(body.error || 'Failed to add item')
+    }
+    // Refetch to get the new item placed correctly within categories
+    await fetchGroceryList()
+  }
+
   const handlePrint = () => {
     window.print()
   }
@@ -304,6 +367,10 @@ export default function GroceryListPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <Button onClick={() => setAddOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add item
+          </Button>
           <Button
             variant="outline"
             onClick={handleRegenerate}
@@ -439,7 +506,7 @@ export default function GroceryListPage() {
                       <div
                         key={item.id}
                         className={cn(
-                          "flex items-center gap-3 px-2 py-1 rounded transition-colors cursor-pointer hover:bg-slate-50",
+                          "group flex items-center gap-3 px-2 py-1 rounded transition-colors cursor-pointer hover:bg-slate-50",
                           isChecked && "bg-slate-50"
                         )}
                         onClick={() => handleToggleItem(item.id)}
@@ -468,6 +535,18 @@ export default function GroceryListPage() {
                             </span>
                           )}
                         </div>
+                        <button
+                          type="button"
+                          className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity flex-shrink-0 p-1 rounded hover:bg-amber-100 text-muted-foreground hover:text-amber-700"
+                          aria-label={`Hide ${item.name} permanently`}
+                          title="Hide permanently (add to pantry staples)"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setHideTarget(item)
+                          }}
+                        >
+                          <EyeOff className="h-4 w-4" />
+                        </button>
                       </div>
                     )
                   })}
@@ -492,6 +571,19 @@ export default function GroceryListPage() {
           </CardContent>
         </Card>
       )}
+
+      <HideItemDialog
+        open={Boolean(hideTarget)}
+        itemName={hideTarget?.name ?? null}
+        onCancel={() => setHideTarget(null)}
+        onConfirm={handleHideConfirm}
+      />
+
+      <AddItemDialog
+        open={addOpen}
+        onClose={() => setAddOpen(false)}
+        onSubmit={handleAddSubmit}
+      />
     </div>
   )
 }

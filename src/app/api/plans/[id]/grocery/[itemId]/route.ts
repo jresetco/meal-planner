@@ -53,3 +53,36 @@ export async function PATCH(
 
   return NextResponse.json(updatedItem)
 }
+
+// DELETE /api/plans/[id]/grocery/[itemId] - Remove an item from the active grocery list
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string; itemId: string }> }
+) {
+  const session = await auth()
+  const { id, itemId } = await params
+
+  if (!session?.user?.householdId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const item = await prisma.groceryItem.findFirst({
+    where: {
+      id: itemId,
+      groceryList: {
+        mealPlan: {
+          id,
+          householdId: session.user.householdId,
+        },
+      },
+    },
+  })
+
+  if (!item) {
+    return NextResponse.json({ error: 'Item not found' }, { status: 404 })
+  }
+
+  await prisma.groceryItem.delete({ where: { id: itemId } })
+
+  return NextResponse.json({ success: true })
+}
