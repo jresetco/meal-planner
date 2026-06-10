@@ -24,30 +24,35 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { 
-  ArrowLeft, 
-  Lock, 
-  LockOpen, 
-  RefreshCw, 
-  MoreVertical, 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  ArrowLeft,
+  Lock,
+  LockOpen,
+  RefreshCw,
+  MoreVertical,
   ShoppingCart,
-  Calendar,
-  ChevronLeft,
-  ChevronRight,
-  Utensils,
   Trash2,
   Sparkles,
   Search,
   Loader2,
-  Check,
   ArrowRightLeft,
   StickyNote,
+  Utensils,
   X,
+  Printer,
+  Plus,
 } from 'lucide-react'
 import Link from 'next/link'
 import { cn, formatDate } from '@/lib/utils'
 import { getServingDisplay } from '@/lib/plan-servings-display'
-import { isSlotAfter, ymd } from '@/lib/plan-meal-slots'
+import { isSlotAfter, slotKey, ymd } from '@/lib/plan-meal-slots'
 import type { MealPlan, PlannedMeal, Recipe, MealType, MealComponent, DynamicComponentRef, ComponentCategory } from '@/types'
 import { RecipeMealHover } from '@/components/plans/recipe-meal-hover'
 
@@ -102,8 +107,7 @@ export default function PlanDetailPage() {
   
   const [plan, setPlan] = useState<MealPlanWithMeals | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [currentWeekStart, setCurrentWeekStart] = useState<Date | null>(null)
-  
+
   // Swap dialog state
   const [swapDialogOpen, setSwapDialogOpen] = useState(false)
   const [swapMeal, setSwapMeal] = useState<MealWithRecipe | null>(null)
@@ -127,12 +131,29 @@ export default function PlanDetailPage() {
   // Regenerate plan dialog state
   const [regenerateDialogOpen, setRegenerateDialogOpen] = useState(false)
   const [regenerateGuidance, setRegenerateGuidance] = useState('')
-  
+
+  // Print options dialog state
+  const [printDialogOpen, setPrintDialogOpen] = useState(false)
+  const [printScale, setPrintScale] = useState('0.85')
+  const [printWeeksPerPage, setPrintWeeksPerPage] = useState('1')
+  const [printOrientation, setPrintOrientation] = useState('landscape')
+
   useEffect(() => {
     fetchPlan()
     fetchRecipes()
     fetchMealComponents()
   }, [planId])
+
+  // Drive the printed paper size/orientation from the selected option. `@page`
+  // can't be set via inline styles, so we manage a single <style> tag for it.
+  useEffect(() => {
+    const el = document.createElement('style')
+    el.textContent = `@page { size: ${printOrientation}; margin: 0.4in; }`
+    document.head.appendChild(el)
+    return () => {
+      el.remove()
+    }
+  }, [printOrientation])
   
   const fetchPlan = async () => {
     try {
@@ -140,14 +161,6 @@ export default function PlanDetailPage() {
       if (response.ok) {
         const data = await response.json()
         setPlan(data)
-        // Set initial week view to the plan's start date
-        if (data.startDate) {
-          const start = new Date(data.startDate)
-          // Adjust to start of the week (Sunday)
-          const day = start.getDay()
-          start.setDate(start.getDate() - day)
-          setCurrentWeekStart(start)
-        }
       } else {
         console.error('Failed to fetch plan')
       }
@@ -438,45 +451,126 @@ export default function PlanDetailPage() {
   }
   
   const handleDeleteMeal = async (mealId: string) => {
-    if (!confirm('Remove this meal from the plan?')) return
-    
+    // Instant, single-click removal (no confirmation modal). Optimistically drop
+    // the meal so the slot frees immediately; revert if the API call fails.
+    const previousMeals = plan?.plannedMeals
+    setPlan(prev =>
+      prev
+        ? { ...prev, plannedMeals: prev.plannedMeals.filter(m => m.id !== mealId) }
+        : prev
+    )
     try {
       const response = await fetch(`/api/plans/${planId}/meals/${mealId}`, {
         method: 'DELETE',
       })
-      if (response.ok) {
-        fetchPlan()
+      if (!response.ok) {
+        // Revert on failure
+        setPlan(prev =>
+          prev && previousMeals ? { ...prev, plannedMeals: previousMeals } : prev
+        )
       }
     } catch (error) {
       console.error('Error deleting meal:', error)
+      setPlan(prev =>
+        prev && previousMeals ? { ...prev, plannedMeals: previousMeals } : prev
+      )
     }
   }
   
-  const handlePreviousWeek = () => {
-    if (!currentWeekStart) return
-    const newStart = new Date(currentWeekStart)
-    newStart.setDate(newStart.getDate() - 7)
-    setCurrentWeekStart(newStart)
+  /**
+   * Add a meal back into an empty slot. Creates a blank placeholder meal for the
+   * given day + mealType, then opens the existing swap dialog so the user can pick
+   * a recipe / leftover / custom name — reusing all the add/swap machinery.
+   */
+  const [addingSlotKey, setAddingSlotKey] = useState<string | null>(null)
+  const handleAddMealToSlot = async (date: Date, mealType: MealType) => {
+    const dateStr = ymd(date)
+    const slot = slotKey(dateStr, mealType)
+    if (addingSlotKey) return
+    setAddingSlotKey(slot)
+    try {
+      const response = await fetch(`/api/plans/${planId}/meals`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ date: dateStr, mealType, customName: 'New meal' }),
+      })
+      if (response.ok) {
+        const created: MealWithRecipe = await response.json()
+        // Reflect the new slot immediately, then open the swap dialog on it.
+        setPlan(prev =>
+          prev ? { ...prev, plannedMeals: [...prev.plannedMeals, created] } : prev
+        )
+        handleOpenSwapDialog(created)
+      }
+    } catch (error) {
+      console.error('Error adding meal:', error)
+    } finally {
+      setAddingSlotKey(null)
+    }
   }
-  
-  const handleNextWeek = () => {
-    if (!currentWeekStart) return
-    const newStart = new Date(currentWeekStart)
-    newStart.setDate(newStart.getDate() + 7)
-    setCurrentWeekStart(newStart)
+
+  /**
+   * Lock or unlock every meal of a day in one click. If any meal is currently
+   * unlocked, lock them all; otherwise (all already locked) unlock them all.
+   * Batches the existing per-meal PATCH calls with an optimistic UI update.
+   */
+  const [togglingDayLock, setTogglingDayLock] = useState<string | null>(null)
+  const handleToggleDayLock = async (date: Date) => {
+    if (!plan) return
+    const dateStr = ymd(date)
+    const dayMeals = plan.plannedMeals.filter(m => ymd(new Date(m.date)) === dateStr)
+    if (dayMeals.length === 0) return
+    // Mixed or all-unlocked → lock all; all-locked → unlock all.
+    const newLocked = dayMeals.some(m => !m.isLocked)
+    const dayMealIds = new Set(dayMeals.map(m => m.id))
+
+    setTogglingDayLock(dateStr)
+    // Optimistic update
+    setPlan(prev =>
+      prev
+        ? {
+            ...prev,
+            plannedMeals: prev.plannedMeals.map(m =>
+              dayMealIds.has(m.id) ? { ...m, isLocked: newLocked } : m
+            ),
+          }
+        : prev
+    )
+    try {
+      const results = await Promise.all(
+        dayMeals
+          .filter(m => m.isLocked !== newLocked)
+          .map(m =>
+            fetch(`/api/plans/${planId}/meals/${m.id}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ isLocked: newLocked }),
+            })
+          )
+      )
+      if (results.some(r => !r.ok)) {
+        // Re-sync from server if any call failed
+        fetchPlan()
+      }
+    } catch (error) {
+      console.error('Error toggling day lock:', error)
+      fetchPlan()
+    } finally {
+      setTogglingDayLock(null)
+    }
   }
-  
-  const getWeekDays = (): Date[] => {
-    if (!currentWeekStart) return []
+
+  /** The 7 days of a Sunday-aligned week starting at `weekStart`. */
+  const getWeekDays = (weekStart: Date): Date[] => {
     const days: Date[] = []
     for (let i = 0; i < 7; i++) {
-      const day = new Date(currentWeekStart)
+      const day = new Date(weekStart)
       day.setDate(day.getDate() + i)
       days.push(day)
     }
     return days
   }
-  
+
   const getMealForSlot = (date: Date, mealType: MealType) => {
     if (!plan) return null
     const dateStr = date.toISOString().split('T')[0]
@@ -523,6 +617,34 @@ export default function PlanDetailPage() {
       servings: m.servings,
     }))
   }, [plan])
+
+  /**
+   * Sunday-aligned start date of every week the plan spans. Used to crop the
+   * calendar to the plan's actual weeks (no leading/trailing empty weeks) for
+   * both the on-screen grid and the print layout.
+   */
+  const planWeekStarts = useMemo(() => {
+    if (!plan) return []
+    const start = new Date(plan.startDate)
+    start.setHours(0, 0, 0, 0)
+    start.setDate(start.getDate() - start.getDay())
+    const end = new Date(plan.endDate)
+    end.setHours(23, 59, 59, 999)
+    const weeks: Date[] = []
+    const cursor = new Date(start)
+    while (cursor <= end) {
+      weeks.push(new Date(cursor))
+      cursor.setDate(cursor.getDate() + 7)
+    }
+    return weeks
+  }, [plan])
+
+  const handlePrint = () => {
+    // Close the options dialog first so its overlay isn't captured in the
+    // printout, then let the DOM settle before opening the print dialog.
+    setPrintDialogOpen(false)
+    setTimeout(() => window.print(), 150)
+  }
 
   /** Day notes are stored on the MealPlan as a JSON map keyed by date string. */
   const handleDayNotesBlur = async (dateStr: string, value: string) => {
@@ -579,13 +701,13 @@ export default function PlanDetailPage() {
     )
   }
   
-  const weekDays = getWeekDays()
   const planStartDate = new Date(plan.startDate)
   const planEndDate = new Date(plan.endDate)
   const lockedCount = plan.plannedMeals.filter(m => m.isLocked).length
-  
+
   return (
-    <div className="space-y-6">
+    <>
+      <div className="space-y-6 print:hidden">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-4">
@@ -622,30 +744,19 @@ export default function PlanDetailPage() {
               Grocery List
             </Link>
           </Button>
+          <Button variant="outline" onClick={() => setPrintDialogOpen(true)}>
+            <Printer className="mr-2 h-4 w-4" />
+            Print
+          </Button>
         </div>
       </div>
-      
-      {/* Week Navigation */}
-      <div className="flex items-center justify-between bg-slate-50 rounded-lg p-4">
-        <Button variant="ghost" size="sm" onClick={handlePreviousWeek}>
-          <ChevronLeft className="h-4 w-4" />
-          Previous Week
-        </Button>
-        <div className="flex items-center gap-2">
-          <Calendar className="h-4 w-4 text-muted-foreground" />
-          <span className="font-medium">
-            {weekDays[0] && formatDate(weekDays[0])} - {weekDays[6] && formatDate(weekDays[6])}
-          </span>
-        </div>
-        <Button variant="ghost" size="sm" onClick={handleNextWeek}>
-          Next Week
-          <ChevronRight className="h-4 w-4" />
-        </Button>
-      </div>
-      
-      {/* Meal Grid */}
-      <div className="overflow-x-auto">
-        <div className="min-w-[1400px]">
+
+      {/* Meal Grid — one grid per week the plan spans (cropped to plan range) */}
+      <div className="overflow-x-auto space-y-6">
+        {planWeekStarts.map((weekStart) => {
+        const weekDays = getWeekDays(weekStart)
+        return (
+        <div key={weekStart.toISOString()} className="min-w-[1400px]">
           {/* Day Headers */}
           <div className="grid grid-cols-[80px_repeat(7,minmax(170px,1fr))] gap-2 mb-2">
             <div /> {/* Empty corner */}
@@ -659,40 +770,79 @@ export default function PlanDetailPage() {
                 m => new Date(m.date).toISOString().split('T')[0] === dateStr
               )
               const hasLockedMeals = dayMeals.some(m => m.isLocked)
-              
+              const allLocked = dayMeals.length > 0 && dayMeals.every(m => m.isLocked)
+              const isTogglingLock = togglingDayLock === dateStr
+
+              // Days outside the plan range render as compact greyed stubs so a
+              // 2-week plan starting mid-week still fits one screen comfortably.
+              if (!isInRange) {
+                return (
+                  <div
+                    key={day.toISOString()}
+                    className="text-center py-2 rounded-lg bg-slate-50 text-slate-300"
+                  >
+                    <div className="text-xs uppercase">{day.toLocaleDateString('en-US', { weekday: 'short' })}</div>
+                    <div className="text-sm font-medium">{day.getDate()}</div>
+                  </div>
+                )
+              }
+
               return (
-                <div 
-                  key={day.toISOString()} 
+                <div
+                  key={day.toISOString()}
                   className={cn(
                     "text-center py-2 rounded-lg relative",
-                    isInRange && isWeekend && "bg-violet-50 text-violet-800 border border-violet-100",
-                    isInRange && !isWeekend && "bg-emerald-50 text-emerald-700",
-                    !isInRange && "bg-slate-50 text-slate-400"
+                    isWeekend && "bg-violet-50 text-violet-800 border border-violet-100",
+                    !isWeekend && "bg-emerald-50 text-emerald-700"
                   )}
                 >
                   <div className="text-xs uppercase">{day.toLocaleDateString('en-US', { weekday: 'short' })}</div>
                   <div className="text-lg font-semibold">{day.getDate()}</div>
-                  {isInRange && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-6 px-2 text-xs opacity-0 hover:opacity-100 transition-opacity"
-                      onClick={() => handleRegenerateDay(day)}
-                      disabled={isRegenerating}
-                      title={hasLockedMeals ? "Regenerate day (locked meals will be kept)" : "Regenerate day"}
-                    >
-                      {isRegenerating ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      ) : (
-                        <RefreshCw className="h-3 w-3" />
-                      )}
-                    </Button>
-                  )}
+                  <div className="absolute top-1 right-1 flex items-center gap-0.5">
+                    {/* Full-day lock/unlock toggle */}
+                    {dayMeals.length > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className={cn(
+                          "h-6 w-6 transition-opacity",
+                          allLocked
+                            ? "text-emerald-600 opacity-100"
+                            : "opacity-50 hover:opacity-100"
+                        )}
+                        onClick={() => handleToggleDayLock(day)}
+                        disabled={isTogglingLock}
+                        title={allLocked ? "Unlock all meals this day" : "Lock all meals this day"}
+                      >
+                        {isTogglingLock ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : allLocked ? (
+                          <Lock className="h-3.5 w-3.5" />
+                        ) : (
+                          <LockOpen className="h-3.5 w-3.5" />
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute -bottom-1 left-1/2 -translate-x-1/2 h-6 px-2 text-xs opacity-0 hover:opacity-100 transition-opacity"
+                    onClick={() => handleRegenerateDay(day)}
+                    disabled={isRegenerating}
+                    title={hasLockedMeals ? "Regenerate day (locked meals will be kept)" : "Regenerate day"}
+                  >
+                    {isRegenerating ? (
+                      <Loader2 className="h-3 w-3 animate-spin" />
+                    ) : (
+                      <RefreshCw className="h-3 w-3" />
+                    )}
+                  </Button>
                 </div>
               )
             })}
           </div>
-          
+
           {/* Meal Rows */}
           {MEAL_TYPES.map((mealType) => (
             <div key={mealType} className="grid grid-cols-[80px_repeat(7,minmax(170px,1fr))] gap-2 mb-2">
@@ -706,18 +856,30 @@ export default function PlanDetailPage() {
                 
                 if (!isInRange) {
                   return (
-                    <div key={day.toISOString()} className="min-h-28 bg-slate-50 rounded-lg" />
+                    <div key={day.toISOString()} className="bg-slate-50 rounded-lg" />
                   )
                 }
-                
+
                 if (!meal) {
+                  const isAdding = addingSlotKey === slotKey(ymd(day), mealType)
                   return (
-                    <div 
-                      key={day.toISOString()} 
-                      className="min-h-28 border-2 border-dashed border-slate-200 rounded-lg flex items-center justify-center text-slate-400"
+                    <button
+                      key={day.toISOString()}
+                      type="button"
+                      onClick={() => handleAddMealToSlot(day, mealType)}
+                      disabled={isAdding}
+                      className="min-h-28 w-full border-2 border-dashed border-slate-200 rounded-lg flex flex-col items-center justify-center gap-1 text-slate-400 hover:border-emerald-400 hover:text-emerald-600 hover:bg-emerald-50/50 transition-colors disabled:opacity-60"
+                      title="Add a meal to this slot"
                     >
-                      <Utensils className="h-5 w-5" />
-                    </div>
+                      {isAdding ? (
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                      ) : (
+                        <>
+                          <Plus className="h-5 w-5" />
+                          <span className="text-xs font-medium">Add meal</span>
+                        </>
+                      )}
+                    </button>
                   )
                 }
                 
@@ -897,8 +1059,10 @@ export default function PlanDetailPage() {
             })}
           </div>
         </div>
+        )
+        })}
       </div>
-      
+
       {/* Stats Summary */}
       <Card>
         <CardHeader>
@@ -1239,6 +1403,244 @@ export default function PlanDetailPage() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+      </div>
+
+      {/* ------------------------------------------------------------------ */}
+      {/* Print-only document: the full plan rendered week-by-week as a grid. */}
+      {/* Hidden on screen (`hidden print:block`); the app shell + on-screen   */}
+      {/* UI are hidden via `print:hidden`. Scale = CSS zoom; weeks-per-page    */}
+      {/* inserts a page break; orientation drives the @page size (effect).    */}
+      {/* ------------------------------------------------------------------ */}
+      <div
+        id="plan-print-root"
+        className="hidden print:block text-black"
+        style={{ zoom: Number(printScale) }}
+      >
+        <div className="mb-4">
+          <h1 className="text-xl font-bold">Your Meal Plan</h1>
+          <p className="text-sm">
+            {formatDate(planStartDate)} – {formatDate(planEndDate)}
+          </p>
+        </div>
+
+        {planWeekStarts.map((weekStart, weekIndex) => {
+          const days = getWeekDays(weekStart)
+          const weeksPerPage = Math.max(1, Number(printWeeksPerPage))
+          const isLastWeek = weekIndex === planWeekStarts.length - 1
+          const breakAfter = !isLastWeek && (weekIndex + 1) % weeksPerPage === 0
+          const weekHasNotes = days.some((d) => {
+            const ds = d.toISOString().split('T')[0]
+            return (
+              (((plan.dayNotes as Record<string, string>) ?? {})[ds] ?? '').trim()
+                .length > 0
+            )
+          })
+
+          return (
+            <section
+              key={weekStart.toISOString()}
+              className="print-week mb-5"
+              style={breakAfter ? { breakAfter: 'page' } : undefined}
+            >
+              <h2 className="text-sm font-semibold mb-1">
+                Week of {formatDate(weekStart)}
+              </h2>
+              <table className="w-full border-collapse text-[11px] leading-tight">
+                <thead>
+                  <tr>
+                    <th className="w-[64px] border border-slate-500 px-1 py-0.5 text-left" />
+                    {days.map((day) => {
+                      const inRange = day >= planStartDate && day <= planEndDate
+                      return (
+                        <th
+                          key={day.toISOString()}
+                          className={cn(
+                            'border border-slate-500 px-1 py-0.5 text-center align-middle',
+                            !inRange && 'text-slate-400'
+                          )}
+                        >
+                          <div className="text-[9px] uppercase">
+                            {day.toLocaleDateString('en-US', { weekday: 'short' })}
+                          </div>
+                          <div className="text-[12px] font-bold">
+                            {day.toLocaleDateString('en-US', {
+                              month: 'numeric',
+                              day: 'numeric',
+                            })}
+                          </div>
+                        </th>
+                      )
+                    })}
+                  </tr>
+                </thead>
+                <tbody>
+                  {MEAL_TYPES.map((mealType) => (
+                    <tr key={mealType}>
+                      <th className="whitespace-nowrap border border-slate-500 px-1 py-0.5 text-left align-top font-semibold">
+                        {MEAL_TYPE_LABELS[mealType]}
+                      </th>
+                      {days.map((day) => {
+                        const inRange = day >= planStartDate && day <= planEndDate
+                        const meal = getMealForSlot(day, mealType)
+                        if (!inRange) {
+                          return (
+                            <td
+                              key={day.toISOString()}
+                              className="border border-slate-300 bg-slate-50 px-1 py-0.5 align-top"
+                            />
+                          )
+                        }
+                        if (!meal) {
+                          return (
+                            <td
+                              key={day.toISOString()}
+                              className="border border-slate-500 px-1 py-0.5 align-top text-slate-300"
+                            >
+                              —
+                            </td>
+                          )
+                        }
+                        const mealName =
+                          meal.recipe?.name || meal.customName || 'Unknown'
+                        const servingLabel = getServingDisplay(
+                          {
+                            id: meal.id,
+                            isLeftover: meal.isLeftover,
+                            leftoverSourceId: meal.leftoverSourceId ?? null,
+                            preparedServings: meal.preparedServings ?? null,
+                            servings: meal.servings,
+                          },
+                          servingFieldList
+                        )
+                        return (
+                          <td
+                            key={day.toISOString()}
+                            className="border border-slate-500 px-1 py-0.5 align-top"
+                          >
+                            <div className="font-medium">
+                              {meal.isLeftover && <span>LO: </span>}
+                              {mealName}
+                            </div>
+                            <div className="text-[9px] text-slate-600">
+                              {servingLabel.text}
+                            </div>
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  ))}
+                  {weekHasNotes && (
+                    <tr>
+                      <th className="border border-slate-500 px-1 py-0.5 text-left align-top font-semibold">
+                        Notes
+                      </th>
+                      {days.map((day) => {
+                        const inRange = day >= planStartDate && day <= planEndDate
+                        const ds = day.toISOString().split('T')[0]
+                        const note =
+                          ((plan.dayNotes as Record<string, string>) ?? {})[ds] ??
+                          ''
+                        return (
+                          <td
+                            key={day.toISOString()}
+                            className={cn(
+                              'border px-1 py-0.5 align-top text-[10px]',
+                              inRange
+                                ? 'border-slate-500'
+                                : 'border-slate-300 bg-slate-50'
+                            )}
+                          >
+                            {inRange ? note : ''}
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </section>
+          )
+        })}
+      </div>
+
+      {/* Print options dialog */}
+      <Dialog open={printDialogOpen} onOpenChange={setPrintDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Printer className="h-5 w-5" />
+              Print Meal Plan
+            </DialogTitle>
+            <DialogDescription>
+              Prints the full plan ({planWeekStarts.length} week
+              {planWeekStarts.length === 1 ? '' : 's'}) as a clean grid. Adjust the
+              size and page layout, then print.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="print-scale">Scale</Label>
+                <Select value={printScale} onValueChange={setPrintScale}>
+                  <SelectTrigger id="print-scale">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {['0.6', '0.7', '0.75', '0.8', '0.85', '0.9', '1', '1.1', '1.25'].map(
+                      (v) => (
+                        <SelectItem key={v} value={v}>
+                          {Math.round(Number(v) * 100)}%
+                        </SelectItem>
+                      )
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="print-weeks">Weeks / page</Label>
+                <Select
+                  value={printWeeksPerPage}
+                  onValueChange={setPrintWeeksPerPage}
+                >
+                  <SelectTrigger id="print-weeks">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {['1', '2', '3', '4'].map((v) => (
+                      <SelectItem key={v} value={v}>
+                        {v}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="print-orientation">Orientation</Label>
+              <Select value={printOrientation} onValueChange={setPrintOrientation}>
+                <SelectTrigger id="print-orientation">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="landscape">
+                    Landscape (fits a full week best)
+                  </SelectItem>
+                  <SelectItem value="portrait">Portrait</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex justify-end gap-2 pt-1">
+              <Button variant="outline" onClick={() => setPrintDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handlePrint}>
+                <Printer className="mr-2 h-4 w-4" />
+                Print
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

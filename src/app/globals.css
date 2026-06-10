@@ -73,3 +73,28 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.5);
 }
+
+/* Print: the plan detail page renders a dedicated #plan-print-root document.
+   The app shell (sidebar) and on-screen UI are hidden via Tailwind `print:`
+   variants; here we just make sure the page itself prints clean (white, exact
+   colors, no clipping). */
+@media print {
+  html,
+  body {
+    background: #fff !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  #plan-print-root {
+    /* Honor border tints in the printed grid so it doesn't come out all-white */
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    color: #000;
+  }
+
+  /* Keep each printed week intact and let the page-break helpers do their job */
+  #plan-print-root .print-week {
+    break-inside: avoid;
+  }
+}

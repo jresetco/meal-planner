@@ -38,7 +38,7 @@ export function Sidebar() {
   }
 
   return (
-    <div className="flex h-full w-64 flex-col bg-gray-900 text-white">
+    <div className="flex h-full w-64 flex-col bg-gray-900 text-white print:hidden">
       {/* Logo */}
       <div className="flex h-16 items-center gap-2 px-6 border-b border-gray-800">
         <Sparkles className="h-6 w-6 text-green-400" />
