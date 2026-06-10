@@ -53,6 +53,304 @@ const GroceryListSchema = z.object({
 export type GeneratedGroceryItem = z.infer<typeof GroceryItemSchema>
 export type GeneratedGroceryList = z.infer<typeof GroceryListSchema>
 
+// ───────────────────────── Deterministic post-processing ─────────────────────────
+// The LLM is the primary engine for naming/merging/categorization, but it is
+// non-deterministic: it occasionally double-lists an identical ingredient,
+// invents a meal name that wasn't in the input, or drops an item entirely. The
+// helpers below run AFTER the LLM and make those failure modes impossible by
+// construction. Each is a pure function with unit-test coverage.
+
+/**
+ * Normalize an ingredient/recurring name for equality comparison: lowercase,
+ * collapse whitespace, strip a trailing parenthetical (prep modifiers like
+ * "(diced, whole)"), and singularize a trailing "s"/"es" so "eggs" === "egg"
+ * and "tomatoes" === "tomato". Intentionally conservative — only the final
+ * token is singularized, and only when it's long enough that dropping the "s"
+ * can't produce a near-empty stem.
+ */
+export function normalizeItemName(raw: string): string {
+  let name = raw.toLowerCase().trim()
+  // Drop trailing parenthetical prep modifiers, e.g. "lettuce (shredded)".
+  name = name.replace(/\s*\([^)]*\)\s*$/, '').trim()
+  name = name.replace(/\s+/g, ' ')
+  if (!name) return name
+  // Singularize only the last word. The goal is a stable canonical form for
+  // equality (so "tomato" and "tomatoes" collapse), not grammatically perfect
+  // English — but the common produce plurals are handled explicitly.
+  const parts = name.split(' ')
+  const last = parts[parts.length - 1]
+  let singular = last
+  if (/[^aeiou]oes$/.test(last)) {
+    singular = last.slice(0, -2) // tomatoes -> tomato, potatoes -> potato
+  } else if (last.length > 4 && /(ss|x|z|ch|sh)es$/.test(last)) {
+    singular = last.slice(0, -2) // boxes -> box, dishes -> dish, glasses -> glass
+  } else if (
+    last.length > 3 &&
+    last.endsWith('s') &&
+    // Don't strip non-plural -s endings: -ss (glass), -us (hummus), -is (basis).
+    !/(ss|us|is)$/.test(last)
+  ) {
+    singular = last.slice(0, -1) // eggs -> egg, carrots -> carrot
+  }
+  parts[parts.length - 1] = singular
+  return parts.join(' ')
+}
+
+/** Normalize a unit for equality, treating null/empty/"count" as the count unit. */
+function normalizeUnit(unit: string | null | undefined): string {
+  const u = (unit || '').toLowerCase().trim()
+  if (!u || u === 'count' || u === 'each' || u === 'ct') return ''
+  return u
+}
+
+/**
+ * Bug 1 — merge exact-duplicate items the LLM emitted twice. Two items merge
+ * when they share a normalized name AND a normalized unit. Quantities are
+ * summed (when both numeric), quantity entries and mealNames are unioned, and
+ * the displayText is rebuilt. The first occurrence wins for name/section so we
+ * preserve the LLM's casing and categorization.
+ */
+export function mergeDuplicateItems(items: GeneratedGroceryItem[]): GeneratedGroceryItem[] {
+  const byKey = new Map<string, GeneratedGroceryItem>()
+  for (const item of items) {
+    const key = `${normalizeItemName(item.name)}|${normalizeUnit(item.mergedQuantity.unit)}`
+    const existing = byKey.get(key)
+    if (!existing) {
+      byKey.set(key, { ...item, quantities: [...item.quantities], mealNames: [...item.mealNames] })
+      continue
+    }
+    // Union meal names (preserve order, dedupe).
+    for (const m of item.mealNames) {
+      if (!existing.mealNames.includes(m)) existing.mealNames.push(m)
+    }
+    existing.quantities.push(...item.quantities)
+    // Sum the merged amounts when both are numeric and units match; otherwise
+    // keep the existing amount and mark unmergeable in displayText.
+    const a = existing.mergedQuantity.amount
+    const b = item.mergedQuantity.amount
+    if (a !== null && b !== null) {
+      const sum = a + b
+      existing.mergedQuantity.amount = sum
+      const unit = existing.mergedQuantity.unit
+      existing.mergedQuantity.displayText = unit ? `${formatQty(sum)} ${unit}` : formatQty(sum)
+      existing.mergedQuantity.canMerge = true
+    } else if (a === null && b !== null) {
+      existing.mergedQuantity = { ...item.mergedQuantity }
+    }
+    // A staple only stays excluded if every duplicate agreed it was a staple.
+    existing.isStaple = existing.isStaple && item.isStaple
+  }
+  return Array.from(byKey.values())
+}
+
+/** Render a numeric quantity with light fraction-friendly rounding. */
+function formatQty(n: number): string {
+  if (Number.isInteger(n)) return String(n)
+  return String(Math.round(n * 100) / 100)
+}
+
+/**
+ * Bug 3a — validate meal attribution. The LLM returns mealNames free-form and
+ * sometimes attaches a name that was never an input meal (or mis-attaches a
+ * leftover label). We keep only mealNames that exactly match an input meal.
+ * If that leaves an item with zero valid mealNames, we re-derive attribution
+ * by token-overlap against the input meals' ingredient lists so the item is
+ * never orphaned.
+ */
+export function validateMealNames(
+  items: GeneratedGroceryItem[],
+  meals: GroceryGenerationParams['meals']
+): GeneratedGroceryItem[] {
+  const validNames = new Set(meals.map(m => m.name))
+  // Precompute a normalized token set per meal for fallback attribution.
+  const mealTokens = meals.map(m => ({
+    name: m.name,
+    tokens: new Set(
+      m.ingredients.flatMap(i => normalizeItemName(i.name).split(' ').filter(t => t.length > 2))
+    ),
+  }))
+
+  return items.map(item => {
+    const kept = item.mealNames.filter(n => validNames.has(n))
+    if (kept.length > 0) return { ...item, mealNames: kept }
+
+    // Fallback: attribute to any input meal whose ingredient tokens overlap
+    // this item's name tokens.
+    const itemTokens = normalizeItemName(item.name).split(' ').filter(t => t.length > 2)
+    const matches = mealTokens
+      .filter(mt => itemTokens.some(t => mt.tokens.has(t)))
+      .map(mt => mt.name)
+    return { ...item, mealNames: matches }
+  })
+}
+
+/**
+ * Bug 2 — safety net so a recipe/dynamic ingredient the LLM dropped still lands
+ * on the list. For every input ingredient, if no output item has a matching
+ * normalized name, synthesize a minimal item from the raw ingredient (using the
+ * deterministic section hint). This guarantees proteins like "Chicken Breast"
+ * can never silently vanish.
+ */
+export function ensureAllIngredientsPresent(
+  items: GeneratedGroceryItem[],
+  meals: GroceryGenerationParams['meals']
+): GeneratedGroceryItem[] {
+  const result = [...items]
+  // Track synthesized names so two meals needing the same dropped item only
+  // add it once (and union their meal names).
+  const synthesized = new Map<string, GeneratedGroceryItem>()
+
+  // Match raw ingredients against the LLM output by CONTENT tokens, not exact
+  // name: the LLM standardizes names (strips embedded quantities/units like
+  // "1 tbsp. Taco Seasoning" → "Taco Seasoning", and prep words). A raw
+  // ingredient is considered "present" if some output item shares its set of
+  // significant tokens (subset match). This avoids re-adding a phantom raw copy
+  // of an ingredient the LLM merely renamed, while still catching genuine drops.
+  const findExisting = (sig: Set<string>): GeneratedGroceryItem | undefined => {
+    if (sig.size === 0) return result[0] && undefined // empty sig → no confident match
+    return [...result, ...synthesized.values()].find(it => {
+      const itTokens = significantTokens(it.name)
+      if (itTokens.size === 0) return false
+      // present when the item's significant tokens are a superset/equal of the
+      // ingredient's tokens (every ingredient token appears in the item).
+      return [...sig].every(t => itTokens.has(t))
+    })
+  }
+
+  for (const meal of meals) {
+    for (const ing of meal.ingredients) {
+      const norm = normalizeItemName(ing.name)
+      if (!norm) continue
+      const sig = significantTokens(ing.name)
+      const existing = findExisting(sig)
+      if (existing) {
+        // Item exists (possibly renamed by the LLM) — attribute this meal to it.
+        if (!existing.mealNames.includes(meal.name)) existing.mealNames.push(meal.name)
+        continue
+      }
+      const existingSynth = synthesized.get(norm)
+      if (existingSynth) {
+        if (!existingSynth.mealNames.includes(meal.name)) existingSynth.mealNames.push(meal.name)
+        continue
+      }
+      const amount = typeof ing.quantity === 'number' ? ing.quantity : null
+      const unit = ing.unit || null
+      const displayText = amount !== null
+        ? (unit ? `${formatQty(amount)} ${unit}` : formatQty(amount))
+        : (typeof ing.quantity === 'string' ? ing.quantity : '')
+      const synth: GeneratedGroceryItem = {
+        name: ing.name,
+        quantities: [{ amount, unit, fromMeal: meal.name }],
+        mergedQuantity: { amount, unit, canMerge: true, displayText },
+        section: suggestSection(ing.name),
+        mealNames: [meal.name],
+        isStaple: false,
+        notes: null,
+      }
+      synthesized.set(norm, synth)
+      result.push(synth)
+    }
+  }
+  return result
+}
+
+// Stop-words to ignore when comparing ingredient content: units, common prep
+// modifiers, and connective words. A bare number is dropped by the digit test.
+const TOKEN_STOPWORDS = new Set([
+  'tsp','tbsp','cup','cups','oz','lb','lbs','g','kg','ml','l','can','cans','c',
+  'package','pkg','bunch','clove','cloves','pinch','dash','large','medium','small',
+  'fresh','dried','ground','chopped','diced','sliced','minced','halved','whole',
+  'shredded','grated','peeled','of','the','and','a','an','to','taste','plain',
+])
+
+/**
+ * Extract significant content tokens from a free-form ingredient name, dropping
+ * numbers, units, and prep/stop-words. Used to detect whether the LLM kept an
+ * ingredient (possibly under a standardized name) vs. dropped it entirely.
+ * e.g. "1 tbsp. Taco Seasoning" → {taco, seasoning}; "Taco Seasoning" → same set.
+ */
+function significantTokens(raw: string): Set<string> {
+  const cleaned = raw.toLowerCase().replace(/\([^)]*\)/g, ' ')
+  const tokens = cleaned
+    .split(/[^a-z]+/) // split on anything non-alpha (drops digits, punctuation)
+    .map(t => t.trim())
+    .filter(t => t.length > 1 && !TOKEN_STOPWORDS.has(t))
+    .map(t => {
+      // light singularization so "tomatoes"/"tomato" tokens match
+      if (/[^aeiou]oes$/.test(t)) return t.slice(0, -2)
+      if (t.length > 3 && t.endsWith('s') && !/(ss|us|is)$/.test(t)) return t.slice(0, -1)
+      return t
+    })
+  return new Set(tokens)
+}
+
+export interface RecurringItem {
+  name: string
+  quantity: number | null
+  unit: string | null
+  section: StoreSection
+}
+
+export interface MergedGroceryItemForPersist {
+  name: string
+  quantity: number | null
+  unit: string | null
+  section: StoreSection
+  mealNames: string[]
+  isStaple: boolean
+}
+
+/**
+ * Bug 4 — merge active recurring items into the generated (active) list.
+ * Matching is singular/plural-insensitive (normalizeItemName), so recurring
+ * "eggs" collapses with a recipe-derived "egg"/"Eggs". On a match we KEEP the
+ * recipe item, append "Recurring" to its mealNames, and reconcile quantity:
+ *   - same normalized unit (incl. both unit-less "count"): sum the amounts so a
+ *     recurring "eggs ×18" plus a recipe "4 eggs" yields 22 eggs.
+ *   - units differ: keep the larger amount as a conservative floor (we can't
+ *     safely add across incompatible units here).
+ * Recurring items with no recipe match are appended as standalone entries.
+ */
+export function mergeRecurringItems(
+  activeItems: MergedGroceryItemForPersist[],
+  recurring: RecurringItem[]
+): MergedGroceryItemForPersist[] {
+  const result = activeItems.map(i => ({ ...i, mealNames: [...i.mealNames] }))
+  const byName = new Map<string, MergedGroceryItemForPersist>()
+  for (const item of result) byName.set(normalizeItemName(item.name), item)
+
+  for (const r of recurring) {
+    const norm = normalizeItemName(r.name)
+    const match = byName.get(norm)
+    if (!match) {
+      const standalone: MergedGroceryItemForPersist = {
+        name: r.name,
+        quantity: r.quantity,
+        unit: r.unit,
+        section: r.section,
+        mealNames: ['Recurring'],
+        isStaple: false,
+      }
+      result.push(standalone)
+      byName.set(norm, standalone)
+      continue
+    }
+    if (!match.mealNames.includes('Recurring')) match.mealNames.push('Recurring')
+    const sameUnit = normalizeUnit(match.unit) === normalizeUnit(r.unit)
+    if (r.quantity !== null && match.quantity !== null) {
+      if (sameUnit) {
+        match.quantity = match.quantity + r.quantity
+      } else {
+        match.quantity = Math.max(match.quantity, r.quantity)
+      }
+    } else if (match.quantity === null && r.quantity !== null) {
+      match.quantity = r.quantity
+      match.unit = match.unit ?? r.unit
+    }
+  }
+  return result
+}
+
 interface GroceryGenerationParams {
   meals: {
     name: string
@@ -89,7 +387,28 @@ const UNIT_CONVERSIONS: Record<string, Record<string, number>> = {
  * workload and fixes consistency for common patterns.
  */
 export async function generateGroceryList(params: GroceryGenerationParams): Promise<GeneratedGroceryList> {
-  const { meals, pantryStaples } = params
+  const { pantryStaples } = params
+
+  // Bug 1 (input layer): dedupe exact-duplicate ingredient entries WITHIN a
+  // single recipe before sending to the AI. Some recipe JSON lists the same
+  // (name, unit) twice; collapse them so the AI never sees — and never
+  // re-emits — the duplicate.
+  const meals = params.meals.map(meal => {
+    const seen = new Map<string, { name: string; quantity?: number | string; unit?: string }>()
+    for (const ing of meal.ingredients) {
+      const key = `${normalizeItemName(ing.name)}|${normalizeUnit(ing.unit)}`
+      const prev = seen.get(key)
+      if (!prev) {
+        seen.set(key, { ...ing })
+        continue
+      }
+      // Same name + unit again: sum numeric quantities, otherwise keep first.
+      if (typeof prev.quantity === 'number' && typeof ing.quantity === 'number') {
+        prev.quantity += ing.quantity
+      }
+    }
+    return { name: meal.name, ingredients: Array.from(seen.values()) }
+  })
 
   // Build section hints from raw ingredient names — dedupe by normalized
   // lowercase, skip empties, drop OTHER (no hint).
@@ -146,6 +465,10 @@ ${hintsBlock}
   text short and lowercase, comma-separated, in the order encountered.
 
 ### 2. Smart Quantity Merging
+- **Emit each distinct ingredient EXACTLY ONCE.** If the same ingredient (after
+  standardizing the name) appears in multiple meals, produce a SINGLE item with
+  all source quantities in the quantities array and every meal in mealNames.
+  Never output two separate items for the same ingredient + unit.
 - MERGE same units: 2 cups + 1 cup = 3 cups
 - CONVERT compatible units when possible:
   - 1/4 cup + 4 tbsp = 1/2 cup (since 4 tbsp = 1/4 cup)
@@ -204,7 +527,15 @@ Create human-readable displayText:
     return hint === 'OTHER' ? item : { ...item, section: hint }
   })
 
-  return { ...result.object, items: overriddenItems }
+  // Deterministic post-processing (order matters):
+  //   1. ensureAllIngredientsPresent — re-add anything the LLM dropped (bug 2).
+  //   2. validateMealNames — drop/repair invented attribution (bug 3a).
+  //   3. mergeDuplicateItems — collapse identical (name, unit) emissions (bug 1).
+  let items = ensureAllIngredientsPresent(overriddenItems, meals)
+  items = validateMealNames(items, meals)
+  items = mergeDuplicateItems(items)
+
+  return { ...result.object, items }
 }
 
 /**

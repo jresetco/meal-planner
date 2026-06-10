@@ -331,13 +331,24 @@ export default function GroceryListPage() {
     window.print()
   }
   
+  // OneNote (and some other note apps) mangle pasted lines that contain " / ":
+  // on the bullet-to-checkbox conversion the text after the slash is dropped,
+  // so "tahini / sesame paste" pasted in as just "tahini". Normalize any
+  // slash-separated alternative to " or " for the copy/export text. We also
+  // strip a leading "/" / "-" so a line can't accidentally be parsed as markup.
+  const sanitizeForCopy = (text: string) =>
+    text
+      .replace(/\s*\/\s*/g, ' or ')
+      .replace(/^[\s/\-•*]+/, '')
+      .trim()
+
   const buildGroceryText = (useBullets: boolean) => {
     const lines: string[] = []
     if (wholeMeals.length > 0) {
       lines.push('\nWhole Meals')
       wholeMeals.forEach(meal => {
         const prefix = useBullets ? '- ' : (checkedWholeMeals.has(meal) ? '[x] ' : '[ ] ')
-        lines.push(`${prefix}${meal}`)
+        lines.push(`${prefix}${sanitizeForCopy(meal)}`)
       })
     }
     categories.forEach(cat => {
@@ -347,7 +358,7 @@ export default function GroceryListPage() {
         const qty = qtyParts ? ` (${qtyParts})` : ''
         const meals = item.mealNames.length > 0 ? ` [${item.mealNames.join(', ')}]` : ''
         const prefix = useBullets ? '- ' : (checkedItems.has(item.id) ? '[x] ' : '[ ] ')
-        lines.push(`${prefix}${item.name}${qty}${meals}`)
+        lines.push(`${prefix}${sanitizeForCopy(item.name)}${qty}${meals}`)
       })
     })
     return lines.join('\n').trim()
@@ -549,7 +560,7 @@ export default function GroceryListPage() {
                       "flex-1 min-w-0 text-sm transition-colors",
                       isChecked && "text-muted-foreground line-through"
                     )}>
-                      <span className="font-medium truncate">{mealName}</span>
+                      <span className="font-medium break-words" title={mealName}>{mealName}</span>
                     </div>
                   </div>
                 )
@@ -604,10 +615,10 @@ export default function GroceryListPage() {
                           {isChecked && <Check className="h-2.5 w-2.5 text-white" />}
                         </div>
                         <div className={cn(
-                          "flex-1 min-w-0 flex items-baseline gap-2 transition-colors text-sm",
+                          "flex-1 min-w-0 flex items-baseline gap-2 flex-wrap transition-colors text-sm",
                           isChecked && "text-muted-foreground line-through"
                         )}>
-                          <span className="font-medium truncate">{item.name}</span>
+                          <span className="font-medium break-words" title={item.name}>{item.name}</span>
                           {(item.quantity > 0 || item.unit) && (
                             <span className="text-muted-foreground text-xs flex-shrink-0">
                               {item.quantity > 0 ? item.quantity : ''}{item.unit ? ` ${item.unit}` : ''}
@@ -674,8 +685,8 @@ export default function GroceryListPage() {
                 <CardContent className="py-1 px-2">
                   <ul className="divide-y">
                     {category.items.map((item) => (
-                      <li key={item.id} className="flex items-baseline gap-2 px-2 py-1.5 text-sm text-muted-foreground">
-                        <span className="font-medium truncate">{item.name}</span>
+                      <li key={item.id} className="flex items-baseline gap-2 flex-wrap px-2 py-1.5 text-sm text-muted-foreground">
+                        <span className="font-medium break-words" title={item.name}>{item.name}</span>
                         {(item.quantity > 0 || item.unit) && (
                           <span className="text-xs">
                             {item.quantity > 0 ? item.quantity : ''}{item.unit ? ` ${item.unit}` : ''}

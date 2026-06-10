@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { Prisma } from '@prisma/client'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
-import { generateGroceryList } from '@/lib/ai/grocery-generator'
+import { generateGroceryList, mergeRecurringItems, normalizeItemName } from '@/lib/ai/grocery-generator'
 import { logger, logValidationFailure } from '@/lib/logger'
 import type { StoreSection } from '@/types'
 
@@ -170,9 +170,22 @@ async function handleGroceryGet(id: string, householdId: string) {
       const dynamicIngredients: { name: string; quantity?: number; unit?: string }[] = []
 
       for (const comp of components) {
-        const dbComponent = mealComponents.find(
-          mc => mc.name.toLowerCase() === comp.componentName.toLowerCase() && mc.category === comp.category
-        )
+        // Robust match against MealComponent rows. Try, in order:
+        //   1. exact case-insensitive name + same category (original behavior)
+        //   2. normalized name (singular/plural + prep-modifier insensitive) +
+        //      same category — catches "Grilled Chicken Breast" vs "Chicken Breast"
+        //   3. normalized name alone (category drifted) as a last resort.
+        // Unresolved components ALWAYS still fall through to a bare ingredient so
+        // a protein like chicken can never silently vanish from the meals array.
+        const compNorm = normalizeItemName(comp.componentName)
+        const dbComponent =
+          mealComponents.find(
+            mc => mc.name.toLowerCase() === comp.componentName.toLowerCase() && mc.category === comp.category
+          ) ||
+          mealComponents.find(
+            mc => normalizeItemName(mc.name) === compNorm && mc.category === comp.category
+          ) ||
+          mealComponents.find(mc => normalizeItemName(mc.name) === compNorm)
         if (dbComponent?.typicalIngredients) {
           const typicals = dbComponent.typicalIngredients as { name: string; quantity?: number; unit?: string }[]
           dynamicIngredients.push(...typicals)
@@ -209,21 +222,26 @@ async function handleGroceryGet(id: string, householdId: string) {
   const activeAiItems = generatedList.items.filter(item => !item.isStaple)
   const excludedAiItems = generatedList.items.filter(item => item.isStaple)
 
-  // Merge in active recurring grocery items. Skip any recurring item whose
-  // name already matches a generated item so we don't double-buy when an
-  // ingredient appears in both a recipe and the recurring list.
-  const existingNames = new Set(activeAiItems.map(i => i.name.toLowerCase().trim()))
-  const recurringEntries = recurringItems
-    .filter(r => !existingNames.has(r.name.toLowerCase().trim()))
-    .map(r => ({
+  // Merge in active recurring grocery items (bug 4). Matching is singular/
+  // plural-insensitive, and on a match the recipe item is KEPT — we append
+  // "Recurring" to its mealNames and reconcile quantity (sum on same unit incl.
+  // count, max on differing units). Unmatched recurring items are appended.
+  const mergedActive = mergeRecurringItems(
+    activeAiItems.map(item => ({
+      name: item.name,
+      quantity: item.mergedQuantity.amount,
+      unit: item.mergedQuantity.unit,
+      section: item.section as StoreSection,
+      mealNames: item.mealNames,
+      isStaple: false,
+    })),
+    recurringItems.map(r => ({
       name: r.name,
       quantity: r.quantity,
       unit: r.unit,
-      section: r.section,
-      mealNames: ['Recurring'],
-      isChecked: false,
-      isStaple: false,
+      section: r.section as StoreSection,
     }))
+  )
 
   // Save to database (fresh list, not stale)
   const groceryList = await prisma.groceryList.create({
@@ -232,11 +250,11 @@ async function handleGroceryGet(id: string, householdId: string) {
       isStale: false,
       items: {
         create: [
-          ...activeAiItems.map((item) => ({
+          ...mergedActive.map((item) => ({
             name: item.name,
-            quantity: item.mergedQuantity.amount,
-            unit: item.mergedQuantity.unit,
-            section: item.section as StoreSection,
+            quantity: item.quantity,
+            unit: item.unit,
+            section: item.section,
             mealNames: item.mealNames,
             isChecked: false,
             isStaple: false,
@@ -250,7 +268,6 @@ async function handleGroceryGet(id: string, householdId: string) {
             isChecked: false,
             isStaple: true,
           })),
-          ...recurringEntries,
         ],
       },
     },
