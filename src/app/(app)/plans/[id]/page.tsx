@@ -42,12 +42,13 @@ import {
   Check,
   ArrowRightLeft,
   StickyNote,
+  X,
 } from 'lucide-react'
 import Link from 'next/link'
 import { cn, formatDate } from '@/lib/utils'
 import { getServingDisplay } from '@/lib/plan-servings-display'
 import { isSlotAfter, ymd } from '@/lib/plan-meal-slots'
-import type { MealPlan, PlannedMeal, Recipe, MealType } from '@/types'
+import type { MealPlan, PlannedMeal, Recipe, MealType, MealComponent, DynamicComponentRef, ComponentCategory } from '@/types'
 import { RecipeMealHover } from '@/components/plans/recipe-meal-hover'
 
 interface MealWithRecipe extends PlannedMeal {
@@ -87,6 +88,12 @@ const MEAL_TYPE_ICONS: Record<MealType, string> = {
   LUNCH: '☀️',
   DINNER: '🌙',
 }
+const DYNAMIC_CATEGORY_LABELS: Record<ComponentCategory, string> = {
+  PROTEIN: 'Protein',
+  VEGGIE: 'Veggie',
+  STARCH: 'Starch',
+  SAUCE: 'Sauce',
+}
 
 export default function PlanDetailPage() {
   const params = useParams()
@@ -102,9 +109,15 @@ export default function PlanDetailPage() {
   const [swapMeal, setSwapMeal] = useState<MealWithRecipe | null>(null)
   const [swapSuggestions, setSwapSuggestions] = useState<SwapSuggestion[]>([])
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
+  const [suggestionsRequested, setSuggestionsRequested] = useState(false)
   const [swapSearch, setSwapSearch] = useState('')
   const [manualMealName, setManualMealName] = useState('')
   const [recipes, setRecipes] = useState<Pick<Recipe, 'id' | 'name'>[]>([])
+
+  // Dynamic meal builder state (add a component-based meal directly during swap)
+  const [mealComponents, setMealComponents] = useState<MealComponent[]>([])
+  const [showDynamicBuilder, setShowDynamicBuilder] = useState(false)
+  const [dynamicComponents, setDynamicComponents] = useState<DynamicComponentRef[]>([])
   
   // Operation states
   const [regeneratingMealId, setRegeneratingMealId] = useState<string | null>(null)
@@ -118,6 +131,7 @@ export default function PlanDetailPage() {
   useEffect(() => {
     fetchPlan()
     fetchRecipes()
+    fetchMealComponents()
   }, [planId])
   
   const fetchPlan = async () => {
@@ -155,7 +169,19 @@ export default function PlanDetailPage() {
       console.error('Error fetching recipes:', error)
     }
   }
-  
+
+  const fetchMealComponents = async () => {
+    try {
+      const response = await fetch('/api/settings/meal-components')
+      if (response.ok) {
+        const data = await response.json()
+        if (Array.isArray(data)) setMealComponents(data)
+      }
+    } catch (error) {
+      console.error('Error fetching meal components:', error)
+    }
+  }
+
   const handleToggleLock = async (meal: MealWithRecipe) => {
     const newLocked = meal.isLocked !== true
     // Optimistic update - immediately reflect in UI
@@ -201,17 +227,25 @@ export default function PlanDetailPage() {
     }
   }
   
-  const handleOpenSwapDialog = async (meal: MealWithRecipe) => {
+  const handleOpenSwapDialog = (meal: MealWithRecipe) => {
     setSwapMeal(meal)
     setSwapDialogOpen(true)
+    // Lazy: do NOT auto-fetch AI suggestions on open (saves AI cost + load time).
+    // The user requests them explicitly via the "Get AI suggestions" button.
     setSwapSuggestions([])
+    setSuggestionsRequested(false)
     setSwapSearch('')
     setManualMealName('')
-    
-    // Get AI suggestions
+    setDynamicComponents([])
+    setShowDynamicBuilder(false)
+  }
+
+  const handleGetSuggestions = async () => {
+    if (!swapMeal) return
+    setSuggestionsRequested(true)
     setIsLoadingSuggestions(true)
     try {
-      const response = await fetch(`/api/plans/${planId}/meals/${meal.id}/swap`, {
+      const response = await fetch(`/api/plans/${planId}/meals/${swapMeal.id}/swap`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({}),
@@ -293,6 +327,54 @@ export default function PlanDetailPage() {
     }
   }
   
+  const toggleDynamicComponent = (component: MealComponent, prepMethod?: string) => {
+    setDynamicComponents((prev) => {
+      const existingIdx = prev.findIndex((c) => c.componentId === component.id)
+      if (existingIdx >= 0) {
+        // Already selected — toggle off, or update prep method if a different one was chosen
+        if (prepMethod && prev[existingIdx].prepMethod !== prepMethod) {
+          const next = [...prev]
+          next[existingIdx] = { ...next[existingIdx], prepMethod }
+          return next
+        }
+        return prev.filter((_, i) => i !== existingIdx)
+      }
+      return [
+        ...prev,
+        {
+          componentId: component.id,
+          componentName: component.name,
+          category: component.category,
+          prepMethod: prepMethod || component.prepMethods[0] || undefined,
+        },
+      ]
+    })
+  }
+
+  const handleSwapToDynamicMeal = async () => {
+    if (!swapMeal || dynamicComponents.length === 0) return
+    setRegeneratingMealId(swapMeal.id)
+    try {
+      const response = await fetch(`/api/plans/${planId}/meals/${swapMeal.id}/swap`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dynamicComponents }),
+      })
+      if (response.ok) {
+        setSwapDialogOpen(false)
+        setShowDynamicBuilder(false)
+        setDynamicComponents([])
+        fetchPlan()
+      } else {
+        console.error('Failed to apply dynamic meal')
+      }
+    } catch (error) {
+      console.error('Error applying dynamic meal:', error)
+    } finally {
+      setRegeneratingMealId(null)
+    }
+  }
+
   const handleRegenerateMeal = async (meal: MealWithRecipe) => {
     setRegeneratingMealId(meal.id)
     try {
@@ -985,33 +1067,125 @@ export default function PlanDetailPage() {
               </div>
             </div>
 
-            {/* AI Suggestions */}
-            {(isLoadingSuggestions || swapSuggestions.length > 0) && (
-              <div>
-                <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+            {/* AI Suggestions — lazy (only fetched on button click) + compact (chips) */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-sm font-medium flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-purple-500" />
                   AI Suggestions
                 </h4>
-                {isLoadingSuggestions ? (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground py-4">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Getting suggestions...
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {swapSuggestions.map((suggestion) => (
-                      <button
-                        key={suggestion.recipeId}
-                        onClick={() => handleSwapToRecipe(suggestion.recipeId)}
-                        disabled={regeneratingMealId !== null}
-                        className="w-full text-left p-3 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors disabled:opacity-50"
-                      >
-                        <div className="font-medium">{suggestion.recipeName}</div>
-                        <div className="text-xs text-muted-foreground mt-1">
-                          {suggestion.reasoning}
+                {!isLoadingSuggestions && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 px-2 text-xs"
+                    onClick={handleGetSuggestions}
+                    disabled={regeneratingMealId !== null}
+                  >
+                    <Sparkles className="mr-1 h-3.5 w-3.5 text-purple-500" />
+                    {suggestionsRequested && swapSuggestions.length > 0 ? 'Refresh' : 'Get AI suggestions'}
+                  </Button>
+                )}
+              </div>
+              {isLoadingSuggestions ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Getting suggestions...
+                </div>
+              ) : suggestionsRequested && swapSuggestions.length === 0 ? (
+                <p className="text-xs text-muted-foreground">No suggestions available.</p>
+              ) : swapSuggestions.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {swapSuggestions.map((suggestion) => (
+                    <button
+                      key={suggestion.recipeId}
+                      onClick={() => handleSwapToRecipe(suggestion.recipeId)}
+                      disabled={regeneratingMealId !== null}
+                      title={suggestion.reasoning}
+                      className="rounded-full border border-purple-200 bg-purple-50 px-3 py-1 text-xs font-medium text-purple-800 hover:bg-purple-100 transition-colors disabled:opacity-50"
+                    >
+                      {suggestion.recipeName}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">
+                  Click to let the AI suggest recipes for this slot.
+                </p>
+              )}
+            </div>
+
+            {/* Dynamic meal builder — add a component-based meal directly */}
+            {mealComponents.length > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm font-medium flex items-center gap-2">
+                    <Utensils className="h-4 w-4 text-emerald-600" />
+                    Build a dynamic meal
+                  </h4>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 px-2 text-xs"
+                    onClick={() => setShowDynamicBuilder((v) => !v)}
+                  >
+                    {showDynamicBuilder ? 'Hide' : 'Build from components'}
+                  </Button>
+                </div>
+                {showDynamicBuilder && (
+                  <div className="space-y-3 rounded-md border border-slate-200 p-3">
+                    {(['PROTEIN', 'VEGGIE', 'STARCH', 'SAUCE'] as ComponentCategory[]).map((category) => {
+                      const items = mealComponents.filter((c) => c.category === category && c.isActive !== false)
+                      if (items.length === 0) return null
+                      return (
+                        <div key={category}>
+                          <p className="text-xs font-semibold text-slate-600 mb-1">
+                            {DYNAMIC_CATEGORY_LABELS[category]}
+                          </p>
+                          <div className="flex flex-wrap gap-1.5">
+                            {items.map((component) => {
+                              const selected = dynamicComponents.find((c) => c.componentId === component.id)
+                              return (
+                                <button
+                                  key={component.id}
+                                  type="button"
+                                  onClick={() => toggleDynamicComponent(component)}
+                                  className={cn(
+                                    'rounded-full border px-3 py-1 text-xs transition-colors',
+                                    selected
+                                      ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
+                                      : 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                                  )}
+                                >
+                                  {selected?.prepMethod ? `${selected.prepMethod} ` : ''}
+                                  {component.name}
+                                </button>
+                              )
+                            })}
+                          </div>
                         </div>
-                      </button>
-                    ))}
+                      )
+                    })}
+                    <div className="flex items-center justify-between pt-1">
+                      <p className="text-xs text-muted-foreground">
+                        {dynamicComponents.length === 0
+                          ? 'Pick one or more components.'
+                          : dynamicComponents
+                              .map((c) => (c.prepMethod ? `${c.prepMethod} ${c.componentName}` : c.componentName))
+                              .join(', ')}
+                      </p>
+                      <Button
+                        type="button"
+                        size="sm"
+                        className="bg-emerald-600 hover:bg-emerald-700"
+                        onClick={() => void handleSwapToDynamicMeal()}
+                        disabled={dynamicComponents.length === 0 || regeneratingMealId !== null}
+                      >
+                        Add dynamic meal
+                      </Button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -1020,16 +1194,29 @@ export default function PlanDetailPage() {
             {/* Search all recipes */}
             <div>
               <h4 className="text-sm font-medium mb-2">Or choose from all recipes</h4>
-              <div className="relative mb-2">
+              <div className="relative mb-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search recipes..."
                   value={swapSearch}
                   onChange={(e) => setSwapSearch(e.target.value)}
-                  className="pl-9"
+                  className="pl-9 pr-9"
                 />
+                {swapSearch && (
+                  <button
+                    type="button"
+                    onClick={() => setSwapSearch('')}
+                    aria-label="Clear search"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-slate-700"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
               </div>
-              <ScrollArea className="h-[200px]">
+              <p className="text-xs text-muted-foreground mb-2 px-0.5">
+                {filteredRecipes.length} of {recipes.length} recipe{recipes.length === 1 ? '' : 's'}
+              </p>
+              <ScrollArea className="h-[200px] rounded-md border border-slate-100">
                 <div className="space-y-1">
                   {filteredRecipes.map((recipe) => (
                     <button

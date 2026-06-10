@@ -415,36 +415,51 @@ export function PlanningCriteria({
                     placeholder="Search meals to add..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9"
+                    className="pl-9 pr-9"
                   />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery('')}
+                      aria-label="Clear search"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
 
                 {searchQuery && (
-                  <ScrollArea className="h-[200px] rounded-md border border-slate-200">
-                    <div className="p-2 space-y-1">
-                      {filteredRecipes.length > 0 ? (
-                        filteredRecipes.map((recipe) => (
-                          <button
-                            key={recipe.id}
-                            onClick={() => handleAddMeal(recipe)}
-                            className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-slate-100 transition-colors text-left"
-                          >
-                            <div>
-                              <div className="font-medium text-slate-900">{recipe.name}</div>
-                              <div className="text-sm text-slate-600">
-                                {recipe.categories?.join(', ') || 'Uncategorized'}
+                  <>
+                    <p className="text-xs text-slate-500 px-0.5">
+                      {filteredRecipes.length} match{filteredRecipes.length === 1 ? '' : 'es'}
+                    </p>
+                    <ScrollArea className="h-[200px] rounded-md border border-slate-200">
+                      <div className="p-2 space-y-1">
+                        {filteredRecipes.length > 0 ? (
+                          filteredRecipes.map((recipe) => (
+                            <button
+                              key={recipe.id}
+                              onClick={() => handleAddMeal(recipe)}
+                              className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-slate-100 transition-colors text-left"
+                            >
+                              <div>
+                                <div className="font-medium text-slate-900">{recipe.name}</div>
+                                <div className="text-sm text-slate-600">
+                                  {recipe.categories?.join(', ') || 'Uncategorized'}
+                                </div>
                               </div>
-                            </div>
-                            <Plus className="w-4 h-4 text-slate-400" />
-                          </button>
-                        ))
-                      ) : (
-                        <div className="p-4 text-center text-sm text-slate-600">
-                          No meals found
-                        </div>
-                      )}
-                    </div>
-                  </ScrollArea>
+                              <Plus className="w-4 h-4 text-slate-400" />
+                            </button>
+                          ))
+                        ) : (
+                          <div className="p-4 text-center text-sm text-slate-600">
+                            No meals found
+                          </div>
+                        )}
+                      </div>
+                    </ScrollArea>
+                  </>
                 )}
               </div>
             </div>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
+import { Prisma } from '@prisma/client'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
 import { getSuggestionsForSlot, type RecipeForPlanning } from '@/lib/ai/meal-planner'
@@ -9,10 +10,18 @@ import type { MealType, RecipeType, MaxFrequency } from '@/types'
 
 export const maxDuration = 120
 
+const DynamicComponentSchema = z.object({
+  componentId: z.string().max(200),
+  componentName: z.string().max(500),
+  category: z.enum(['PROTEIN', 'VEGGIE', 'STARCH', 'SAUCE']),
+  prepMethod: z.string().max(200).optional(),
+})
+
 const SwapMealSchema = z.object({
   recipeId: z.string().max(200).optional(),
   customName: z.string().max(500).optional(),
   leftoverSourceMealId: z.string().max(200).optional(),
+  dynamicComponents: z.array(DynamicComponentSchema).max(20).optional(),
 })
 
 // POST /api/plans/[id]/meals/[mealId]/swap - Get AI suggestions or apply swap / leftover / custom meal
@@ -59,7 +68,7 @@ export async function POST(
     logValidationFailure('/api/plans/[id]/meals/[mealId]/swap', parsed.error)
     return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
   }
-  const { recipeId, customName, leftoverSourceMealId } = parsed.data
+  const { recipeId, customName, leftoverSourceMealId, dynamicComponents } = parsed.data
 
   const settings = await prisma.mealSettings.findUnique({
     where: { householdId: session.user.householdId },
@@ -135,8 +144,64 @@ export async function POST(
         leftoverSourceId: source.id,
         recipeId: source.recipeId,
         customName: source.customName,
+        isDynamic: false,
+        dynamicComponents: Prisma.DbNull,
         preparedServings: null,
         servings: alloc,
+      },
+      include: { recipe: true },
+    })
+
+    await prisma.groceryList.updateMany({ where: { mealPlanId: planId }, data: { isStale: true } })
+
+    return NextResponse.json({ success: true, meal: updatedMeal })
+  }
+
+  if (dynamicComponents && dynamicComponents.length > 0 && !recipeId) {
+    // Validate the referenced components belong to this household
+    const componentIds = dynamicComponents.map((c) => c.componentId)
+    const ownedComponents = await prisma.mealComponent.findMany({
+      where: { id: { in: componentIds }, householdId: session.user.householdId },
+      select: { id: true },
+    })
+    const ownedIds = new Set(ownedComponents.map((c) => c.id))
+    const validComponents = dynamicComponents.filter((c) => ownedIds.has(c.componentId))
+
+    if (validComponents.length === 0) {
+      return NextResponse.json({ error: 'No valid meal components provided' }, { status: 400 })
+    }
+
+    // Compose a descriptive name, e.g. "Grilled Chicken, Steamed Broccoli, Jasmine Rice"
+    const composedName = validComponents
+      .map((c) => (c.prepMethod ? `${c.prepMethod} ${c.componentName}` : c.componentName))
+      .join(', ')
+      .slice(0, 200)
+
+    await prisma.mealEditHistory.create({
+      data: {
+        householdId: session.user.householdId,
+        mealPlanId: planId,
+        editType: 'SWAP',
+        date: meal.date,
+        mealType: meal.mealType,
+        originalRecipeId: meal.recipeId,
+        originalRecipeName: meal.recipe?.name || meal.customName,
+        newRecipeName: composedName,
+        aiGenerated: false,
+      },
+    })
+
+    const updatedMeal = await prisma.plannedMeal.update({
+      where: { id: mealId },
+      data: {
+        recipeId: null,
+        customName: composedName,
+        isDynamic: true,
+        dynamicComponents: validComponents,
+        isLeftover: false,
+        leftoverSourceId: null,
+        preparedServings: null,
+        servings: Math.max(1, meal.servings),
       },
       include: { recipe: true },
     })
@@ -168,6 +233,8 @@ export async function POST(
       data: {
         recipeId: null,
         customName: name,
+        isDynamic: false,
+        dynamicComponents: Prisma.DbNull,
         isLeftover: false,
         leftoverSourceId: null,
         preparedServings: null,
@@ -221,6 +288,8 @@ export async function POST(
       data: {
         recipeId,
         customName: null,
+        isDynamic: false,
+        dynamicComponents: Prisma.DbNull,
         isLeftover: false,
         leftoverSourceId: null,
         preparedServings: batch,

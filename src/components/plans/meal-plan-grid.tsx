@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Input } from '@/components/ui/input'
-import { ChevronLeft, Search } from 'lucide-react'
+import { ChevronLeft, Search, X } from 'lucide-react'
 import { 
   format, 
   isSameDay, 
@@ -364,19 +364,36 @@ export function MealPlanGrid({
             <DialogDescription>Select a recipe to pin for this meal slot.</DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <Input
-                placeholder="Search recipes..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
+          <div className="space-y-3">
+            {/* Sticky search bar so it stays visible while the list scrolls */}
+            <div className="sticky top-0 z-10 bg-white pb-1 space-y-1.5">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Input
+                  placeholder="Search recipes..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 pr-9"
+                  autoFocus
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    aria-label="Clear search"
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+              <p className="text-xs text-slate-500 px-0.5">
+                {filteredRecipes.length} of {recipes.length} recipe{recipes.length === 1 ? '' : 's'}
+              </p>
             </div>
-            
-            <ScrollArea className="h-[400px]">
-              <div className="grid gap-2 pr-4">
+
+            <ScrollArea className="h-[400px] rounded-md border border-slate-100">
+              <div className="grid gap-2 p-2 pr-3">
                 {filteredRecipes.length > 0 ? (
                   filteredRecipes.map((recipe) => (
                     <button
@@ -394,7 +411,7 @@ export function MealPlanGrid({
                   ))
                 ) : (
                   <div className="text-center py-8 text-slate-500">
-                    {recipes.length === 0 
+                    {recipes.length === 0
                       ? 'No recipes available. Add some recipes first.'
                       : 'No recipes match your search.'
                     }
