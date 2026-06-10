@@ -171,46 +171,56 @@ describe('suggestSection — happy path', () => {
 })
 
 /**
- * Locked behavior we know is wrong but won't fix in Phase 0. When B-20 fixes
- * `suggestSection`, expect this whole describe block to fail — that's the
- * signal the fix should also move these cases up to the happy-path section.
+ * B-20 fix verification: each case below was a known classification bug in
+ * Phase 0. The rewrite of `suggestSection` (priority-ordered specific
+ * compound patterns + plural-aware single-word matchers) resolves them.
  */
-describe('suggestSection — characterization (known classification bugs, deferred to Phase 2 / B-20)', () => {
-  describe('pluralization gaps — regexes use singulars with word boundaries', () => {
-    it('classifies plural "mushrooms" as OTHER (singular "mushroom" works)', () => {
-      expect(suggestSection('mushrooms')).toBe('OTHER')
+describe('suggestSection — B-20 fixes (previously known classification bugs)', () => {
+  describe('pluralization gaps — single-word matchers now accept plurals', () => {
+    it('classifies plural "mushrooms" as PRODUCE', () => {
+      expect(suggestSection('mushrooms')).toBe('PRODUCE')
       expect(suggestSection('mushroom')).toBe('PRODUCE')
     })
 
-    it('classifies bare "eggs" as OTHER (singular "egg" works at word boundary)', () => {
-      expect(suggestSection('eggs')).toBe('OTHER')
+    it('classifies bare "eggs" as EGGS_DAIRY', () => {
+      expect(suggestSection('eggs')).toBe('EGGS_DAIRY')
       expect(suggestSection('egg yolk')).toBe('EGGS_DAIRY')
+    })
+
+    it('classifies plural "carrots", "tomatoes", "potatoes" as PRODUCE', () => {
+      expect(suggestSection('carrots')).toBe('PRODUCE')
+      expect(suggestSection('tomatoes')).toBe('PRODUCE')
+      expect(suggestSection('potatoes')).toBe('PRODUCE')
     })
   })
 
-  describe('first-match-wins mis-routing on compound names', () => {
-    it('classifies "peanut butter" as EGGS_DAIRY (butter matches before pantry)', () => {
-      expect(suggestSection('peanut butter')).toBe('EGGS_DAIRY')
+  describe('compound names — specific patterns now run before generic matchers', () => {
+    it('classifies "peanut butter" as PANTRY', () => {
+      expect(suggestSection('peanut butter')).toBe('PANTRY')
     })
 
-    it('classifies "chicken broth" as MEAT_POULTRY (chicken matches before pantry)', () => {
-      expect(suggestSection('chicken broth')).toBe('MEAT_POULTRY')
+    it('classifies "chicken broth" as PANTRY', () => {
+      expect(suggestSection('chicken broth')).toBe('PANTRY')
+      expect(suggestSection('vegetable stock')).toBe('PANTRY')
     })
 
-    it('classifies "tomato sauce" as PRODUCE (tomato matches before pasta-canned)', () => {
-      expect(suggestSection('tomato sauce')).toBe('PRODUCE')
+    it('classifies "tomato sauce" / "marinara" as PASTA_CANNED', () => {
+      expect(suggestSection('tomato sauce')).toBe('PASTA_CANNED')
+      expect(suggestSection('marinara')).toBe('PASTA_CANNED')
     })
 
-    it('classifies "orange juice" as PRODUCE (orange matches before beverages)', () => {
-      expect(suggestSection('orange juice')).toBe('PRODUCE')
+    it('classifies "orange juice" / "apple juice" as BEVERAGES', () => {
+      expect(suggestSection('orange juice')).toBe('BEVERAGES')
+      expect(suggestSection('apple juice')).toBe('BEVERAGES')
     })
 
-    it('classifies "ice cream" as EGGS_DAIRY (cream matches before frozen)', () => {
-      expect(suggestSection('ice cream')).toBe('EGGS_DAIRY')
+    it('classifies "ice cream" as FROZEN', () => {
+      expect(suggestSection('ice cream')).toBe('FROZEN')
     })
 
-    it('classifies "frozen broccoli" as PRODUCE (broccoli matches before frozen)', () => {
-      expect(suggestSection('frozen broccoli')).toBe('PRODUCE')
+    it('classifies "frozen broccoli" / "frozen peas" as FROZEN (not PRODUCE)', () => {
+      expect(suggestSection('frozen broccoli')).toBe('FROZEN')
+      expect(suggestSection('frozen peas')).toBe('FROZEN')
     })
   })
 })

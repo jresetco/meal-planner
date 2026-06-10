@@ -79,10 +79,35 @@ const UNIT_CONVERSIONS: Record<string, Record<string, number>> = {
 }
 
 /**
- * Generate a consolidated grocery list with AI categorization and smart merging
+ * Generate a consolidated grocery list with AI categorization and smart merging.
+ *
+ * Hybrid categorization (B-20): for each unique raw ingredient name we
+ * pre-compute the store section via `suggestSection`. The LLM gets these as
+ * hints and is told to trust them unless clearly wrong. After the LLM
+ * responds, any item it categorized as OTHER that has a confident hint
+ * is overridden in post-process. This drops the LLM's categorization
+ * workload and fixes consistency for common patterns.
  */
 export async function generateGroceryList(params: GroceryGenerationParams): Promise<GeneratedGroceryList> {
   const { meals, pantryStaples } = params
+
+  // Build section hints from raw ingredient names — dedupe by normalized
+  // lowercase, skip empties, drop OTHER (no hint).
+  const hintMap = new Map<string, StoreSection>()
+  for (const meal of meals) {
+    for (const ing of meal.ingredients) {
+      const key = ing.name.toLowerCase().trim()
+      if (!key || hintMap.has(key)) continue
+      const section = suggestSection(ing.name)
+      if (section !== 'OTHER') hintMap.set(key, section)
+    }
+  }
+
+  const hintsBlock = hintMap.size > 0
+    ? Array.from(hintMap.entries())
+        .map(([name, section]) => `- "${name}" → ${section}`)
+        .join('\n')
+    : 'None'
 
   const prompt = `Generate a consolidated, organized grocery list from these meal ingredients.
 
@@ -96,6 +121,12 @@ ${m.ingredients.map(i => {
 
 ## Pantry Staples (EXCLUDE these from the final list)
 ${pantryStaples.length > 0 ? pantryStaples.join(', ') : 'None specified'}
+
+## Pre-computed Section Hints (TRUST these unless clearly wrong)
+Use these section assignments for the listed ingredients — they're verified by a
+deterministic categorizer. Override only when you have a specific reason
+(e.g. brand name implies a different aisle). Items not listed need your judgment.
+${hintsBlock}
 
 ## Instructions
 
@@ -145,7 +176,7 @@ Create human-readable displayText:
 - For incompatible units: "2 (Meal A) + 1 bunch (Meal B)"`
 
   const model = getSimpleModel()
-  
+
   const result = await generateObject({
     model,
     schema: GroceryListSchema,
@@ -153,7 +184,17 @@ Create human-readable displayText:
     temperature: 0.3, // Lower temperature for more consistent categorization
   })
 
-  return result.object
+  // Post-process override: for any item the LLM categorized as OTHER, if our
+  // deterministic categorizer has a confident answer, prefer it. We never
+  // override a non-OTHER LLM answer — the LLM may have context (brand, prep
+  // method, recipe) that the rule-based check can't see.
+  const overriddenItems = result.object.items.map(item => {
+    if (item.section !== 'OTHER') return item
+    const hint = suggestSection(item.name)
+    return hint === 'OTHER' ? item : { ...item, section: hint }
+  })
+
+  return { ...result.object, items: overriddenItems }
 }
 
 /**
@@ -250,65 +291,89 @@ For each ingredient, extract:
  * Suggest store section for an ingredient name (without full AI call)
  * Uses keyword matching as a fast fallback
  */
-export function suggestSection(ingredientName: string): StoreSection {
-  const name = ingredientName.toLowerCase()
+const sectionCache = new Map<string, StoreSection>()
 
-  // Asian/Mexican — check before pantry so soy sauce, hoisin, etc. don't fall into condiments/pantry
-  if (/\b(soy sauce|hoisin|oyster sauce|fish sauce|sriracha|curry paste|miso|gochujang|sambal|coconut milk|salsa|taco shell|crunchy shell|thai chili|dried chili|chili pepper|tortilla chip)\b/.test(name)) {
+export function suggestSection(ingredientName: string): StoreSection {
+  const name = ingredientName.toLowerCase().trim()
+  const cached = sectionCache.get(name)
+  if (cached !== undefined) return cached
+
+  const section = computeSection(name)
+  if (sectionCache.size < 5000) {
+    sectionCache.set(name, section)
+  }
+  return section
+}
+
+// Exported for tests — gives callers a clean slate when isolation matters.
+export function _clearSuggestSectionCache() {
+  sectionCache.clear()
+}
+
+function computeSection(name: string): StoreSection {
+  // ── 1. High-specificity compound patterns (run BEFORE generic matchers) ──
+
+  // Asian/Mexican — must beat the pantry/produce single-word matchers below.
+  if (/\b(soy sauce|hoisin|oyster sauce|fish sauce|sriracha|curry paste|miso|gochujang|sambal|coconut milk|salsa|taco shells?|crunchy shells?|thai chili|dried chili|chili peppers?|tortilla chips?)\b/.test(name)) {
     return 'ASIAN_MEXICAN'
   }
 
-  // Bread/Tortillas/Bakery
-  if (/\b(bread|roll|bun|bagel|tortilla|pita|croissant|muffin|baguette|biscuit)\b/.test(name)) {
-    return 'BREAD_BAKERY'
-  }
+  // Compound names that would otherwise hit a broader matcher first.
+  if (/\b(ice cream|frozen yogurt)\b/.test(name)) return 'FROZEN'
+  if (/\b(peanut butter|almond butter|cashew butter|sunflower butter)\b/.test(name)) return 'PANTRY'
+  if (/\b(chicken broth|chicken stock|beef broth|beef stock|vegetable broth|vegetable stock|bone broth)\b/.test(name)) return 'PANTRY'
+  if (/\b(tomato sauce|tomato paste|marinara|alfredo sauce|pizza sauce)\b/.test(name)) return 'PASTA_CANNED'
+  if (/\b(orange juice|apple juice|grape juice|cranberry juice|grapefruit juice|tomato juice|lemonade)\b/.test(name)) return 'BEVERAGES'
 
-  // Deli Meat/Cheese/Dips — specialty/deli cheeses, deli meats, dips, pickled items
-  if (/\b(prosciutto|ham|turkey deli|deli meat|sliced cheese|block cheese|goat cheese|parmesan|mozzarella|feta|brie|hummus|dip|pickled)\b/.test(name)) {
-    return 'DELI_CHEESE'
-  }
-
-  // Frozen Fish — frozen seafood specifically
-  if (/\b(frozen (fish|salmon|tilapia|cod|shrimp|seafood|mahi|tuna))\b/.test(name)) {
+  // ── 2. Frozen-fish (most specific frozen) → FROZEN (general) ──
+  if (/\bfrozen (fish|salmon|tilapia|cod|shrimp|seafood|mahi|tuna)s?\b/.test(name)) {
     return 'FROZEN_FISH'
   }
-
-  // Meat/Poultry — fresh meat
-  if (/\b(chicken|beef|pork|turkey|lamb|bacon|sausage|steak|ground meat|ground turkey|ground beef|meat|chx tenderloin|short rib)\b/.test(name)) {
-    return 'MEAT_POULTRY'
-  }
-
-  // Produce
-  if (/\b(lettuce|tomato|onion|garlic|pepper|carrot|celery|potato|broccoli|spinach|kale|cucumber|zucchini|squash|mushroom|avocado|lemon|lime|orange|apple|banana|berry|fruit|vegetable|herb|cilantro|parsley|basil|mint|ginger|radish|beet|cabbage|asparagus|shallot|green onion|salad mix|arugula)\b/.test(name)) {
-    return 'PRODUCE'
-  }
-
-  // Eggs/Dairy/Vegan
-  if (/\b(egg|milk|yogurt|butter|cream|sour cream|cottage cheese|ricotta|tofu|tempeh|vegan)\b/.test(name)) {
-    return 'EGGS_DAIRY'
-  }
-
-  // Frozen — general frozen items
-  if (/\b(frozen|ice cream|edamame|frozen potato|frozen fries|frozen veggie|frozen pizza|gyoza)\b/.test(name)) {
+  if (/\bfrozen\b/.test(name) || /\b(edamame|gyoza)\b/.test(name)) {
     return 'FROZEN'
   }
 
-  // Spices
-  if (/\b(salt|pepper|spice|seasoning|cumin|paprika|oregano|thyme|cinnamon|vanilla|extract|chili powder|garlic powder|onion powder|turmeric|nutmeg)\b/.test(name)) {
+  // ── 3. Bread/Bakery ──
+  if (/\b(bread|rolls?|buns?|bagels?|tortillas?|pitas?|croissants?|muffins?|baguettes?|biscuits?)\b/.test(name)) {
+    return 'BREAD_BAKERY'
+  }
+
+  // ── 4. Deli/Cheese ──
+  if (/\b(prosciutto|hams?|turkey deli|deli meat|sliced cheese|block cheese|goat cheese|parmesan|mozzarella|feta|brie|hummus|dips?|pickled)\b/.test(name)) {
+    return 'DELI_CHEESE'
+  }
+
+  // ── 5. Meat/Poultry — fresh meat ──
+  if (/\b(chicken|beef|pork|turkey|lamb|bacon|sausages?|steaks?|ground meat|ground turkey|ground beef|chx tenderloin|short ribs?)\b/.test(name)) {
+    return 'MEAT_POULTRY'
+  }
+
+  // ── 6. Produce — plural-aware (mushrooms, carrots, tomatoes, ...) ──
+  if (/\b(lettuce|tomatoes?|onions?|garlic|peppers?|carrots?|celery|potatoes?|broccoli|spinach|kale|cucumbers?|zucchinis?|squash|mushrooms?|avocados?|lemons?|limes?|oranges?|apples?|bananas?|berries|berry|fruits?|vegetables?|herbs?|cilantro|parsley|basil|mint|ginger|radishes?|beets?|cabbage|asparagus|shallots?|green onions?|salad mix|arugula)\b/.test(name)) {
+    return 'PRODUCE'
+  }
+
+  // ── 7. Eggs/Dairy — compound "ice cream", "peanut butter" already routed above. ──
+  if (/\b(eggs?|milk|yogurt|butter|creams?|sour cream|cottage cheese|ricotta|tofu|tempeh|vegan)\b/.test(name)) {
+    return 'EGGS_DAIRY'
+  }
+
+  // ── 8. Spices ──
+  if (/\b(salt|pepper|spices?|seasonings?|cumin|paprika|oregano|thyme|cinnamon|vanilla|extract|chili powder|garlic powder|onion powder|turmeric|nutmeg)\b/.test(name)) {
     return 'SPICES'
   }
 
-  // Pasta & Canned Goods
-  if (/\b(pasta|noodle|spaghetti|penne|canned|can of|beans|chickpea|black bean|kidney bean|tomato sauce|alfredo|marinara|arborio|canned tuna|canned corn)\b/.test(name)) {
+  // ── 9. Pasta & Canned Goods (tomato sauce/marinara handled in §1) ──
+  if (/\b(pasta|noodles?|spaghetti|penne|canned|can of|beans?|chickpeas?|black beans?|kidney beans?|arborio|canned tuna|canned corn)\b/.test(name)) {
     return 'PASTA_CANNED'
   }
 
-  // Pantry — broad catch-all for dry goods, condiments, oils, dressings
-  if (/\b(rice|flour|sugar|cereal|oat|quinoa|cracker|chip|nut|almond|peanut|dried|oil|olive oil|sesame oil|vinegar|dressing|ketchup|mustard|mayo|honey|syrup|jam|jelly|broth|stock|coffee|tea|peanut butter|sauce)\b/.test(name)) {
+  // ── 10. Pantry — broad catch-all for dry goods, condiments, oils, dressings ──
+  if (/\b(rice|flour|sugar|cereal|oats?|quinoa|crackers?|chips?|nuts?|almonds?|peanuts?|dried|oil|olive oil|sesame oil|vinegar|dressings?|ketchup|mustard|mayo|honey|syrup|jam|jelly|broth|stock|coffee|tea|sauce)\b/.test(name)) {
     return 'PANTRY'
   }
 
-  // Beverages
+  // ── 11. Beverages (orange/apple/etc. juice already routed in §1) ──
   if (/\b(juice|soda|wine|beer|water|drink|kombucha)\b/.test(name)) {
     return 'BEVERAGES'
   }

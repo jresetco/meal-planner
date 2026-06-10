@@ -153,13 +153,16 @@ export async function GET(
         })
       : { items: [], unmergeableItems: [] }
 
-    // Filter out staples that the AI identified
-    const nonStapleItems = generatedList.items.filter(item => !item.isStaple)
+    // Persist BOTH active items and staple-excluded items. The UI splits them
+    // into separate views ("Excluded by pantry" tab) so users can verify what
+    // got hidden — fixes the past pain of items silently disappearing.
+    const activeAiItems = generatedList.items.filter(item => !item.isStaple)
+    const excludedAiItems = generatedList.items.filter(item => item.isStaple)
 
     // Merge in active recurring grocery items. Skip any recurring item whose
     // name already matches a generated item so we don't double-buy when an
     // ingredient appears in both a recipe and the recurring list.
-    const existingNames = new Set(nonStapleItems.map(i => i.name.toLowerCase().trim()))
+    const existingNames = new Set(activeAiItems.map(i => i.name.toLowerCase().trim()))
     const recurringEntries = recurringItems
       .filter(r => !existingNames.has(r.name.toLowerCase().trim()))
       .map(r => ({
@@ -179,7 +182,7 @@ export async function GET(
         isStale: false,
         items: {
           create: [
-            ...nonStapleItems.map((item) => ({
+            ...activeAiItems.map((item) => ({
               name: item.name,
               quantity: item.mergedQuantity.amount,
               unit: item.mergedQuantity.unit,
@@ -187,6 +190,15 @@ export async function GET(
               mealNames: item.mealNames,
               isChecked: false,
               isStaple: false,
+            })),
+            ...excludedAiItems.map((item) => ({
+              name: item.name,
+              quantity: item.mergedQuantity.amount,
+              unit: item.mergedQuantity.unit,
+              section: item.section as StoreSection,
+              mealNames: item.mealNames,
+              isChecked: false,
+              isStaple: true,
             })),
             ...recurringEntries,
           ],
