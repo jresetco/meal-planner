@@ -1,4 +1,4 @@
-import { Suspense } from 'react'
+import { Suspense, cache } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -18,19 +18,26 @@ import { formatDateRange } from '@/lib/utils'
 import { GettingStarted } from '@/components/dashboard/getting-started'
 import { StatCardSkeleton, ActivityCardSkeleton } from '@/components/dashboard/skeletons'
 
+// Shared between QuickStats (uses the most recent plan) and RecentActivity
+// (uses the 5 most recent). Wrapped in React.cache so both server components
+// share a single DB round-trip per request despite streaming independently.
+const getRecentPlans = cache((householdId: string) =>
+  prisma.mealPlan.findMany({
+    where: { householdId },
+    orderBy: { startDate: 'desc' },
+    take: 5,
+    include: {
+      _count: { select: { plannedMeals: true } },
+      groceryList: {
+        include: { _count: { select: { items: true } } },
+      },
+    },
+  }),
+)
+
 async function QuickStats({ householdId }: { householdId: string }) {
   const [plans, recipeCount] = await Promise.all([
-    prisma.mealPlan.findMany({
-      where: { householdId },
-      orderBy: { startDate: 'desc' },
-      take: 1,
-      include: {
-        _count: { select: { plannedMeals: true } },
-        groceryList: {
-          include: { _count: { select: { items: true } } },
-        },
-      },
-    }),
+    getRecentPlans(householdId),
     prisma.recipe.count({
       where: { householdId, isActive: true },
     }),
@@ -121,17 +128,7 @@ async function GettingStartedSection({ householdId }: { householdId: string }) {
 
 async function RecentActivity({ householdId }: { householdId: string }) {
   const [recentPlans, mostPlannedGroups, highestRatedRecipes] = await Promise.all([
-    prisma.mealPlan.findMany({
-      where: { householdId },
-      orderBy: { startDate: 'desc' },
-      take: 5,
-      include: {
-        _count: { select: { plannedMeals: true } },
-        groceryList: {
-          include: { _count: { select: { items: true } } },
-        },
-      },
-    }),
+    getRecentPlans(householdId),
     prisma.plannedMeal.groupBy({
       by: ['recipeId'],
       where: {

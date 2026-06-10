@@ -64,7 +64,7 @@ I tried a rules engine first. It produced technically-correct plans that a human
 
 ### Why single-household scope for v1?
 
-Multi-household with real auth would have doubled the surface area (tenancy, invites, permissioning) without changing whether the *planning* loop worked. I shipped single-user with the auth layer (Google OAuth via NextAuth) wired but behind a feature flag, so multi-tenancy is a switch-flip, not a rewrite.
+Multi-household with real auth would have doubled the surface area (tenancy, invites, permissioning) without changing whether the *planning* loop worked. I shipped a single household scoped behind passwordless magic-link auth with a fail-closed email allowlist, so the data model is already tenancy-aware (everything is `householdId`-scoped) — multi-tenancy is an incremental step, not a rewrite.
 
 ### Why structured output from the LLM instead of free-text?
 
@@ -88,21 +88,38 @@ For PMs thinking about whether AI-assisted coding is "real": the bottleneck in b
 ## Tech Stack
 
 - **Framework**: Next.js 16 (App Router, TypeScript, React 19)
-- **Database**: PostgreSQL via Neon, using Prisma 7
+- **Database**: Neon PostgreSQL via Prisma 7 with the `@prisma/adapter-pg` driver adapter
 - **AI**: Vercel AI SDK with OpenAI (GPT-5.2 primary) and Anthropic Claude (fallback)
-- **Auth**: NextAuth.js with Google OAuth (wired; currently runs in single-user demo mode)
+- **Auth**: Passwordless magic-link sign-in (Resend email) gated by a fail-closed `ALLOWED_EMAILS` allowlist
 - **UI**: Tailwind CSS v4 + shadcn/ui
 - **Integrations**: Paprika 3 Cloud Sync (custom client — requires iOS User-Agent)
 - **Security**: AES-256-GCM at rest for third-party credentials (Paprika passwords)
+- **Testing/CI**: Vitest (`npm test`); GitHub Actions runs type-check, tests, build, and a Docker build
+- **Deploy**: Railway (Dockerfile build) with a `prisma db push` pre-deploy command
 
 ## Running Locally
 
 ### Prerequisites
 
-- Node.js 20+
+- Node.js >= 20.19 (`.nvmrc` pins 24; engines allow `^20.19 || ^22.12 || >=24`)
 - A Neon (or any Postgres) database
 - An OpenAI API key
-- Optionally: Anthropic API key, Google OAuth credentials, a Paprika account
+- Optionally: Anthropic API key, a Resend API key (for magic-link email), a Paprika account
+
+### Required environment variables
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `DATABASE_URL` | yes | Neon/Postgres connection string |
+| `ENCRYPTION_KEY` | yes | 64-char hex (32 bytes); AES-256-GCM key for credentials at rest |
+| `OPENAI_API_KEY` | yes | LLM access for plan + grocery generation |
+| `APP_AUTH_SECRET` | yes | 64-char hex; signs magic-link tokens and session cookies |
+| `ALLOWED_EMAILS` *(or `APP_AUTH_EMAIL`)* | yes | Email allowlist. Sign-in **fails closed** if neither is set |
+| `RESEND_API_KEY` | yes (prod) | Sends magic-link emails via Resend |
+| `ANTHROPIC_API_KEY` | optional | Anthropic Claude fallback provider |
+| `AI_PROVIDER` | optional | `openai` (default) or `anthropic` |
+
+See `.env.example` for the full list (including `APP_AUTH_FROM_EMAIL`, `APP_BASE_URL`).
 
 ### Setup
 
@@ -112,10 +129,11 @@ npm install
 
 # 2. Configure env
 cp .env.example .env
-# Fill in DATABASE_URL, OPENAI_API_KEY, ENCRYPTION_KEY (generate below)
+# Fill in DATABASE_URL, OPENAI_API_KEY, ENCRYPTION_KEY, APP_AUTH_SECRET, and an allowlist
 
-# Generate an encryption key:
+# Generate an encryption key (and, separately, an auth secret):
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+# or: openssl rand -hex 32
 
 # 3. Push schema
 npx prisma db push
@@ -126,9 +144,20 @@ npm run dev
 
 App runs at `http://localhost:3000`.
 
-### Demo mode
+### Tests
 
-By default, `APP_SINGLE_USER=true` bypasses authentication and scopes everything to a single synthetic household. Flip it to `false` to require Google OAuth login.
+```bash
+npm test          # Vitest, run once
+npm run test:watch
+```
+
+### Authentication
+
+Sign-in is passwordless: a magic link is emailed (via Resend) and exchanged for a
+session cookie signed by `APP_AUTH_SECRET`. Access is gated by a **fail-closed**
+allowlist — if neither `ALLOWED_EMAILS` (comma-separated) nor `APP_AUTH_EMAIL`
+(single email) is configured, no one can sign in. There is no demo / single-user
+bypass mode.
 
 ## Repo Layout
 
@@ -144,7 +173,7 @@ src/
 │   └── settings/       # Settings components
 ├── lib/
 │   ├── ai/             # AI providers, prompts, meal-planner, grocery-generator
-│   ├── auth.ts         # NextAuth config + single-user mock
+│   ├── auth.ts         # Magic-link sessions + fail-closed email allowlist
 │   ├── crypto.ts       # AES-256-GCM for credential encryption at rest
 │   └── paprika/        # Paprika Cloud Sync client
 └── types/
