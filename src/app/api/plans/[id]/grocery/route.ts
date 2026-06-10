@@ -1,10 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
+import { Prisma } from '@prisma/client'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
 import { generateGroceryList } from '@/lib/ai/grocery-generator'
-import { logValidationFailure } from '@/lib/logger'
+import { logger, logValidationFailure } from '@/lib/logger'
 import type { StoreSection } from '@/types'
+
+// Build a structured error response. Prisma's "table does not exist" (P2021)
+// is the most useful one to distinguish — it means the runtime image is ahead
+// of the database schema (someone deployed without running `prisma db push`),
+// which the user-facing UI can surface specifically instead of a blank list.
+function buildGroceryError(error: unknown): { status: number; body: { error: string; code: string } } {
+  if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2021') {
+    return {
+      status: 503,
+      body: {
+        error: 'Database schema is out of date. The deploy likely skipped `prisma db push`. Apply the migration and reload.',
+        code: 'GROCERY_SCHEMA_OUT_OF_DATE',
+      },
+    }
+  }
+  if (error instanceof Prisma.PrismaClientInitializationError) {
+    return {
+      status: 503,
+      body: {
+        error: 'Cannot reach the database. Check DATABASE_URL and retry.',
+        code: 'GROCERY_DB_UNREACHABLE',
+      },
+    }
+  }
+  const message = error instanceof Error ? error.message : 'Unknown error'
+  return {
+    status: 500,
+    body: {
+      error: `Failed to load grocery list: ${message}`,
+      code: 'GROCERY_LOAD_FAILED',
+    },
+  }
+}
 
 export const maxDuration = 300
 
@@ -19,16 +53,30 @@ export async function GET(
 ) {
   const session = await auth()
   const { id } = await params
-  
+
   if (!session?.user?.householdId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
+  try {
+    return await handleGroceryGet(id, session.user.householdId)
+  } catch (error) {
+    logger.error('grocery_get_failed', {
+      route: '/api/plans/[id]/grocery',
+      planId: id,
+      err: error instanceof Error ? { name: error.name, message: error.message } : String(error),
+    })
+    const { status, body } = buildGroceryError(error)
+    return NextResponse.json(body, { status })
+  }
+}
+
+async function handleGroceryGet(id: string, householdId: string) {
   // Get the meal plan with recipes (needed for both cache hit + regen, to compute whole meals)
   const mealPlan = await prisma.mealPlan.findFirst({
     where: {
       id,
-      householdId: session.user.householdId,
+      householdId,
     },
     include: {
       plannedMeals: {
@@ -44,7 +92,7 @@ export async function GET(
   })
 
   if (!mealPlan) {
-    return NextResponse.json({ error: 'Meal plan not found' }, { status: 404 })
+    return NextResponse.json({ error: 'Meal plan not found', code: 'GROCERY_PLAN_NOT_FOUND' }, { status: 404 })
   }
 
   // Compute whole-meal names (meals with no recipe ingredients and not dynamic) — derived
@@ -84,21 +132,21 @@ export async function GET(
   const [pantryStaples, mealComponents, recurringItems] = await Promise.all([
     prisma.pantryStaple.findMany({
       where: {
-        householdId: session.user.householdId,
+        householdId,
         isActive: true,
       },
       select: { ingredientName: true },
     }),
     prisma.mealComponent.findMany({
       where: {
-        householdId: session.user.householdId,
+        householdId,
         isActive: true,
       },
       select: { name: true, category: true, typicalIngredients: true },
     }),
     prisma.recurringGroceryItem.findMany({
       where: {
-        householdId: session.user.householdId,
+        householdId,
         isActive: true,
       },
       select: { name: true, quantity: true, unit: true, section: true },
@@ -139,80 +187,73 @@ export async function GET(
 
   if (meals.length === 0 && wholeMeals.length === 0) {
     return NextResponse.json(
-      { error: 'No recipes or dynamic meals with ingredients found in this plan' },
+      { error: 'No recipes or dynamic meals with ingredients found in this plan', code: 'GROCERY_NO_MEALS' },
       { status: 400 }
     )
   }
 
-  try {
-    // Generate grocery list using AI (skip if there are no ingredient-bearing meals)
-    const generatedList = meals.length > 0
-      ? await generateGroceryList({
-          meals,
-          pantryStaples: pantryStaples.map((s: { ingredientName: string }) => s.ingredientName),
-        })
-      : { items: [], unmergeableItems: [] }
+  // Generate grocery list using AI (skip if there are no ingredient-bearing meals).
+  // Errors here bubble to the outer try/catch in GET — Prisma errors, AI errors,
+  // and validation errors all flow through buildGroceryError.
+  const generatedList = meals.length > 0
+    ? await generateGroceryList({
+        meals,
+        pantryStaples: pantryStaples.map((s: { ingredientName: string }) => s.ingredientName),
+      })
+    : { items: [], unmergeableItems: [] }
 
-    // Filter out staples that the AI identified
-    const nonStapleItems = generatedList.items.filter(item => !item.isStaple)
+  // Filter out staples that the AI identified
+  const nonStapleItems = generatedList.items.filter(item => !item.isStaple)
 
-    // Merge in active recurring grocery items. Skip any recurring item whose
-    // name already matches a generated item so we don't double-buy when an
-    // ingredient appears in both a recipe and the recurring list.
-    const existingNames = new Set(nonStapleItems.map(i => i.name.toLowerCase().trim()))
-    const recurringEntries = recurringItems
-      .filter(r => !existingNames.has(r.name.toLowerCase().trim()))
-      .map(r => ({
-        name: r.name,
-        quantity: r.quantity,
-        unit: r.unit,
-        section: r.section,
-        mealNames: ['Recurring'],
-        isChecked: false,
-        isStaple: false,
-      }))
+  // Merge in active recurring grocery items. Skip any recurring item whose
+  // name already matches a generated item so we don't double-buy when an
+  // ingredient appears in both a recipe and the recurring list.
+  const existingNames = new Set(nonStapleItems.map(i => i.name.toLowerCase().trim()))
+  const recurringEntries = recurringItems
+    .filter(r => !existingNames.has(r.name.toLowerCase().trim()))
+    .map(r => ({
+      name: r.name,
+      quantity: r.quantity,
+      unit: r.unit,
+      section: r.section,
+      mealNames: ['Recurring'],
+      isChecked: false,
+      isStaple: false,
+    }))
 
-    // Save to database (fresh list, not stale)
-    const groceryList = await prisma.groceryList.create({
-      data: {
-        mealPlanId: id,
-        isStale: false,
-        items: {
-          create: [
-            ...nonStapleItems.map((item) => ({
-              name: item.name,
-              quantity: item.mergedQuantity.amount,
-              unit: item.mergedQuantity.unit,
-              section: item.section as StoreSection,
-              mealNames: item.mealNames,
-              isChecked: false,
-              isStaple: false,
-            })),
-            ...recurringEntries,
-          ],
-        },
+  // Save to database (fresh list, not stale)
+  const groceryList = await prisma.groceryList.create({
+    data: {
+      mealPlanId: id,
+      isStale: false,
+      items: {
+        create: [
+          ...nonStapleItems.map((item) => ({
+            name: item.name,
+            quantity: item.mergedQuantity.amount,
+            unit: item.mergedQuantity.unit,
+            section: item.section as StoreSection,
+            mealNames: item.mealNames,
+            isChecked: false,
+            isStaple: false,
+          })),
+          ...recurringEntries,
+        ],
       },
-      include: {
-        items: {
-          orderBy: [{ section: 'asc' }, { name: 'asc' }],
-        },
+    },
+    include: {
+      items: {
+        orderBy: [{ section: 'asc' }, { name: 'asc' }],
       },
-    })
+    },
+  })
 
-    // Include whole meals + unmergeable items info in response for UI to handle
-    return NextResponse.json({
-      ...groceryList,
-      wholeMeals,
-      unmergeableItems: generatedList.unmergeableItems,
-    }, { status: 201 })
-  } catch (error) {
-    console.error('Grocery list generation error:', error)
-    const message = error instanceof Error ? error.message : 'Unknown error'
-    return NextResponse.json(
-      { error: `Failed to generate grocery list: ${message}` },
-      { status: 500 }
-    )
-  }
+  // Include whole meals + unmergeable items info in response for UI to handle
+  return NextResponse.json({
+    ...groceryList,
+    wholeMeals,
+    unmergeableItems: generatedList.unmergeableItems,
+  }, { status: 201 })
 }
 
 // PATCH /api/plans/[id]/grocery - Batch update grocery items (e.g. uncheck all)
