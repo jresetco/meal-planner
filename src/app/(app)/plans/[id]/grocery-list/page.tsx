@@ -99,10 +99,12 @@ export default function GroceryListPage() {
   function applyGroceryData(data: {
     isStale?: boolean
     wholeMeals?: string[]
+    checkedWholeMeals?: string[]
     items?: { id: string; name: string; section?: string; quantity?: number | null; unit?: string | null; isChecked?: boolean; isStaple?: boolean; mealNames?: string[] }[]
   }) {
     setIsStale(Boolean(data.isStale))
     setWholeMeals(Array.isArray(data.wholeMeals) ? data.wholeMeals : [])
+    setCheckedWholeMeals(new Set(Array.isArray(data.checkedWholeMeals) ? data.checkedWholeMeals : []))
     const items = data.items || []
     const grouped: Record<string, GroceryItem[]> = {}
     const excludedGrouped: Record<string, GroceryItem[]> = {}
@@ -232,6 +234,31 @@ export default function GroceryListPage() {
     }
   }
   
+  const handleToggleWholeMeal = async (mealName: string) => {
+    const wasChecked = checkedWholeMeals.has(mealName)
+    const nextSet = new Set(checkedWholeMeals)
+    if (wasChecked) nextSet.delete(mealName)
+    else nextSet.add(mealName)
+    setCheckedWholeMeals(nextSet)
+
+    try {
+      await fetch(`/api/plans/${planId}/grocery`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ checkedWholeMeals: Array.from(nextSet) }),
+      })
+    } catch (err) {
+      console.error('Failed to persist whole-meal check:', err)
+      // Revert on error
+      setCheckedWholeMeals(prev => {
+        const reverted = new Set(prev)
+        if (wasChecked) reverted.add(mealName)
+        else reverted.delete(mealName)
+        return reverted
+      })
+    }
+  }
+
   const removeItemFromState = (itemId: string) => {
     setCategories(prev =>
       prev
@@ -481,14 +508,7 @@ export default function GroceryListPage() {
                       "flex items-center gap-3 px-2 py-1 rounded transition-colors cursor-pointer hover:bg-slate-50",
                       isChecked && "bg-slate-50"
                     )}
-                    onClick={() => {
-                      setCheckedWholeMeals(prev => {
-                        const next = new Set(prev)
-                        if (next.has(mealName)) next.delete(mealName)
-                        else next.add(mealName)
-                        return next
-                      })
-                    }}
+                    onClick={() => handleToggleWholeMeal(mealName)}
                   >
                     <div className={cn(
                       "w-4 h-4 rounded-full border-2 flex items-center justify-center transition-colors flex-shrink-0",
