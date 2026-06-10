@@ -86,6 +86,7 @@ export default function GroceryListPage() {
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set())
   const [hideTarget, setHideTarget] = useState<GroceryItem | null>(null)
   const [addOpen, setAddOpen] = useState(false)
+  const [fetchError, setFetchError] = useState<{ message: string; code?: string } | null>(null)
   
   useEffect(() => {
     fetchGroceryList()
@@ -135,13 +136,23 @@ export default function GroceryListPage() {
     try {
       const response = await fetch(`/api/plans/${planId}/grocery`, { cache: 'no-store' })
       if (response.ok) {
+        setFetchError(null)
         applyGroceryData(await response.json())
       } else {
-        const body = await response.text().catch(() => '')
+        // Try to parse a structured error body; fall back to plain text so users
+        // see the real cause rather than an indistinguishable empty list.
+        const body = await response.json().catch(async () => {
+          const text = await response.text().catch(() => '')
+          return { error: text || `HTTP ${response.status}`, code: undefined }
+        })
         console.error(`Failed to fetch grocery list (status ${response.status}):`, body)
+        setFetchError({ message: body.error || `HTTP ${response.status}`, code: body.code })
       }
     } catch (error) {
       console.error('Error fetching grocery list:', error)
+      setFetchError({
+        message: error instanceof Error ? error.message : 'Network error while loading grocery list',
+      })
     } finally {
       setIsLoading(false)
     }
@@ -399,6 +410,24 @@ export default function GroceryListPage() {
         </div>
       </div>
       
+      {/* Error banner — shown when the API call failed (e.g. missing schema migration, AI error, DB unreachable) */}
+      {fetchError && (
+        <div className="flex items-start gap-3 rounded-md border border-red-300 bg-red-50 px-4 py-3 text-red-900">
+          <AlertCircle className="h-5 w-5 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="font-medium">Couldn&apos;t load your grocery list</p>
+            <p className="text-sm mt-0.5">{fetchError.message}</p>
+            {fetchError.code && (
+              <p className="text-xs mt-1 font-mono text-red-700">code: {fetchError.code}</p>
+            )}
+          </div>
+          <Button size="sm" variant="outline" onClick={() => { setIsLoading(true); fetchGroceryList() }}>
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Retry
+          </Button>
+        </div>
+      )}
+
       {/* Stale banner — meal plan changed since this list was generated */}
       {isStale && (
         <div className="flex items-start gap-3 rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-amber-900">
