@@ -44,6 +44,7 @@ export const maxDuration = 300
 
 const UpdateGroceryListSchema = z.object({
   uncheckAll: z.boolean().optional(),
+  checkedWholeMeals: z.array(z.string().min(1).max(500)).max(200).optional(),
 })
 
 // GET /api/plans/[id]/grocery - Generate grocery list for a plan
@@ -202,13 +203,16 @@ async function handleGroceryGet(id: string, householdId: string) {
       })
     : { items: [], unmergeableItems: [] }
 
-  // Filter out staples that the AI identified
-  const nonStapleItems = generatedList.items.filter(item => !item.isStaple)
+  // Persist BOTH active items and staple-excluded items. The UI splits them
+  // into separate views ("Excluded by pantry" tab) so users can verify what
+  // got hidden — fixes the past pain of items silently disappearing.
+  const activeAiItems = generatedList.items.filter(item => !item.isStaple)
+  const excludedAiItems = generatedList.items.filter(item => item.isStaple)
 
   // Merge in active recurring grocery items. Skip any recurring item whose
   // name already matches a generated item so we don't double-buy when an
   // ingredient appears in both a recipe and the recurring list.
-  const existingNames = new Set(nonStapleItems.map(i => i.name.toLowerCase().trim()))
+  const existingNames = new Set(activeAiItems.map(i => i.name.toLowerCase().trim()))
   const recurringEntries = recurringItems
     .filter(r => !existingNames.has(r.name.toLowerCase().trim()))
     .map(r => ({
@@ -228,7 +232,7 @@ async function handleGroceryGet(id: string, householdId: string) {
       isStale: false,
       items: {
         create: [
-          ...nonStapleItems.map((item) => ({
+          ...activeAiItems.map((item) => ({
             name: item.name,
             quantity: item.mergedQuantity.amount,
             unit: item.mergedQuantity.unit,
@@ -236,6 +240,15 @@ async function handleGroceryGet(id: string, householdId: string) {
             mealNames: item.mealNames,
             isChecked: false,
             isStaple: false,
+          })),
+          ...excludedAiItems.map((item) => ({
+            name: item.name,
+            quantity: item.mergedQuantity.amount,
+            unit: item.mergedQuantity.unit,
+            section: item.section as StoreSection,
+            mealNames: item.mealNames,
+            isChecked: false,
+            isStaple: true,
           })),
           ...recurringEntries,
         ],
@@ -284,12 +297,23 @@ export async function PATCH(
     logValidationFailure('/api/plans/[id]/grocery', parsed.error)
     return NextResponse.json({ error: 'Invalid input' }, { status: 400 })
   }
-  const { uncheckAll } = parsed.data
+  const { uncheckAll, checkedWholeMeals } = parsed.data
 
   if (uncheckAll) {
     await prisma.groceryItem.updateMany({
       where: { groceryListId: list.id, isChecked: true },
       data: { isChecked: false },
+    })
+    await prisma.groceryList.update({
+      where: { id: list.id },
+      data: { checkedWholeMeals: [] },
+    })
+  }
+
+  if (checkedWholeMeals !== undefined) {
+    await prisma.groceryList.update({
+      where: { id: list.id },
+      data: { checkedWholeMeals },
     })
   }
 

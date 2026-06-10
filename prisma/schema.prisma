@@ -319,7 +319,8 @@ model GroceryList {
   mealPlanId String   @unique
   mealPlan   MealPlan @relation(fields: [mealPlanId], references: [id], onDelete: Cascade)
 
-  isStale Boolean @default(false)
+  isStale             Boolean  @default(false)
+  checkedWholeMeals   String[] @default([])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
