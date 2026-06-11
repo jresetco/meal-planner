@@ -44,6 +44,8 @@ model Household {
   mealEditHistory     MealEditHistory[]
   paprikaRecipeCache  PaprikaRecipeCache[]
   mealComponents      MealComponent[]
+  grocerySectionOverrides GrocerySectionOverride[]
+  ingredientSynonyms      IngredientSynonym[]
 }
 
 model PaprikaRecipeCache {
@@ -342,8 +344,9 @@ model GroceryItem {
   mealNames  String[]     // Which meals need this ingredient
 
   // Status
-  isChecked Boolean @default(false)
-  isStaple  Boolean @default(false) // Excluded from shopping
+  isChecked  Boolean @default(false)
+  isStaple   Boolean @default(false) // Excluded from shopping
+  isOptional Boolean @default(false) // All source ingredients were marked optional
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -364,6 +367,7 @@ enum StoreSection {
   PANTRY
   PASTA_CANNED
   ASIAN_MEXICAN
+  ASIAN_STORE
   BEVERAGES
   OTHER
 }
@@ -421,6 +425,41 @@ model RecurringGroceryItem {
 
   @@unique([householdId, name])
   @@index([householdId, isActive])
+}
+
+// Permanent per-household override of an ingredient's store section. When a user
+// "moves" a grocery item to a different section, we remember the choice keyed by
+// the normalized ingredient name and re-apply it to every future generated list.
+model GrocerySectionOverride {
+  id          String    @id @default(cuid())
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  ingredientName String       // Normalized (normalizeItemName) ingredient name
+  section        StoreSection
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([householdId, ingredientName])
+  @@index([householdId])
+}
+
+// Per-household ingredient synonym map applied BEFORE grocery generation so the
+// AI naturally merges variants (e.g. "spring onions" -> "green onions").
+model IngredientSynonym {
+  id          String    @id @default(cuid())
+  householdId String
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+
+  fromName String // Source name (matched normalized) to rewrite
+  toName   String // Canonical name to rewrite to
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([householdId, fromName])
+  @@index([householdId])
 }
 
 // ============================================

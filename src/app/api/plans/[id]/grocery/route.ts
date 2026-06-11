@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { Prisma } from '@prisma/client'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
-import { generateGroceryList, mergeRecurringItems, normalizeItemName } from '@/lib/ai/grocery-generator'
+import { generateGroceryList, mergeRecurringItems, normalizeItemName, applySynonyms } from '@/lib/ai/grocery-generator'
 import { logger, logValidationFailure } from '@/lib/logger'
 import type { StoreSection } from '@/types'
 
@@ -129,8 +129,9 @@ async function handleGroceryGet(id: string, householdId: string) {
     await prisma.groceryList.delete({ where: { id: existingList.id } })
   }
 
-  // Get pantry staples, meal components, and recurring items in parallel
-  const [pantryStaples, mealComponents, recurringItems] = await Promise.all([
+  // Get pantry staples, meal components, recurring items, section overrides and
+  // ingredient synonyms in parallel.
+  const [pantryStaples, mealComponents, recurringItems, sectionOverrides, synonyms] = await Promise.all([
     prisma.pantryStaple.findMany({
       where: {
         householdId,
@@ -152,18 +153,48 @@ async function handleGroceryGet(id: string, householdId: string) {
       },
       select: { name: true, quantity: true, unit: true, section: true },
     }),
+    prisma.grocerySectionOverride.findMany({
+      where: { householdId },
+      select: { ingredientName: true, section: true },
+    }),
+    prisma.ingredientSynonym.findMany({
+      where: { householdId },
+      select: { fromName: true, toName: true },
+    }),
   ])
+
+  // Synonym map keyed by normalized source name → canonical replacement.
+  const synonymMap = new Map<string, string>()
+  for (const s of synonyms) synonymMap.set(normalizeItemName(s.fromName), s.toName)
+
+  // Section-override map keyed by normalized ingredient name → StoreSection.
+  const overrideMap = new Map<string, StoreSection>()
+  for (const o of sectionOverrides) overrideMap.set(o.ingredientName, o.section as StoreSection)
 
   // Prepare meals data for AI — include only meals that actually contribute ingredients
   // (recipe-based with ingredients, or dynamic with resolved components). Meals without
   // ingredients are already captured in `wholeMeals` above.
-  const meals: { name: string; ingredients: { name: string; quantity?: number | string; unit?: string }[] }[] = []
+  const meals: { name: string; ingredients: { name: string; quantity?: number | string; unit?: string; optional?: boolean }[] }[] = []
+
+  // Feature 4 — detect optional ingredients defensively. Recipe JSON entries may
+  // mark optionality either as an `optional: true` flag or by including
+  // "(optional)" in the name. Strip the literal "(optional)" text from the name
+  // and surface a normalized `optional` boolean.
+  const normalizeOptional = (
+    ing: { name?: unknown; quantity?: number | string; unit?: string; optional?: unknown }
+  ): { name: string; quantity?: number | string; unit?: string; optional?: boolean } => {
+    const rawName = typeof ing.name === 'string' ? ing.name : ''
+    const hasOptionalText = /\(\s*optional\s*\)/i.test(rawName)
+    const name = rawName.replace(/\s*\(\s*optional\s*\)\s*/i, ' ').replace(/\s+/g, ' ').trim()
+    const optional = ing.optional === true || hasOptionalText
+    return { name, quantity: ing.quantity, unit: ing.unit, optional }
+  }
 
   for (const meal of mealPlan.plannedMeals) {
     if (meal.recipe) {
-      const recipeIngredients = (meal.recipe.ingredients as { name: string; quantity?: number | string; unit?: string }[] | undefined) || []
+      const recipeIngredients = (meal.recipe.ingredients as { name: string; quantity?: number | string; unit?: string; optional?: boolean }[] | undefined) || []
       if (recipeIngredients.length === 0) continue
-      meals.push({ name: meal.recipe.name, ingredients: recipeIngredients })
+      meals.push({ name: meal.recipe.name, ingredients: recipeIngredients.map(normalizeOptional) })
     } else if (meal.isDynamic && meal.dynamicComponents) {
       const components = meal.dynamicComponents as { componentName: string; category: string; prepMethod?: string | null }[]
       const mealName = meal.customName || components.map(c => c.componentName).join(' + ')
@@ -195,7 +226,7 @@ async function handleGroceryGet(id: string, householdId: string) {
       }
 
       if (dynamicIngredients.length === 0) continue
-      meals.push({ name: mealName, ingredients: dynamicIngredients })
+      meals.push({ name: mealName, ingredients: dynamicIngredients.map(normalizeOptional) })
     }
   }
 
@@ -206,12 +237,17 @@ async function handleGroceryGet(id: string, householdId: string) {
     )
   }
 
+  // Feature 3 — apply ingredient synonyms BEFORE generation so the AI merges
+  // variants naturally; mergeDuplicateItems (inside generateGroceryList) catches
+  // any stragglers afterward.
+  const synonymizedMeals = applySynonyms(meals, synonymMap)
+
   // Generate grocery list using AI (skip if there are no ingredient-bearing meals).
   // Errors here bubble to the outer try/catch in GET — Prisma errors, AI errors,
   // and validation errors all flow through buildGroceryError.
   const generatedList = meals.length > 0
     ? await generateGroceryList({
-        meals,
+        meals: synonymizedMeals,
         pantryStaples: pantryStaples.map((s: { ingredientName: string }) => s.ingredientName),
       })
     : { items: [], unmergeableItems: [] }
@@ -234,6 +270,7 @@ async function handleGroceryGet(id: string, householdId: string) {
       section: item.section as StoreSection,
       mealNames: item.mealNames,
       isStaple: false,
+      isOptional: item.isOptional,
     })),
     recurringItems.map(r => ({
       name: r.name,
@@ -242,6 +279,13 @@ async function handleGroceryGet(id: string, householdId: string) {
       section: r.section as StoreSection,
     }))
   )
+
+  // Feature 2 — apply permanent per-household section overrides AFTER all
+  // generation post-processes (recurring merge included), matching by normalized
+  // ingredient name. This makes a user's "move to section" choice stick on every
+  // future list regardless of how the AI categorized the item.
+  const applyOverride = (name: string, section: StoreSection): StoreSection =>
+    overrideMap.get(normalizeItemName(name)) ?? section
 
   // Save to database (fresh list, not stale)
   const groceryList = await prisma.groceryList.create({
@@ -254,19 +298,21 @@ async function handleGroceryGet(id: string, householdId: string) {
             name: item.name,
             quantity: item.quantity,
             unit: item.unit,
-            section: item.section,
+            section: applyOverride(item.name, item.section),
             mealNames: item.mealNames,
             isChecked: false,
             isStaple: false,
+            isOptional: item.isOptional,
           })),
           ...excludedAiItems.map((item) => ({
             name: item.name,
             quantity: item.mergedQuantity.amount,
             unit: item.mergedQuantity.unit,
-            section: item.section as StoreSection,
+            section: applyOverride(item.name, item.section as StoreSection),
             mealNames: item.mealNames,
             isChecked: false,
             isStaple: true,
+            isOptional: item.isOptional,
           })),
         ],
       },

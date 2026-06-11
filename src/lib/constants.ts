@@ -11,6 +11,7 @@ export const STORE_SECTIONS = [
   { value: 'PANTRY', label: 'Pantry – Cereal/Snacks/Etc' },
   { value: 'PASTA_CANNED', label: 'Pasta & Canned Goods' },
   { value: 'ASIAN_MEXICAN', label: 'Asian/Mexican' },
+  { value: 'ASIAN_STORE', label: 'Asian Store' },
   { value: 'BEVERAGES', label: 'Beverages' },
   { value: 'OTHER', label: 'Other' },
 ] as const

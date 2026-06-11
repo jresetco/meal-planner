@@ -29,11 +29,13 @@ const GroceryItemSchema = z.object({
     'PANTRY',
     'PASTA_CANNED',
     'ASIAN_MEXICAN',
+    'ASIAN_STORE',
     'BEVERAGES',
     'OTHER',
   ]),
   mealNames: z.array(z.string()).describe('All meals that need this ingredient'),
   isStaple: z.boolean().describe('Whether this should be excluded as a pantry staple'),
+  isOptional: z.boolean().describe('True ONLY when every source ingredient for this item was marked optional; false if any required source uses it'),
   notes: z.string().nullable().describe('Any special notes about this item'),
 })
 
@@ -96,6 +98,35 @@ export function normalizeItemName(raw: string): string {
   return parts.join(' ')
 }
 
+export interface SynonymMealForRewrite {
+  name: string
+  ingredients: { name: string; quantity?: number | string; unit?: string; optional?: boolean }[]
+}
+
+/**
+ * Feature 3 — apply per-household ingredient synonyms to the meals array BEFORE
+ * the AI call. `synonymMap` is keyed by the NORMALIZED source name
+ * (normalizeItemName) → canonical replacement name. For each ingredient whose
+ * normalized name matches a key, we swap in the canonical name (preserving the
+ * original quantity/unit/optional). This lets the LLM merge variants naturally
+ * (e.g. "spring onions" + "green onions" → one item); mergeDuplicateItems later
+ * catches any that the LLM still leaves split. Pure function — no mutation of
+ * the input.
+ */
+export function applySynonyms<T extends SynonymMealForRewrite>(
+  meals: T[],
+  synonymMap: Map<string, string>
+): T[] {
+  if (synonymMap.size === 0) return meals
+  return meals.map(meal => ({
+    ...meal,
+    ingredients: meal.ingredients.map(ing => {
+      const canonical = synonymMap.get(normalizeItemName(ing.name))
+      return canonical ? { ...ing, name: canonical } : ing
+    }),
+  }))
+}
+
 /** Normalize a unit for equality, treating null/empty/"count" as the count unit. */
 function normalizeUnit(unit: string | null | undefined): string {
   const u = (unit || '').toLowerCase().trim()
@@ -139,6 +170,9 @@ export function mergeDuplicateItems(items: GeneratedGroceryItem[]): GeneratedGro
     }
     // A staple only stays excluded if every duplicate agreed it was a staple.
     existing.isStaple = existing.isStaple && item.isStaple
+    // Optional only survives if EVERY duplicate source was optional — merging an
+    // optional use with a required use yields a required (non-optional) item.
+    existing.isOptional = existing.isOptional && item.isOptional
   }
   return Array.from(byKey.values())
 }
@@ -245,6 +279,7 @@ export function ensureAllIngredientsPresent(
         section: suggestSection(ing.name),
         mealNames: [meal.name],
         isStaple: false,
+        isOptional: ing.optional === true,
         notes: null,
       }
       synthesized.set(norm, synth)
@@ -298,6 +333,7 @@ export interface MergedGroceryItemForPersist {
   section: StoreSection
   mealNames: string[]
   isStaple: boolean
+  isOptional: boolean
 }
 
 /**
@@ -330,12 +366,16 @@ export function mergeRecurringItems(
         section: r.section,
         mealNames: ['Recurring'],
         isStaple: false,
+        isOptional: false, // recurring items are always required
       }
       result.push(standalone)
       byName.set(norm, standalone)
       continue
     }
     if (!match.mealNames.includes('Recurring')) match.mealNames.push('Recurring')
+    // A recurring item is always required, so merging it into an optional recipe
+    // item promotes the combined item to required.
+    match.isOptional = false
     const sameUnit = normalizeUnit(match.unit) === normalizeUnit(r.unit)
     if (r.quantity !== null && match.quantity !== null) {
       if (sameUnit) {
@@ -354,7 +394,7 @@ export function mergeRecurringItems(
 interface GroceryGenerationParams {
   meals: {
     name: string
-    ingredients: { name: string; quantity?: number | string; unit?: string }[]
+    ingredients: { name: string; quantity?: number | string; unit?: string; optional?: boolean }[]
   }[]
   pantryStaples: string[] // Ingredients to exclude
 }
@@ -394,7 +434,7 @@ export async function generateGroceryList(params: GroceryGenerationParams): Prom
   // (name, unit) twice; collapse them so the AI never sees — and never
   // re-emits — the duplicate.
   const meals = params.meals.map(meal => {
-    const seen = new Map<string, { name: string; quantity?: number | string; unit?: string }>()
+    const seen = new Map<string, { name: string; quantity?: number | string; unit?: string; optional?: boolean }>()
     for (const ing of meal.ingredients) {
       const key = `${normalizeItemName(ing.name)}|${normalizeUnit(ing.unit)}`
       const prev = seen.get(key)
@@ -406,6 +446,8 @@ export async function generateGroceryList(params: GroceryGenerationParams): Prom
       if (typeof prev.quantity === 'number' && typeof ing.quantity === 'number') {
         prev.quantity += ing.quantity
       }
+      // Optional only survives if every duplicate entry was optional.
+      prev.optional = Boolean(prev.optional) && Boolean(ing.optional)
     }
     return { name: meal.name, ingredients: Array.from(seen.values()) }
   })
@@ -435,7 +477,8 @@ ${meals.map(m => `### ${m.name}
 ${m.ingredients.map(i => {
   const qty = i.quantity !== undefined ? i.quantity : ''
   const unit = i.unit || ''
-  return `- ${qty} ${unit} ${i.name}`.trim()
+  const opt = i.optional ? ' [optional]' : ''
+  return `- ${qty} ${unit} ${i.name}${opt}`.trim()
 }).join('\n')}`).join('\n\n')}
 
 ## Pantry Staples (EXCLUDE these from the final list)
@@ -489,7 +532,8 @@ Assign each item to the most appropriate section. These match a specific grocery
 - SPICES: Dried spices, seasonings, extracts (cumin, paprika, oregano, thyme, cinnamon, vanilla)
 - PANTRY: Cereal, oatmeal, snacks, crackers, nuts, rice, quinoa, flour, sugar, honey, syrup, cooking oils (olive oil, sesame oil), vinegar, salad dressing, ketchup, mustard, mayo, broth/stock, peanut sauce, condiments, coffee, tea
 - PASTA_CANNED: Pasta/noodles, canned tomatoes, canned beans (chickpeas, black beans, kidney beans), canned corn, canned tuna, tomato/alfredo sauce, arborio rice
-- ASIAN_MEXICAN: Soy sauce, hoisin, oyster sauce, fish sauce, sriracha, curry paste, miso, gochujang, coconut milk, salsa, taco shells, crunchy shells, dried chili peppers, thai chilis, Indian ingredients
+- ASIAN_MEXICAN: Soy sauce, hoisin, fish sauce, sriracha, curry paste, miso, gochujang, coconut milk, salsa, taco shells, crunchy shells, dried chili peppers, thai chilis, Indian ingredients
+- ASIAN_STORE: Items bought at a dedicated Asian grocery store — vermicelli/rice noodles, white/brown/jasmine rice, oyster sauce, furikake, natto, lemongrass
 - BEVERAGES: Juice, soda, wine, beer, specialty drinks
 - OTHER: Anything that doesn't fit above (household items, non-food)
 
@@ -500,6 +544,11 @@ Mark isStaple: true for common items that most people have:
 
 ### 5. Meal Attribution
 Track which meals need each ingredient in mealNames array.
+
+### 5b. Optional Ingredients
+Some ingredients above are suffixed with "[optional]". Set isOptional: true for an
+item ONLY when EVERY source ingredient that maps to it was marked optional. If the
+same ingredient is required in any meal, set isOptional: false. Default to false.
 
 ### 6. Display Text Format
 Create human-readable displayText:
@@ -555,7 +604,7 @@ export async function parseIngredient(ingredientText: string): Promise<{
     section: z.enum([
       'BREAD_BAKERY', 'DELI_CHEESE', 'FROZEN_FISH', 'MEAT_POULTRY',
       'PRODUCE', 'EGGS_DAIRY', 'FROZEN', 'SPICES', 'PANTRY',
-      'PASTA_CANNED', 'ASIAN_MEXICAN', 'BEVERAGES', 'OTHER',
+      'PASTA_CANNED', 'ASIAN_MEXICAN', 'ASIAN_STORE', 'BEVERAGES', 'OTHER',
     ]),
   })
 
@@ -601,7 +650,7 @@ export async function parseIngredients(ingredients: string[]): Promise<Array<{
       section: z.enum([
         'BREAD_BAKERY', 'DELI_CHEESE', 'FROZEN_FISH', 'MEAT_POULTRY',
         'PRODUCE', 'EGGS_DAIRY', 'FROZEN', 'SPICES', 'PANTRY',
-        'PASTA_CANNED', 'ASIAN_MEXICAN', 'BEVERAGES', 'OTHER',
+        'PASTA_CANNED', 'ASIAN_MEXICAN', 'ASIAN_STORE', 'BEVERAGES', 'OTHER',
       ]),
     })),
   })
@@ -652,10 +701,22 @@ export function _clearSuggestSectionCache() {
 }
 
 function computeSection(name: string): StoreSection {
+  // ── 0. Asian grocery store — items bought at a dedicated Asian market. Runs
+  //       BEFORE both ASIAN_MEXICAN and the pantry/produce matchers so staples
+  //       like rice and oyster sauce route here instead of PANTRY/ASIAN_MEXICAN.
+  if (/\b(vermicelli|rice noodles?|rice vermicelli|white rice|brown rice|jasmine rice|basmati rice|sushi rice|oyster sauce|furikake|natto|lemongrass)\b/.test(name)) {
+    return 'ASIAN_STORE'
+  }
+  // Bare "rice" (not a compound like "rice cereal"/"wild rice blend") → Asian store.
+  if (/\brice\b/.test(name) && !/\b(rice cereal|rice krispies|rice cake|rice paper|rice wine|rice vinegar|arborio|risotto)\b/.test(name)) {
+    return 'ASIAN_STORE'
+  }
+
   // ── 1. High-specificity compound patterns (run BEFORE generic matchers) ──
 
   // Asian/Mexican — must beat the pantry/produce single-word matchers below.
-  if (/\b(soy sauce|hoisin|oyster sauce|fish sauce|sriracha|curry paste|miso|gochujang|sambal|coconut milk|salsa|taco shells?|crunchy shells?|thai chili|dried chili|chili peppers?|tortilla chips?)\b/.test(name)) {
+  // (oyster sauce moved to ASIAN_STORE above.)
+  if (/\b(soy sauce|hoisin|fish sauce|sriracha|curry paste|miso|gochujang|sambal|coconut milk|salsa|taco shells?|crunchy shells?|thai chili|dried chili|chili peppers?|tortilla chips?)\b/.test(name)) {
     return 'ASIAN_MEXICAN'
   }
 

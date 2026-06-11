@@ -16,6 +16,7 @@ export type StoreSection =
   | 'PANTRY'
   | 'PASTA_CANNED'
   | 'ASIAN_MEXICAN'
+  | 'ASIAN_STORE'
   | 'BEVERAGES'
   | 'OTHER'
 export type RecipeSource = 'PAPRIKA' | 'CUSTOM' | 'AI_DISCOVERED' | 'WEB_IMPORT'
@@ -303,6 +304,7 @@ export const STORE_SECTION_LABELS: Record<StoreSection, string> = {
   PANTRY: 'Pantry – Cereal/Snacks/Etc',
   PASTA_CANNED: 'Pasta & Canned Goods',
   ASIAN_MEXICAN: 'Asian/Mexican',
+  ASIAN_STORE: 'Asian Store',
   BEVERAGES: 'Beverages',
   OTHER: 'Other',
 }

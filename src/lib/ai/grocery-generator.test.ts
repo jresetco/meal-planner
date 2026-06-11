@@ -6,6 +6,7 @@ import {
   validateMealNames,
   ensureAllIngredientsPresent,
   mergeRecurringItems,
+  applySynonyms,
   type GeneratedGroceryItem,
 } from './grocery-generator'
 
@@ -18,6 +19,7 @@ function gItem(
     mealNames?: string[]
     section?: GeneratedGroceryItem['section']
     isStaple?: boolean
+    isOptional?: boolean
   } = {}
 ): GeneratedGroceryItem {
   const amount = opts.amount === undefined ? 1 : opts.amount
@@ -34,6 +36,7 @@ function gItem(
     section: opts.section ?? 'OTHER',
     mealNames: opts.mealNames ?? ['Meal'],
     isStaple: opts.isStaple ?? false,
+    isOptional: opts.isOptional ?? false,
     notes: null,
   }
 }
@@ -64,7 +67,6 @@ describe('suggestSection — happy path', () => {
       'soy sauce',
       'low sodium soy sauce',
       'hoisin sauce',
-      'oyster sauce',
       'fish sauce',
       'sriracha',
       'coconut milk',
@@ -73,6 +75,33 @@ describe('suggestSection — happy path', () => {
       'salsa verde',
     ])('classifies %s as ASIAN_MEXICAN', input => {
       expect(suggestSection(input)).toBe('ASIAN_MEXICAN')
+    })
+  })
+
+  // Feature 1 — dedicated Asian grocery store section. Runs BEFORE ASIAN_MEXICAN
+  // and the pantry/produce matchers so rice and oyster sauce land here.
+  describe('Asian Store section (checked first to win over pantry/ASIAN_MEXICAN)', () => {
+    it.each([
+      'vermicelli noodles',
+      'rice noodles',
+      'white rice',
+      'brown rice',
+      'jasmine rice',
+      'oyster sauce',
+      'furikake',
+      'natto',
+      'lemongrass',
+      'rice', // bare rice routes to the Asian store
+    ])('classifies %s as ASIAN_STORE', input => {
+      expect(suggestSection(input)).toBe('ASIAN_STORE')
+    })
+
+    it.each([
+      ['rice vinegar', 'PANTRY'],
+      ['arborio rice', 'PASTA_CANNED'],
+      ['rice cereal', 'PANTRY'],
+    ])('does NOT route compound %s to ASIAN_STORE', (input, expected) => {
+      expect(suggestSection(input)).toBe(expected)
     })
   })
 
@@ -141,7 +170,7 @@ describe('suggestSection — happy path', () => {
   })
 
   describe('pasta & canned goods', () => {
-    it.each(['penne pasta', 'rice noodle', 'canned chickpeas', 'marinara', 'arborio rice'])(
+    it.each(['penne pasta', 'canned chickpeas', 'marinara', 'arborio rice'])(
       'classifies %s as PASTA_CANNED',
       input => {
         expect(suggestSection(input)).toBe('PASTA_CANNED')
@@ -167,7 +196,6 @@ describe('suggestSection — happy path', () => {
       'rice vinegar',
       'maple syrup',
       'honey',
-      'jasmine rice',
     ])('classifies %s as PANTRY', input => {
       expect(suggestSection(input)).toBe('PANTRY')
     })
@@ -408,7 +436,7 @@ describe('ensureAllIngredientsPresent (bug 2 — dropped ingredient safety net)'
 describe('mergeRecurringItems (bug 4 — recurring item merge)', () => {
   it('merges recurring "eggs" with recipe "egg", summing on the count unit', () => {
     const out = mergeRecurringItems(
-      [{ name: 'egg', quantity: 4, unit: null, section: 'EGGS_DAIRY', mealNames: ['Frittata'], isStaple: false }],
+      [{ name: 'egg', quantity: 4, unit: null, section: 'EGGS_DAIRY', mealNames: ['Frittata'], isStaple: false, isOptional: false }],
       [{ name: 'eggs', quantity: 18, unit: null, section: 'EGGS_DAIRY' }]
     )
     expect(out).toHaveLength(1)
@@ -418,7 +446,7 @@ describe('mergeRecurringItems (bug 4 — recurring item merge)', () => {
 
   it('sums when units match explicitly', () => {
     const out = mergeRecurringItems(
-      [{ name: 'milk', quantity: 1, unit: 'cup', section: 'EGGS_DAIRY', mealNames: ['Pancakes'], isStaple: false }],
+      [{ name: 'milk', quantity: 1, unit: 'cup', section: 'EGGS_DAIRY', mealNames: ['Pancakes'], isStaple: false, isOptional: false }],
       [{ name: 'milk', quantity: 2, unit: 'cup', section: 'EGGS_DAIRY' }]
     )
     expect(out[0].quantity).toBe(3)
@@ -426,7 +454,7 @@ describe('mergeRecurringItems (bug 4 — recurring item merge)', () => {
 
   it('takes the max when units differ (cannot safely add)', () => {
     const out = mergeRecurringItems(
-      [{ name: 'milk', quantity: 1, unit: 'cup', section: 'EGGS_DAIRY', mealNames: ['Pancakes'], isStaple: false }],
+      [{ name: 'milk', quantity: 1, unit: 'cup', section: 'EGGS_DAIRY', mealNames: ['Pancakes'], isStaple: false, isOptional: false }],
       [{ name: 'milk', quantity: 1, unit: 'gallon', section: 'EGGS_DAIRY' }]
     )
     expect(out[0].quantity).toBe(1)
@@ -436,11 +464,86 @@ describe('mergeRecurringItems (bug 4 — recurring item merge)', () => {
 
   it('appends an unmatched recurring item as a standalone entry', () => {
     const out = mergeRecurringItems(
-      [{ name: 'flour', quantity: 2, unit: 'cup', section: 'PANTRY', mealNames: ['Bread'], isStaple: false }],
+      [{ name: 'flour', quantity: 2, unit: 'cup', section: 'PANTRY', mealNames: ['Bread'], isStaple: false, isOptional: false }],
       [{ name: 'paper towels', quantity: 1, unit: null, section: 'OTHER' }]
     )
     expect(out).toHaveLength(2)
     const towels = out.find(i => i.name === 'paper towels')!
     expect(towels.mealNames).toEqual(['Recurring'])
+    expect(towels.isOptional).toBe(false)
+  })
+
+  it('promotes an optional recipe item to required when a recurring item merges in', () => {
+    const out = mergeRecurringItems(
+      [{ name: 'egg', quantity: 2, unit: null, section: 'EGGS_DAIRY', mealNames: ['Salad'], isStaple: false, isOptional: true }],
+      [{ name: 'eggs', quantity: 12, unit: null, section: 'EGGS_DAIRY' }]
+    )
+    expect(out).toHaveLength(1)
+    expect(out[0].isOptional).toBe(false)
+  })
+})
+
+// ───────────────────────── Feature 3 — applySynonyms ─────────────────────────
+describe('applySynonyms (ingredient synonym rewrite before generation)', () => {
+  const synMap = new Map<string, string>([
+    [normalizeItemName('spring onions'), 'green onions'],
+    [normalizeItemName('dark soy sauce'), 'soy sauce'],
+  ])
+
+  it('rewrites matching ingredient names to the canonical form (normalized match)', () => {
+    const meals = [
+      { name: 'Stir Fry', ingredients: [
+        { name: 'Spring Onion', quantity: 2, unit: 'bunch' }, // singular + casing → matches
+        { name: 'dark soy sauce', quantity: 1, unit: 'tbsp' },
+        { name: 'garlic', quantity: 3, unit: 'clove' },
+      ] },
+    ]
+    const out = applySynonyms(meals, synMap)
+    expect(out[0].ingredients.map(i => i.name)).toEqual(['green onions', 'soy sauce', 'garlic'])
+  })
+
+  it('preserves quantity, unit, and optional flags on rewrite', () => {
+    const meals = [
+      { name: 'X', ingredients: [{ name: 'spring onions', quantity: 5, unit: 'g', optional: true }] },
+    ]
+    const out = applySynonyms(meals, synMap)
+    expect(out[0].ingredients[0]).toEqual({ name: 'green onions', quantity: 5, unit: 'g', optional: true })
+  })
+
+  it('is a no-op when the map is empty (returns input)', () => {
+    const meals = [{ name: 'X', ingredients: [{ name: 'spring onions' }] }]
+    const out = applySynonyms(meals, new Map())
+    expect(out).toBe(meals)
+  })
+})
+
+// ───────────────────────── Feature 4 — optional ingredient flag ─────────────────────────
+describe('isOptional flag preservation through post-processes', () => {
+  it('mergeDuplicateItems: optional + required → required (AND semantics)', () => {
+    const out = mergeDuplicateItems([
+      gItem('cilantro', { unit: 'bunch', isOptional: true, mealNames: ['Tacos'] }),
+      gItem('cilantro', { unit: 'bunch', isOptional: false, mealNames: ['Soup'] }),
+    ])
+    expect(out).toHaveLength(1)
+    expect(out[0].isOptional).toBe(false)
+  })
+
+  it('mergeDuplicateItems: optional + optional stays optional', () => {
+    const out = mergeDuplicateItems([
+      gItem('chili flakes', { unit: 'tsp', isOptional: true, mealNames: ['A'] }),
+      gItem('chili flakes', { unit: 'tsp', isOptional: true, mealNames: ['B'] }),
+    ])
+    expect(out).toHaveLength(1)
+    expect(out[0].isOptional).toBe(true)
+  })
+
+  it('ensureAllIngredientsPresent: synthesizes a dropped optional ingredient with isOptional=true', () => {
+    const meals = [
+      { name: 'Garnished Bowl', ingredients: [{ name: 'sesame seeds', quantity: 1, unit: 'tsp', optional: true }] },
+    ]
+    const out = ensureAllIngredientsPresent([], meals)
+    const synth = out.find(i => i.name === 'sesame seeds')!
+    expect(synth).toBeDefined()
+    expect(synth.isOptional).toBe(true)
   })
 })

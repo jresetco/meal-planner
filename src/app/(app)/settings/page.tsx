@@ -17,6 +17,7 @@ import {
   Save,
   RefreshCw,
   Repeat,
+  Merge,
   ChevronRight,
 } from 'lucide-react'
 import type { PantryStaple, HistoricalPlan } from '@/types'
@@ -609,6 +610,24 @@ export default function SettingsPage() {
             </CardTitle>
             <CardDescription>
               Items that are automatically added to every new grocery list (milk, eggs, weekly favorites)
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      </Link>
+
+      {/* Ingredient Synonyms */}
+      <Link href="/settings/ingredient-synonyms" className="block group">
+        <Card className="hover:border-emerald-300 transition-colors">
+          <CardHeader>
+            <CardTitle className="flex items-center justify-between">
+              <span className="flex items-center gap-2">
+                <Merge className="h-5 w-5" />
+                Ingredient Synonyms
+              </span>
+              <ChevronRight className="h-5 w-5 text-muted-foreground group-hover:text-emerald-600 transition-colors" />
+            </CardTitle>
+            <CardDescription>
+              Merge ingredient variants before each list is built (e.g. &quot;spring onions&quot; → &quot;green onions&quot;)
             </CardDescription>
           </CardHeader>
         </Card>

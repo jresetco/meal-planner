@@ -20,10 +20,23 @@ import {
   AlertCircle,
   EyeOff,
   Plus,
+  FolderInput,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { STORE_SECTION_LABELS } from '@/types'
+import type { StoreSection } from '@/types'
 import { HideItemDialog } from '@/components/grocery/hide-item-dialog'
 import { AddItemDialog, type AddItemValues } from '@/components/grocery/add-item-dialog'
+
+const ALL_SECTIONS = Object.keys(STORE_SECTION_LABELS) as StoreSection[]
 
 interface GroceryItem {
   id: string
@@ -31,8 +44,10 @@ interface GroceryItem {
   quantity: number
   unit: string
   category: string
+  section: string
   isChecked: boolean
   isStaple: boolean
+  isOptional: boolean
   mealNames: string[]
 }
 
@@ -55,6 +70,7 @@ const SECTION_TO_DISPLAY: Record<string, string> = {
   PANTRY: 'Pantry – Cereal/Snacks/Etc',
   PASTA_CANNED: 'Pasta & Canned Goods',
   ASIAN_MEXICAN: 'Asian/Mexican',
+  ASIAN_STORE: 'Asian Store',
   BEVERAGES: 'Beverages',
   OTHER: 'Other',
 }
@@ -71,6 +87,7 @@ const CATEGORY_ORDER = [
   'Pantry – Cereal/Snacks/Etc',
   'Pasta & Canned Goods',
   'Asian/Mexican',
+  'Asian Store',
   'Beverages',
   'Other',
 ]
@@ -101,7 +118,7 @@ export default function GroceryListPage() {
     isStale?: boolean
     wholeMeals?: string[]
     checkedWholeMeals?: string[]
-    items?: { id: string; name: string; section?: string; quantity?: number | null; unit?: string | null; isChecked?: boolean; isStaple?: boolean; mealNames?: string[] }[]
+    items?: { id: string; name: string; section?: string; quantity?: number | null; unit?: string | null; isChecked?: boolean; isStaple?: boolean; isOptional?: boolean; mealNames?: string[] }[]
   }) {
     setIsStale(Boolean(data.isStale))
     setWholeMeals(Array.isArray(data.wholeMeals) ? data.wholeMeals : [])
@@ -121,17 +138,24 @@ export default function GroceryListPage() {
         quantity: item.quantity ?? 0,
         unit: item.unit ?? '',
         category,
+        section: sectionKey,
         isChecked: item.isChecked || false,
         isStaple: Boolean(item.isStaple),
+        isOptional: Boolean(item.isOptional),
         mealNames: item.mealNames || [],
       })
     }
 
+    // Within each section group, sort optional items to the bottom (preserving
+    // the API's name ordering within each optional/required partition).
+    const sortOptionalLast = (arr: GroceryItem[]) =>
+      [...arr].sort((a, b) => Number(a.isOptional) - Number(b.isOptional))
+
     const orderGroup = (g: Record<string, GroceryItem[]>): GroceryCategory[] => {
-      const sorted = CATEGORY_ORDER.filter(cat => g[cat]).map(cat => ({ name: cat, items: g[cat] }))
+      const sorted = CATEGORY_ORDER.filter(cat => g[cat]).map(cat => ({ name: cat, items: sortOptionalLast(g[cat]) }))
       Object.keys(g)
         .filter(cat => !CATEGORY_ORDER.includes(cat))
-        .forEach(cat => sorted.push({ name: cat, items: g[cat] }))
+        .forEach(cat => sorted.push({ name: cat, items: sortOptionalLast(g[cat]) }))
       return sorted
     }
 
@@ -282,6 +306,54 @@ export default function GroceryListPage() {
       next.delete(itemId)
       return next
     })
+  }
+
+  // Feature 2 — permanently move an item to a different section. We optimistically
+  // relocate the item between category groups, then PATCH with persistSection so
+  // the choice is remembered for every future list (drag-and-drop intent, done as
+  // click-to-move). On failure we refetch to resync.
+  const handleMoveToSection = async (item: GroceryItem, nextSection: StoreSection) => {
+    if (nextSection === item.section) return
+    const nextCategory = SECTION_TO_DISPLAY[nextSection] || nextSection.replace(/_/g, ' ')
+
+    setCategories(prev => {
+      // Remove from current category.
+      const withoutItem = prev
+        .map(cat => ({ ...cat, items: cat.items.filter(i => i.id !== item.id) }))
+        .filter(cat => cat.items.length > 0)
+
+      const moved: GroceryItem = { ...item, section: nextSection, category: nextCategory }
+      const placeInGroup = (items: GroceryItem[]) =>
+        [...items, moved].sort((a, b) => Number(a.isOptional) - Number(b.isOptional))
+
+      const existing = withoutItem.find(cat => cat.name === nextCategory)
+      let next: GroceryCategory[]
+      if (existing) {
+        next = withoutItem.map(cat =>
+          cat.name === nextCategory ? { ...cat, items: placeInGroup(cat.items) } : cat
+        )
+      } else {
+        next = [...withoutItem, { name: nextCategory, items: [moved] }]
+      }
+      // Re-sort categories to the canonical order.
+      return [...next].sort((a, b) => {
+        const ai = CATEGORY_ORDER.indexOf(a.name)
+        const bi = CATEGORY_ORDER.indexOf(b.name)
+        return (ai === -1 ? CATEGORY_ORDER.length : ai) - (bi === -1 ? CATEGORY_ORDER.length : bi)
+      })
+    })
+
+    try {
+      const res = await fetch(`/api/plans/${planId}/grocery/${item.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ section: nextSection, persistSection: true }),
+      })
+      if (!res.ok) throw new Error('Failed to move item')
+    } catch (err) {
+      console.error('Move to section failed:', err)
+      await fetchGroceryList()
+    }
   }
 
   const handleHideConfirm = async () => {
@@ -616,9 +688,13 @@ export default function GroceryListPage() {
                         </div>
                         <div className={cn(
                           "flex-1 min-w-0 flex items-baseline gap-2 flex-wrap transition-colors text-sm",
-                          isChecked && "text-muted-foreground line-through"
+                          isChecked && "text-muted-foreground line-through",
+                          item.isOptional && !isChecked && "text-muted-foreground italic"
                         )}>
                           <span className="font-medium break-words" title={item.name}>{item.name}</span>
+                          {item.isOptional && (
+                            <span className="text-muted-foreground text-xs flex-shrink-0">(optional)</span>
+                          )}
                           {(item.quantity > 0 || item.unit) && (
                             <span className="text-muted-foreground text-xs flex-shrink-0">
                               {item.quantity > 0 ? item.quantity : ''}{item.unit ? ` ${item.unit}` : ''}
@@ -630,6 +706,38 @@ export default function GroceryListPage() {
                             </span>
                           )}
                         </div>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button
+                              type="button"
+                              className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity flex-shrink-0 p-1 rounded hover:bg-sky-100 text-muted-foreground hover:text-sky-700"
+                              aria-label={`Move ${item.name} to a different section`}
+                              title="Move to section (remembered permanently)"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <FolderInput className="h-4 w-4" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                            <DropdownMenuLabel>Move to section</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            {ALL_SECTIONS.map((s) => (
+                              <DropdownMenuItem
+                                key={s}
+                                disabled={s === item.section}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleMoveToSection(item, s)
+                                }}
+                              >
+                                {STORE_SECTION_LABELS[s]}
+                                {s === item.section && (
+                                  <Check className="ml-auto h-4 w-4 text-emerald-600" />
+                                )}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                         <button
                           type="button"
                           className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity flex-shrink-0 p-1 rounded hover:bg-amber-100 text-muted-foreground hover:text-amber-700"
@@ -685,8 +793,12 @@ export default function GroceryListPage() {
                 <CardContent className="py-1 px-2">
                   <ul className="divide-y">
                     {category.items.map((item) => (
-                      <li key={item.id} className="flex items-baseline gap-2 flex-wrap px-2 py-1.5 text-sm text-muted-foreground">
+                      <li key={item.id} className={cn(
+                        "flex items-baseline gap-2 flex-wrap px-2 py-1.5 text-sm text-muted-foreground",
+                        item.isOptional && "italic"
+                      )}>
                         <span className="font-medium break-words" title={item.name}>{item.name}</span>
+                        {item.isOptional && <span className="text-xs">(optional)</span>}
                         {(item.quantity > 0 || item.unit) && (
                           <span className="text-xs">
                             {item.quantity > 0 ? item.quantity : ''}{item.unit ? ` ${item.unit}` : ''}
