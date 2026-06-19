@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import prisma from '@/lib/db'
 import { generateGroceryList } from '@/lib/ai/grocery-generator'
+import { dedupeMealIngredients, dedupeGroceryItems } from '@/lib/grocery/dedupe'
 import { logValidationFailure } from '@/lib/logger'
 import type { StoreSection } from '@/types'
 
@@ -107,26 +108,30 @@ export async function GET(
     if (meal.recipe) {
       const recipeIngredients = (meal.recipe.ingredients as { name: string; quantity?: number | string; unit?: string }[] | undefined) || []
       if (recipeIngredients.length === 0) continue
-      meals.push({ name: meal.recipe.name, ingredients: recipeIngredients })
+      // Collapse duplicates within the recipe (e.g. an ingredient listed twice).
+      meals.push({ name: meal.recipe.name, ingredients: dedupeMealIngredients(recipeIngredients) })
     } else if (meal.isDynamic && meal.dynamicComponents) {
       const components = meal.dynamicComponents as { componentName: string; category: string; prepMethod?: string | null }[]
       const mealName = meal.customName || components.map(c => c.componentName).join(' + ')
-      const dynamicIngredients: { name: string; quantity?: number; unit?: string }[] = []
+      const dynamicIngredients: { name: string; quantity?: number | string; unit?: string }[] = []
 
       for (const comp of components) {
         const dbComponent = mealComponents.find(
           mc => mc.name.toLowerCase() === comp.componentName.toLowerCase() && mc.category === comp.category
         )
-        if (dbComponent?.typicalIngredients) {
-          const typicals = dbComponent.typicalIngredients as { name: string; quantity?: number; unit?: string }[]
+        const typicals = (dbComponent?.typicalIngredients as { name: string; quantity?: number | string; unit?: string }[] | undefined) ?? []
+        if (typicals.length > 0) {
           dynamicIngredients.push(...typicals)
         } else {
+          // No matching component, or the component has no typical ingredients
+          // defined yet — fall back to the component itself so the protein/etc.
+          // still lands on the grocery list (fixes silently-dropped proteins).
           dynamicIngredients.push({ name: comp.componentName })
         }
       }
 
       if (dynamicIngredients.length === 0) continue
-      meals.push({ name: mealName, ingredients: dynamicIngredients })
+      meals.push({ name: mealName, ingredients: dedupeMealIngredients(dynamicIngredients) })
     }
   }
 
@@ -146,8 +151,9 @@ export async function GET(
         })
       : { items: [], unmergeableItems: [] }
 
-    // Filter out staples that the AI identified
-    const nonStapleItems = generatedList.items.filter(item => !item.isStaple)
+    // Filter out staples that the AI identified, then defensively collapse any
+    // duplicate items the model emitted for the same ingredient.
+    const nonStapleItems = dedupeGroceryItems(generatedList.items.filter(item => !item.isStaple))
 
     // Save to database (fresh list, not stale)
     const groceryList = await prisma.groceryList.create({
